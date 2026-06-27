@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Wine {
+  id             String   @id @default(cuid())
+  name           String
+  producer       String?
+  vintage        Int?
+  quantity       Int      @default(1)
+  volume         Int      @default(75)
+  color          String?
+  region         String?
+  appellation    String?
+  grapeVarieties String?
+  country        String?  @default("France")
+  purchasePrice  Float?
+  marketPrice    Float?
+  notes          String?
+  rackId         String?
+  rackRow        Int?
+  rackCol        Int?
+  drinkFrom      Int?
+  drinkUntil     Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  rack Rack? @relation(fields: [rackId], references: [id])
+}
+
+model Rack {
+  id    String @id @default(cuid())
+  name  String
+  rows  Int    @default(6)
+  cols  Int    @default(12)
+  wines Wine[]
+}

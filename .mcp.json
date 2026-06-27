@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "my-cellar": {
+      "command": "node",
+      "args": [
+        "--import",
+        "tsx/esm",
+        "/Users/julienfroidefond/Sites/my-cellar/mcp-server/index.ts"
+      ]
+    }
+  }
+}
