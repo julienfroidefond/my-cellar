@@ -25,6 +25,7 @@ model Wine {
   rackId         String?
   rackRow        Int?
   rackCol        Int?
+  imageUrl       String?
   drinkFrom      Int?
   drinkUntil     Int?
   createdAt      DateTime @default(now())

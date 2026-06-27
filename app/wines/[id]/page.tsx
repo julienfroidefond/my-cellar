@@ -38,6 +38,8 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             ← Retour à la collection
           </Link>
 
+          <div className="flex items-start gap-8">
+            <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-4">
             <div
               className="w-3 h-3 rounded-full shrink-0"
@@ -72,6 +74,19 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
               <Badge label="Pays" value={wine.country} />
             )}
           </div>
+            </div>{/* end flex-1 */}
+
+            {wine.imageUrl && (
+              <div className="shrink-0 hidden sm:flex items-end pb-2" style={{ width: 90, height: 180 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={wine.imageUrl}
+                  alt={wine.name}
+                  style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.5))" }}
+                />
+              </div>
+            )}
+          </div>{/* end flex items-start */}
         </div>
       </div>
 

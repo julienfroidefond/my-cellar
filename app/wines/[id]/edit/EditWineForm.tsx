@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import ImagePicker from "@/components/ImagePicker";
 
 const COLORS = ["rouge", "blanc", "rosé"];
 const REGIONS = [
@@ -25,6 +26,7 @@ interface Wine {
   purchasePrice: number | null;
   marketPrice: number | null;
   notes: string | null;
+  imageUrl: string | null;
   drinkFrom: number | null;
   drinkUntil: number | null;
 }
@@ -32,6 +34,7 @@ interface Wine {
 export default function EditWineForm({ wine }: { wine: Wine }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState(wine.imageUrl ?? "");
   const [form, setForm] = useState({
     name: wine.name,
     producer: wine.producer ?? "",
@@ -74,6 +77,7 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
       notes: form.notes || null,
       drinkFrom: form.drinkFrom ? parseInt(form.drinkFrom) : null,
       drinkUntil: form.drinkUntil ? parseInt(form.drinkUntil) : null,
+      imageUrl: imageUrl || null,
     };
 
     await fetch(`/api/wines/${wine.id}`, {
@@ -99,6 +103,15 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
+          <Section title="Image">
+            <ImagePicker
+              wineId={wine.id}
+              wineName={wine.name}
+              currentImage={wine.imageUrl}
+              onSelect={setImageUrl}
+            />
+          </Section>
+
           <Section title="Informations principales">
             <Field label="Nom du vin *">
               <input required value={form.name} onChange={(e) => set("name", e.target.value)} style={inputStyle} />
