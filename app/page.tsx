@@ -255,56 +255,69 @@ export default async function DashboardPage() {
                   <Link
                     key={wine.id}
                     href={`/wines/${wine.id}`}
-                    className="rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02] block"
+                    className="rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02] block relative overflow-hidden"
                     style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
                   >
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="flex items-center gap-2">
-                        <div
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ background: cfg.dot, boxShadow: `0 0 6px ${cfg.dot}70` }}
+                    {/* Bottle image */}
+                    {wine.imageUrl && (
+                      <div className="absolute right-0 top-0 bottom-0 pointer-events-none" style={{ width: 80 }}>
+                        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, var(--surface-2) 0%, transparent 50%)" }} />
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={wine.imageUrl}
+                          alt=""
+                          style={{
+                            position: "absolute", bottom: 0, right: 8,
+                            height: "95%", objectFit: "contain",
+                            opacity: 0.85,
+                            filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.6))",
+                          }}
                         />
+                      </div>
+                    )}
+
+                    <div style={{ paddingRight: wine.imageUrl ? 72 : undefined }}>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-2.5 h-2.5 rounded-full shrink-0"
+                            style={{ background: cfg.dot, boxShadow: `0 0 6px ${cfg.dot}70` }}
+                          />
+                          <span
+                            className="text-xs uppercase tracking-wider"
+                            style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+                          >
+                            {colorConfig[wine.color ?? ""]?.label ?? wine.color}
+                          </span>
+                        </div>
                         <span
-                          className="text-xs uppercase tracking-wider"
-                          style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+                          className="text-xl font-bold"
+                          style={{ color: "var(--gold)", fontFamily: "var(--font-playfair)" }}
                         >
-                          {colorConfig[wine.color ?? ""]?.label ?? wine.color}
+                          {wine.marketPrice?.toFixed(0)} €
                         </span>
                       </div>
-                      <span
-                        className="text-xl font-bold"
-                        style={{ color: "var(--gold)", fontFamily: "var(--font-playfair)" }}
+                      <h3
+                        className="font-semibold mb-1 line-clamp-2 leading-snug"
+                        style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem" }}
                       >
-                        {wine.marketPrice?.toFixed(0)} €
-                      </span>
-                    </div>
-                    <h3
-                      className="font-semibold mb-1 line-clamp-2 leading-snug"
-                      style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem" }}
-                    >
-                      {wine.name}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-3">
-                      {wine.vintage && (
-                        <span
-                          className="text-xs px-2 py-0.5 rounded"
-                          style={{
-                            background: "rgba(255,255,255,0.07)",
-                            fontFamily: "var(--font-inter)",
-                            color: "var(--text-muted)",
-                          }}
-                        >
-                          {wine.vintage}
-                        </span>
-                      )}
-                      {wine.appellation && (
-                        <span
-                          className="text-xs"
-                          style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}
-                        >
-                          {wine.appellation}
-                        </span>
-                      )}
+                        {wine.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-3">
+                        {wine.vintage && (
+                          <span
+                            className="text-xs px-2 py-0.5 rounded"
+                            style={{ background: "rgba(255,255,255,0.07)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+                          >
+                            {wine.vintage}
+                          </span>
+                        )}
+                        {wine.appellation && (
+                          <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+                            {wine.appellation}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </Link>
                 );

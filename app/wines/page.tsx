@@ -15,6 +15,7 @@ interface Wine {
   appellation: string | null;
   marketPrice: number | null;
   purchasePrice: number | null;
+  imageUrl: string | null;
 }
 
 const COLOR_LABELS: Record<string, { label: string; color: string; bg: string }> = {
@@ -152,7 +153,7 @@ function WineCard({ wine, index }: { wine: Wine; index: number }) {
   return (
     <Link
       href={`/wines/${wine.id}`}
-      className="group block rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+      className="group block rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative"
       style={{
         background: "var(--surface-2)",
         border: "1px solid var(--border)",
@@ -161,15 +162,34 @@ function WineCard({ wine, index }: { wine: Wine; index: number }) {
         opacity: 0,
       }}
     >
-      {/* Top color stripe — bolder than before */}
-      <div
-        style={{
-          height: 3,
-          background: `linear-gradient(90deg, ${colorInfo.color}cc, ${colorInfo.color}66)`,
-        }}
-      />
+      {/* Top color stripe */}
+      <div style={{ height: 3, background: `linear-gradient(90deg, ${colorInfo.color}cc, ${colorInfo.color}66)` }} />
 
-      <div className="p-5">
+      {/* Bottle image — right side, fades into background */}
+      {wine.imageUrl && (
+        <div
+          className="absolute right-0 bottom-0 pointer-events-none"
+          style={{ width: 72, top: 3 }}
+        >
+          <div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(to right, var(--surface-2) 0%, transparent 45%)" }}
+          />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={wine.imageUrl}
+            alt=""
+            style={{
+              position: "absolute", bottom: 0, right: 6,
+              height: "92%", objectFit: "contain",
+              opacity: 0.88,
+              filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.5))",
+            }}
+          />
+        </div>
+      )}
+
+      <div className="p-5" style={{ paddingRight: wine.imageUrl ? 80 : undefined }}>
         <div className="flex items-start justify-between gap-3 mb-3">
           <h3
             className="font-semibold leading-snug line-clamp-2 flex-1"
