@@ -65,7 +65,7 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
       name: form.name,
       producer: form.producer || null,
       vintage: form.vintage ? parseInt(form.vintage) : null,
-      quantity: parseInt(form.quantity) || 1,
+      quantity: parseInt(form.quantity) || 0,
       volume: parseInt(form.volume) || 75,
       color: form.color || null,
       region: form.region || null,
@@ -124,7 +124,7 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
                 <input type="number" min="1900" max="2030" value={form.vintage} onChange={(e) => set("vintage", e.target.value)} style={inputStyle} />
               </Field>
               <Field label="Quantité">
-                <input type="number" min="1" value={form.quantity} onChange={(e) => set("quantity", e.target.value)} style={inputStyle} />
+                <input type="number" min="0" value={form.quantity} onChange={(e) => set("quantity", e.target.value)} style={inputStyle} />
               </Field>
               <Field label="Volume (cl)">
                 <select value={form.volume} onChange={(e) => set("volume", e.target.value)} style={inputStyle}>
