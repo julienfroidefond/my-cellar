@@ -93,6 +93,7 @@ export default function CaveInteractive({
   const [placing, setPlacing] = useState<WineRef | null>(null);
   const [selected, setSelected] = useState<WineRef | null>(null);
   const [pending, setPending] = useState<"drink" | "unrack" | "delete" | null>(null);
+  const [showLabels, setShowLabels] = useState(false);
 
   function refresh() {
     startTransition(() => router.refresh());
@@ -168,6 +169,23 @@ export default function CaveInteractive({
         </div>
       )}
 
+      {/* Toggle labels */}
+      <div className="flex justify-end mb-4">
+        <button
+          onClick={() => setShowLabels((v) => !v)}
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
+          style={{
+            fontFamily: "var(--font-inter)",
+            background: showLabels ? "rgba(196,152,60,0.18)" : "rgba(255,255,255,0.06)",
+            border: showLabels ? "1px solid rgba(196,152,60,0.35)" : "1px solid rgba(255,255,255,0.12)",
+            color: showLabels ? "var(--gold)" : "var(--text-muted)",
+          }}
+        >
+          <span style={{ fontSize: 11 }}>{showLabels ? "◉" : "○"}</span>
+          {showLabels ? "Masquer les noms" : "Afficher les noms"}
+        </button>
+      </div>
+
       {/* Racks */}
       <div className="space-y-5">
         {racks.map((rack) => {
@@ -222,6 +240,7 @@ export default function CaveInteractive({
                       rackId={rack.id}
                       numCols={rack.numCols}
                       onPlace={placeWine}
+                      labelMode={showLabels}
                     />
                     <Plank />
                   </div>
@@ -478,7 +497,7 @@ function Plank() {
 type SlotEntry = { wine: WineRef | null; slotIndex: number };
 
 function ShelfLevel({
-  frontSlots, backSlots, label, onSelect, selectedId, placing, rackId, numCols, onPlace,
+  frontSlots, backSlots, label, onSelect, selectedId, placing, rackId, numCols, onPlace, labelMode,
 }: {
   frontSlots: SlotEntry[];
   backSlots: SlotEntry[];
@@ -489,21 +508,79 @@ function ShelfLevel({
   rackId: string;
   numCols: number;
   onPlace: (w: WineRef, rackId: string, slotIndex: number, numCols: number) => void;
+  labelMode: boolean;
 }) {
+  const sharedStyle = {
+    background: "rgba(255,255,255,0.018)",
+    border: "1px solid rgba(255,255,255,0.055)",
+  };
+  const labelStyle: React.CSSProperties = {
+    fontFamily: "var(--font-inter)",
+    fontSize: "9px",
+    letterSpacing: "0.1em",
+    color: "rgba(255,255,255,0.30)",
+  };
+  const subLabelStyle: React.CSSProperties = {
+    fontFamily: "var(--font-inter)",
+    fontSize: "8px",
+    color: "rgba(255,255,255,0.28)",
+    marginBottom: 6,
+  };
+
+  if (labelMode) {
+    return (
+      <div className="rounded-xl overflow-hidden mb-0.5" style={sharedStyle}>
+        <p className="text-center pt-1.5" style={labelStyle}>{label.toUpperCase()}</p>
+        {backSlots.length > 0 && (
+          <div className="px-3 pt-2 pb-1">
+            <p style={subLabelStyle}>arrière (P2)</p>
+            <div className="space-y-0.5">
+              {backSlots.map(({ wine, slotIndex }) => (
+                <LabelRow
+                  key={slotIndex}
+                  wine={wine}
+                  dim
+                  onSelect={onSelect}
+                  isSelected={wine?.id === selectedId}
+                  placing={placing}
+                  rackId={rackId}
+                  slotIndex={slotIndex}
+                  numCols={numCols}
+                  onPlace={onPlace}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+        <div className="px-3 pt-1 pb-2">
+          <p style={subLabelStyle}>avant (P1)</p>
+          <div className="space-y-0.5">
+            {frontSlots.map(({ wine, slotIndex }) => (
+              <LabelRow
+                key={slotIndex}
+                wine={wine}
+                dim={false}
+                onSelect={onSelect}
+                isSelected={wine?.id === selectedId}
+                placing={placing}
+                rackId={rackId}
+                slotIndex={slotIndex}
+                numCols={numCols}
+                onPlace={onPlace}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div
-      className="rounded-xl overflow-hidden mb-0.5"
-      style={{ background: "rgba(255,255,255,0.018)", border: "1px solid rgba(255,255,255,0.055)" }}
-    >
-      <p
-        className="text-center pt-1.5"
-        style={{ fontFamily: "var(--font-inter)", fontSize: "9px", letterSpacing: "0.1em", color: "rgba(255,255,255,0.30)" }}
-      >
-        {label.toUpperCase()}
-      </p>
+    <div className="rounded-xl overflow-hidden mb-0.5" style={sharedStyle}>
+      <p className="text-center pt-1.5" style={labelStyle}>{label.toUpperCase()}</p>
       {backSlots.length > 0 && (
         <div className="px-4 pt-2 pb-1">
-          <p style={{ fontFamily: "var(--font-inter)", fontSize: "8px", color: "rgba(255,255,255,0.28)", marginBottom: 6 }}>arrière (P2)</p>
+          <p style={subLabelStyle}>arrière (P2)</p>
           <div className="flex gap-2">
             {backSlots.map(({ wine, slotIndex }) => (
               <Slot
@@ -520,7 +597,7 @@ function ShelfLevel({
         </div>
       )}
       <div className="px-4 pt-1 pb-3">
-        <p style={{ fontFamily: "var(--font-inter)", fontSize: "8px", color: "rgba(255,255,255,0.28)", marginBottom: 6 }}>avant (P1)</p>
+        <p style={subLabelStyle}>avant (P1)</p>
         <div className="flex gap-2">
           {frontSlots.map(({ wine, slotIndex }) => (
             <Slot
@@ -536,6 +613,81 @@ function ShelfLevel({
         </div>
       </div>
     </div>
+  );
+}
+
+// ─── LabelRow : slot en mode texte ───────────────────────────────────────────
+
+function LabelRow({
+  wine, dim, onSelect, isSelected, placing, rackId, slotIndex, numCols, onPlace,
+}: {
+  wine: WineRef | null;
+  dim: boolean;
+  onSelect: (w: WineRef) => void;
+  isSelected: boolean;
+  placing: WineRef | null;
+  rackId: string;
+  slotIndex: number;
+  numCols: number;
+  onPlace: (w: WineRef, rackId: string, slotIndex: number, numCols: number) => void;
+}) {
+  const c = wine ? (BOTTLE[wine.color ?? ""] ?? { base: "#555", hi: "#888" }) : null;
+
+  if (!wine) {
+    if (placing) {
+      return (
+        <button
+          onClick={() => onPlace(placing, rackId, slotIndex, numCols)}
+          className="flex items-center gap-2.5 w-full px-2 py-1 rounded-lg text-left transition-all hover:bg-white/5"
+          style={{ fontFamily: "var(--font-inter)" }}
+        >
+          <div
+            className="w-2.5 h-2.5 rounded-full shrink-0 flex items-center justify-center"
+            style={{ border: "1.5px dashed rgba(196,152,60,0.6)", color: "rgba(196,152,60,0.7)", fontSize: 8 }}
+          >
+            +
+          </div>
+          <span className="text-xs italic" style={{ color: "rgba(196,152,60,0.6)" }}>Placer ici</span>
+        </button>
+      );
+    }
+    return (
+      <div className="flex items-center gap-2.5 px-2 py-1">
+        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ border: "1px dashed rgba(255,255,255,0.15)" }} />
+        <span className="text-xs" style={{ color: "rgba(255,255,255,0.18)" }}>—</span>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => onSelect(wine)}
+      className="flex items-center gap-2.5 w-full px-2 py-1 rounded-lg text-left transition-all hover:bg-white/5 active:scale-[0.99]"
+      style={{
+        background: isSelected ? "rgba(196,152,60,0.1)" : "transparent",
+        outline: isSelected ? "1px solid rgba(196,152,60,0.35)" : "none",
+        opacity: dim ? 0.75 : 1,
+      }}
+    >
+      <div
+        className="w-2.5 h-2.5 rounded-full shrink-0"
+        style={{ background: c!.base, boxShadow: `0 0 5px ${c!.base}80` }}
+      />
+      <span
+        className="text-xs truncate flex-1"
+        style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
+      >
+        {wine.name}
+      </span>
+      {wine.vintage && (
+        <span
+          className="text-xs shrink-0 tabular-nums"
+          style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}
+        >
+          {wine.vintage}
+        </span>
+      )}
+    </button>
   );
 }
 
