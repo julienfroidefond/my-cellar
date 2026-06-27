@@ -4,10 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const links = [
-  { href: "/", label: "Tableau de bord" },
+  { href: "/", label: "Accueil" },
   { href: "/cave", label: "Cave" },
   { href: "/wines", label: "Vins" },
-  { href: "/wines/add", label: "+ Ajouter" },
 ];
 
 export default function Navigation() {
@@ -15,22 +14,23 @@ export default function Navigation() {
 
   return (
     <nav
-      className="sticky top-0 z-50 border-b"
+      className="sticky top-0 z-50"
       style={{
-        background: "rgba(10, 6, 8, 0.92)",
-        backdropFilter: "blur(20px)",
-        borderColor: "var(--border)",
+        background: "rgba(13, 8, 11, 0.95)",
+        backdropFilter: "blur(24px)",
+        borderBottom: "1px solid rgba(61, 34, 41, 0.9)",
+        boxShadow: "0 1px 24px rgba(0,0,0,0.4)",
       }}
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 group">
-          <span className="text-2xl">🍷</span>
+        <Link href="/" className="flex items-center gap-3">
+          <span className="text-xl">🍷</span>
           <span
-            className="text-lg tracking-widest uppercase"
+            className="text-sm tracking-[0.25em] uppercase"
             style={{
               fontFamily: "var(--font-playfair)",
               color: "var(--gold)",
-              letterSpacing: "0.2em",
+              fontWeight: 600,
             }}
           >
             Ma Cave
@@ -40,7 +40,6 @@ export default function Navigation() {
         <div className="flex items-center gap-1">
           {links.map((link) => {
             const isActive = pathname === link.href;
-            const isAdd = link.href === "/wines/add";
             return (
               <Link
                 key={link.href}
@@ -48,19 +47,27 @@ export default function Navigation() {
                 className="px-4 py-2 rounded-full text-sm transition-all duration-200"
                 style={{
                   fontFamily: "var(--font-inter)",
-                  background: isAdd
-                    ? "var(--wine-red)"
-                    : isActive
-                    ? "rgba(201, 169, 110, 0.12)"
-                    : "transparent",
-                  color: isAdd ? "white" : isActive ? "var(--gold)" : "rgba(245, 240, 235, 0.6)",
-                  border: isActive && !isAdd ? "1px solid rgba(201, 169, 110, 0.2)" : "1px solid transparent",
+                  background: isActive ? "rgba(196, 152, 60, 0.14)" : "transparent",
+                  color: isActive ? "var(--gold)" : "var(--text-muted)",
+                  border: isActive ? "1px solid rgba(196, 152, 60, 0.28)" : "1px solid transparent",
+                  fontWeight: isActive ? 500 : 400,
                 }}
               >
                 {link.label}
               </Link>
             );
           })}
+          <Link
+            href="/wines/add"
+            className="ml-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:opacity-90"
+            style={{
+              fontFamily: "var(--font-inter)",
+              background: "var(--wine-red)",
+              color: "white",
+            }}
+          >
+            + Ajouter
+          </Link>
         </div>
       </div>
     </nav>

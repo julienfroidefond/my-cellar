@@ -304,104 +304,152 @@ export default function CaveInteractive({
       {selected && (
         <div
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
+          style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(8px)" }}
           onClick={() => setSelected(null)}
         >
           <div
-            className="w-full sm:max-w-md rounded-t-3xl sm:rounded-2xl overflow-hidden"
-            style={{ background: "#160d10", border: "1px solid rgba(196,152,60,0.24)" }}
+            className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl overflow-hidden"
+            style={{ background: "#130b0e" }}
             onClick={(e) => e.stopPropagation()}
           >
             {(() => {
               const c = BOTTLE[selected.color ?? ""] ?? { base: "#333", hi: "#555", label: selected.color ?? "" };
               return (
                 <>
-                  <div style={{ height: 4, background: `linear-gradient(90deg, ${c.base}, ${c.hi} 50%, ${c.base})` }} />
-                  <div className="px-6 pt-6 pb-5">
-                    <div className="flex items-start gap-4 mb-6">
-                      <div
-                        className="shrink-0 rounded-full"
-                        style={{
-                          width: 56, height: 56,
-                          background: `radial-gradient(circle at 35% 32%, ${c.hi}ee, ${c.base}ff 55%, ${c.base})`,
-                          boxShadow: `0 4px 20px ${c.base}70`,
-                        }}
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xl font-bold leading-snug" style={{ fontFamily: "var(--font-playfair)" }}>
-                          {selected.name}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2 flex-wrap">
-                          {selected.vintage && (
-                            <span className="text-xs px-2.5 py-0.5 rounded-full" style={{ background: "rgba(255,255,255,0.09)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                              {selected.vintage}
-                            </span>
-                          )}
-                          {selected.color && (
-                            <span className="text-xs px-2.5 py-0.5 rounded-full font-medium" style={{ background: `${c.base}28`, color: c.hi, fontFamily: "var(--font-inter)" }}>
-                              {c.label}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => setSelected(null)}
-                        className="shrink-0 transition-opacity hover:opacity-80 text-lg leading-none"
-                        style={{ marginTop: 4, color: "var(--text-faint)" }}
-                      >
-                        ✕
-                      </button>
+                  {/* ── Header coloré ── */}
+                  <div
+                    className="relative px-6 pt-6 pb-8 text-center"
+                    style={{
+                      background: `linear-gradient(170deg, ${c.base}50 0%, ${c.base}20 60%, transparent 100%)`,
+                      borderBottom: `1px solid ${c.base}35`,
+                    }}
+                  >
+                    {/* Bouton fermer */}
+                    <button
+                      onClick={() => setSelected(null)}
+                      className="absolute top-4 right-5 w-8 h-8 flex items-center justify-center rounded-full transition-all hover:opacity-90"
+                      style={{ background: "rgba(255,255,255,0.08)", color: "var(--text-muted)", fontSize: 14 }}
+                    >
+                      ✕
+                    </button>
+
+                    {/* Bouteille centrée */}
+                    <div
+                      className="mx-auto mb-4 rounded-full"
+                      style={{
+                        width: 68, height: 68,
+                        background: `radial-gradient(circle at 35% 30%, ${c.hi}ff, ${c.base}ff 60%, ${c.base}cc)`,
+                        boxShadow: `0 0 0 6px ${c.base}20, 0 8px 28px ${c.base}60`,
+                      }}
+                    >
+                      <div style={{
+                        position: "relative", top: "14%", left: "20%", width: "26%", height: "15%",
+                        borderRadius: "50%", background: "rgba(255,255,255,0.42)", transform: "rotate(-30deg)",
+                      }} />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-2 mb-5">
+                    {/* Nom du vin */}
+                    <h2
+                      className="text-xl font-bold leading-snug mb-3 px-4"
+                      style={{ fontFamily: "var(--font-playfair)" }}
+                    >
+                      {selected.name}
+                    </h2>
+
+                    {/* Badges */}
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                      {selected.vintage && (
+                        <span
+                          className="text-xs px-3 py-1 rounded-full font-medium"
+                          style={{ background: "rgba(196,152,60,0.18)", color: "var(--gold)", border: "1px solid rgba(196,152,60,0.3)", fontFamily: "var(--font-inter)" }}
+                        >
+                          {selected.vintage}
+                        </span>
+                      )}
+                      {selected.color && (
+                        <span
+                          className="text-xs px-3 py-1 rounded-full font-medium"
+                          style={{ background: `${c.base}30`, color: c.hi, border: `1px solid ${c.base}50`, fontFamily: "var(--font-inter)" }}
+                        >
+                          {c.label}
+                        </span>
+                      )}
                       {selected.appellation && (
-                        <Detail label="Appellation" value={selected.appellation} />
+                        <span
+                          className="text-xs px-3 py-1 rounded-full"
+                          style={{ background: "rgba(255,255,255,0.07)", color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}
+                        >
+                          {selected.appellation}
+                        </span>
                       )}
-                      {selected.region && (
-                        <Detail label="Région" value={selected.region} />
-                      )}
-                      <Detail
-                        label="En cave"
-                        value={`${selected.totalInCellar} bouteille${selected.totalInCellar > 1 ? "s" : ""}`}
-                      />
                     </div>
+                  </div>
 
-                    <div className="flex flex-col gap-2.5">
+                  {/* ── Infos ── */}
+                  <div
+                    className="px-6 py-4 flex items-center gap-6"
+                    style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+                  >
+                    {selected.region && (
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Région</p>
+                        <p className="text-sm font-medium truncate" style={{ fontFamily: "var(--font-inter)" }}>{selected.region}</p>
+                      </div>
+                    )}
+                    <div className="shrink-0 text-center">
+                      <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>En cave</p>
+                      <p className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}>
+                        {selected.totalInCellar}
+                        <span className="text-xs font-normal ml-1" style={{ color: "var(--text-faint)" }}>btl</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* ── Actions ── */}
+                  <div className="px-5 py-5 flex flex-col gap-2.5">
+                    {/* Primaire */}
+                    <button
+                      onClick={confirmDrink}
+                      disabled={!!pending}
+                      className="flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-semibold transition-all hover:brightness-110 disabled:opacity-50"
+                      style={{ fontFamily: "var(--font-inter)", background: "var(--wine-red)", color: "#fff", boxShadow: "0 4px 16px rgba(160,28,46,0.45)" }}
+                    >
+                      {pending === "drink" ? "En cours…" : (
+                        <><span>🍷</span> Boire une bouteille</>
+                      )}
+                    </button>
+
+                    {/* Secondaires */}
+                    <div className="flex gap-2">
                       <Link
                         href={`/wines/${selected.id}`}
-                        className="flex items-center justify-center py-3 rounded-xl text-sm font-medium transition-opacity hover:opacity-80"
-                        style={{ fontFamily: "var(--font-inter)", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.12)" }}
+                        className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium transition-opacity hover:opacity-80"
+                        style={{ fontFamily: "var(--font-inter)", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
                         onClick={() => setSelected(null)}
                       >
-                        Voir la fiche complète
+                        Voir la fiche
                       </Link>
-                      <button
-                        onClick={confirmDrink}
-                        disabled={!!pending}
-                        className="flex items-center justify-center py-3 rounded-xl text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
-                        style={{ fontFamily: "var(--font-inter)", background: "var(--wine-red)", color: "#fff" }}
-                      >
-                        {pending === "drink" ? "En cours…" : "🍷 Boire une bouteille"}
-                      </button>
                       {selected.rackId && (
                         <button
                           onClick={confirmUnrack}
                           disabled={!!pending}
-                          className="flex items-center justify-center py-3 rounded-xl text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
-                          style={{ fontFamily: "var(--font-inter)", background: "rgba(196,152,60,0.12)", color: "var(--gold)", border: "1px solid rgba(196,152,60,0.28)" }}
+                          className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
+                          style={{ fontFamily: "var(--font-inter)", background: "rgba(196,152,60,0.10)", color: "var(--gold)", border: "1px solid rgba(196,152,60,0.25)" }}
                         >
-                          {pending === "unrack" ? "En cours…" : "↩ Retirer de la cave"}
+                          {pending === "unrack" ? "…" : "↩ Retirer"}
                         </button>
                       )}
-                      <button
-                        onClick={confirmDelete}
-                        disabled={!!pending}
-                        className="flex items-center justify-center py-3 rounded-xl text-sm font-medium transition-opacity hover:opacity-90 disabled:opacity-50"
-                        style={{ fontFamily: "var(--font-inter)", background: "rgba(255,255,255,0.03)", color: "rgba(255,80,80,0.78)", border: "1px solid rgba(255,80,80,0.18)" }}
-                      >
-                        {pending === "delete" ? "En cours…" : "🗑 Retirer du stock"}
-                      </button>
                     </div>
+
+                    {/* Danger */}
+                    <button
+                      onClick={confirmDelete}
+                      disabled={!!pending}
+                      className="flex items-center justify-center py-2.5 rounded-2xl text-xs font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
+                      style={{ fontFamily: "var(--font-inter)", color: "rgba(255,80,80,0.65)", border: "1px solid rgba(255,80,80,0.12)" }}
+                    >
+                      {pending === "delete" ? "En cours…" : "🗑 Retirer définitivement du stock"}
+                    </button>
                   </div>
                 </>
               );
@@ -513,10 +561,10 @@ function Slot({
         >
           <div style={{
             width: size * 0.82, height: size * 0.82, borderRadius: "50%",
-            border: "1.5px dashed rgba(201,169,110,0.5)",
+            border: "1.5px dashed rgba(196,152,60,0.6)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            color: "rgba(201,169,110,0.6)", fontSize: size * 0.38, lineHeight: 1,
-            background: "rgba(201,169,110,0.06)",
+            color: "rgba(196,152,60,0.7)", fontSize: size * 0.38, lineHeight: 1,
+            background: "rgba(196,152,60,0.07)",
           }}>
             +
           </div>
@@ -525,7 +573,7 @@ function Slot({
     }
     return (
       <div style={{ width: size, height: size, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: size * 0.72, height: size * 0.72, borderRadius: "50%", border: "1px dashed rgba(255,255,255,0.08)" }} />
+        <div style={{ width: size * 0.72, height: size * 0.72, borderRadius: "50%", border: "1px dashed rgba(255,255,255,0.15)" }} />
       </div>
     );
   }
@@ -545,15 +593,15 @@ function Slot({
     >
       <div style={{
         width: "100%", height: "100%", borderRadius: "50%",
-        background: `radial-gradient(circle at 35% 32%, ${c.hi}cc, ${c.base}ee 55%, ${c.base})`,
+        background: `radial-gradient(circle at 35% 32%, ${c.hi}ee, ${c.base}ff 55%, ${c.base})`,
         boxShadow: isSelected
-          ? `0 0 0 2.5px #c9a96e, 0 4px 12px ${c.base}88`
-          : `0 2px 6px ${c.base}44, inset 0 1px 2px rgba(255,255,255,0.16)`,
+          ? `0 0 0 2.5px var(--gold), 0 4px 14px ${c.base}90`
+          : `0 2px 8px ${c.base}55, inset 0 1px 2px rgba(255,255,255,0.2)`,
         transition: "box-shadow 0.15s",
       }}>
         <div style={{
-          position: "absolute", top: "15%", left: "20%", width: "27%", height: "17%",
-          borderRadius: "50%", background: "rgba(255,255,255,0.35)", transform: "rotate(-30deg)",
+          position: "absolute", top: "15%", left: "20%", width: "26%", height: "16%",
+          borderRadius: "50%", background: "rgba(255,255,255,0.40)", transform: "rotate(-30deg)",
         }} />
       </div>
     </button>
@@ -564,9 +612,9 @@ function Slot({
 
 function Detail({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.04)" }}>
-      <p className="text-xs opacity-35 mb-0.5" style={{ fontFamily: "var(--font-inter)" }}>{label}</p>
-      <p className="text-sm font-medium" style={{ fontFamily: "var(--font-playfair)" }}>{value}</p>
+    <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+      <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>{label}</p>
+      <p className="text-sm font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>{value}</p>
     </div>
   );
 }

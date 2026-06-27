@@ -2,11 +2,12 @@ import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import DeleteWineButton from "./DeleteWineButton";
+import { decodeSlot, slotLabel } from "@/lib/rack-configs";
 
-const COLOR_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  rouge: { label: "Rouge", color: "#8b1a2f", bg: "rgba(139, 26, 47, 0.2)" },
-  blanc: { label: "Blanc", color: "#c9a96e", bg: "rgba(201, 169, 110, 0.15)" },
-  rosé: { label: "Rosé", color: "#dc7882", bg: "rgba(220, 120, 130, 0.15)" },
+const COLOR_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
+  rouge: { label: "Rouge", color: "#c02030", bg: "rgba(160, 28, 46, 0.20)", border: "rgba(160, 28, 46, 0.40)" },
+  blanc: { label: "Blanc", color: "#c4983c", bg: "rgba(196, 152, 60, 0.15)", border: "rgba(196, 152, 60, 0.35)" },
+  rosé:  { label: "Rosé",  color: "#d4647a", bg: "rgba(210, 100, 120, 0.15)", border: "rgba(210, 100, 120, 0.35)" },
 };
 
 export default async function WineDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -14,37 +15,39 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
   const wine = await prisma.wine.findUnique({ where: { id }, include: { rack: true } });
   if (!wine) notFound();
 
-  const colorConfig = COLOR_CONFIG[wine.color ?? ""] ?? {
+  const cfg = COLOR_CONFIG[wine.color ?? ""] ?? {
     label: wine.color ?? "Inconnu",
     color: "#666",
     bg: "rgba(255,255,255,0.05)",
+    border: "rgba(255,255,255,0.12)",
   };
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      {/* Header banner */}
+      {/* Header */}
       <div
         className="relative overflow-hidden"
-        style={{ background: `linear-gradient(180deg, ${colorConfig.bg} 0%, var(--background) 100%)` }}
+        style={{ background: `linear-gradient(160deg, ${cfg.bg} 0%, var(--background) 60%)`, borderBottom: `1px solid ${cfg.border}` }}
       >
-        <div className="max-w-4xl mx-auto px-6 py-16">
+        <div className="max-w-4xl mx-auto px-6 pt-10 pb-14">
           <Link
             href="/wines"
-            className="inline-flex items-center gap-2 text-sm mb-8 opacity-50 hover:opacity-100 transition-opacity"
-            style={{ fontFamily: "var(--font-inter)" }}
+            className="inline-flex items-center gap-2 text-sm mb-8 transition-opacity hover:opacity-100"
+            style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
           >
             ← Retour à la collection
           </Link>
 
-          {/* Color badge */}
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-3 h-3 rounded-full" style={{ background: colorConfig.color }} />
+            <div
+              className="w-3 h-3 rounded-full shrink-0"
+              style={{ background: cfg.color, boxShadow: `0 0 8px ${cfg.color}80` }}
+            />
             <span
-              className="text-sm tracking-widest uppercase opacity-60"
-              style={{ fontFamily: "var(--font-inter)" }}
+              className="text-xs tracking-[0.2em] uppercase font-medium"
+              style={{ fontFamily: "var(--font-inter)", color: cfg.color }}
             >
-              {colorConfig.label}
-              {wine.appellation && ` · ${wine.appellation}`}
+              {cfg.label}{wine.appellation && ` · ${wine.appellation}`}
             </span>
           </div>
 
@@ -56,16 +59,13 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
           </h1>
 
           {wine.producer && (
-            <p className="text-lg opacity-50 mb-8" style={{ fontFamily: "var(--font-inter)" }}>
+            <p className="text-lg mb-8" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
               {wine.producer}
             </p>
           )}
 
-          {/* Key info */}
           <div className="flex flex-wrap gap-3">
-            {wine.vintage && (
-              <Badge label="Millésime" value={wine.vintage.toString()} />
-            )}
+            {wine.vintage && <Badge label="Millésime" value={wine.vintage.toString()} accent />}
             <Badge label="Bouteilles" value={`${wine.quantity} × ${wine.volume}cl`} />
             {wine.region && <Badge label="Région" value={wine.region} />}
             {wine.country && wine.country !== "France" && (
@@ -76,19 +76,19 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
       </div>
 
       <div className="max-w-4xl mx-auto px-6 py-12">
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Details */}
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Détails */}
           <div
             className="rounded-2xl p-6"
             style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
           >
             <h2
-              className="text-lg font-semibold mb-5"
-              style={{ fontFamily: "var(--font-playfair)" }}
+              className="text-base font-semibold mb-5 pb-4"
+              style={{ fontFamily: "var(--font-playfair)", borderBottom: "1px solid var(--border)" }}
             >
               Détails
             </h2>
-            <dl className="space-y-4">
+            <dl className="space-y-3.5">
               {[
                 { label: "Nom complet", value: wine.name },
                 { label: "Producteur", value: wine.producer },
@@ -104,14 +104,14 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                 .map(({ label, value }) => (
                   <div key={label} className="flex justify-between gap-4">
                     <dt
-                      className="text-sm opacity-40 shrink-0"
-                      style={{ fontFamily: "var(--font-inter)" }}
+                      className="text-sm shrink-0"
+                      style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}
                     >
                       {label}
                     </dt>
                     <dd
-                      className="text-sm text-right"
-                      style={{ fontFamily: "var(--font-inter)" }}
+                      className="text-sm text-right font-medium"
+                      style={{ fontFamily: "var(--font-inter)", color: "var(--foreground)" }}
                     >
                       {value}
                     </dd>
@@ -120,23 +120,22 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             </dl>
           </div>
 
-          {/* Prix & Position */}
           <div className="space-y-4">
-            {/* Prix */}
+            {/* Valorisation */}
             <div
               className="rounded-2xl p-6"
               style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
             >
               <h2
-                className="text-lg font-semibold mb-5"
-                style={{ fontFamily: "var(--font-playfair)" }}
+                className="text-base font-semibold mb-5 pb-4"
+                style={{ fontFamily: "var(--font-playfair)", borderBottom: "1px solid var(--border)" }}
               >
                 Valorisation
               </h2>
-              <div className="space-y-4">
+              <div className="space-y-5">
                 {wine.purchasePrice != null && (
                   <div>
-                    <p className="text-xs opacity-40 mb-1" style={{ fontFamily: "var(--font-inter)" }}>
+                    <p className="text-xs mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
                       Prix d&apos;achat
                     </p>
                     <p className="text-2xl font-bold" style={{ fontFamily: "var(--font-playfair)" }}>
@@ -146,7 +145,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                 )}
                 {wine.marketPrice != null && (
                   <div>
-                    <p className="text-xs opacity-40 mb-1" style={{ fontFamily: "var(--font-inter)" }}>
+                    <p className="text-xs mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
                       Estimation marché
                     </p>
                     <p
@@ -156,14 +155,14 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                       {wine.marketPrice.toFixed(2)} €
                     </p>
                     {wine.quantity > 1 && (
-                      <p className="text-sm opacity-40 mt-1" style={{ fontFamily: "var(--font-inter)" }}>
+                      <p className="text-sm mt-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
                         Lot : {(wine.marketPrice * wine.quantity).toFixed(2)} €
                       </p>
                     )}
                   </div>
                 )}
                 {wine.marketPrice == null && wine.purchasePrice == null && (
-                  <p className="opacity-30 text-sm" style={{ fontFamily: "var(--font-inter)" }}>
+                  <p className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
                     Aucun prix renseigné
                   </p>
                 )}
@@ -171,42 +170,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             </div>
 
             {/* Position cave */}
-            {wine.rack && (
-              <div
-                className="rounded-2xl p-6"
-                style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
-              >
-                <h2
-                  className="text-lg font-semibold mb-4"
-                  style={{ fontFamily: "var(--font-playfair)" }}
-                >
-                  Position en cave
-                </h2>
-                <p className="text-sm opacity-60 mb-3" style={{ fontFamily: "var(--font-inter)" }}>
-                  {wine.rack.name}
-                </p>
-                {wine.rackRow != null && wine.rackCol != null && (
-                  <div className="flex gap-4">
-                    <div>
-                      <p className="text-xs opacity-40" style={{ fontFamily: "var(--font-inter)" }}>
-                        Rangée
-                      </p>
-                      <p className="text-xl font-bold" style={{ fontFamily: "var(--font-playfair)" }}>
-                        {wine.rackRow + 1}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs opacity-40" style={{ fontFamily: "var(--font-inter)" }}>
-                        Colonne
-                      </p>
-                      <p className="text-xl font-bold" style={{ fontFamily: "var(--font-playfair)" }}>
-                        {wine.rackCol + 1}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+            <CavePosition wine={wine} />
 
             {/* Notes */}
             {wine.notes && (
@@ -215,12 +179,12 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                 style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
               >
                 <h2
-                  className="text-lg font-semibold mb-3"
-                  style={{ fontFamily: "var(--font-playfair)" }}
+                  className="text-base font-semibold mb-3 pb-4"
+                  style={{ fontFamily: "var(--font-playfair)", borderBottom: "1px solid var(--border)" }}
                 >
                   Notes
                 </h2>
-                <p className="text-sm opacity-70 leading-relaxed" style={{ fontFamily: "var(--font-inter)" }}>
+                <p className="text-sm leading-relaxed" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
                   {wine.notes}
                 </p>
               </div>
@@ -229,14 +193,15 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
         </div>
 
         {/* Actions */}
-        <div className="flex gap-4 mt-10 pt-8" style={{ borderTop: "1px solid var(--border)" }}>
+        <div className="flex gap-3 mt-10 pt-8" style={{ borderTop: "1px solid var(--border)" }}>
           <Link
             href={`/wines/${wine.id}/edit`}
-            className="px-5 py-2.5 rounded-full text-sm"
+            className="px-5 py-2.5 rounded-full text-sm transition-all hover:opacity-80"
             style={{
               background: "var(--surface-2)",
               border: "1px solid var(--border)",
               fontFamily: "var(--font-inter)",
+              color: "var(--text-muted)",
             }}
           >
             Modifier
@@ -248,16 +213,170 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
   );
 }
 
-function Badge({ label, value }: { label: string; value: string }) {
+function CavePosition({ wine }: {
+  wine: {
+    rack: { name: string } | null;
+    rackRow: number | null;
+    rackCol: number | null;
+    quantity: number;
+  }
+}) {
+  if (!wine.rack) {
+    return (
+      <div
+        className="rounded-2xl p-6"
+        style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+      >
+        <h2
+          className="text-base font-semibold mb-4 pb-4"
+          style={{ fontFamily: "var(--font-playfair)", borderBottom: "1px solid var(--border)" }}
+        >
+          Position en cave
+        </h2>
+        <div className="flex items-center gap-3">
+          <div className="w-2 h-2 rounded-full shrink-0" style={{ background: "rgba(255,255,255,0.2)" }} />
+          <p className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+            Non rangée
+          </p>
+          <Link
+            href="/cave"
+            className="ml-auto text-xs px-3 py-1.5 rounded-full transition-opacity hover:opacity-80"
+            style={{ fontFamily: "var(--font-inter)", color: "var(--gold)", border: "1px solid rgba(196,152,60,0.3)", background: "rgba(196,152,60,0.08)" }}
+          >
+            Ranger →
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const decoded =
+    wine.rackRow != null && wine.rackCol != null
+      ? decodeSlot(wine.rack.name, wine.rackRow, wine.rackCol, wine.quantity)
+      : null;
+
   return (
     <div
-      className="px-4 py-2 rounded-xl"
-      style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--border)" }}
+      className="rounded-2xl p-6"
+      style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
     >
-      <p className="text-xs opacity-40 mb-0.5" style={{ fontFamily: "var(--font-inter)" }}>
+      <div className="flex items-center justify-between mb-4 pb-4" style={{ borderBottom: "1px solid var(--border)" }}>
+        <h2 className="text-base font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>
+          Position en cave
+        </h2>
+        <Link
+          href="/cave"
+          className="text-xs transition-opacity hover:opacity-80"
+          style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}
+        >
+          Voir la cave →
+        </Link>
+      </div>
+
+      {/* Badge casier */}
+      <div className="flex items-center gap-3 mb-5">
+        <span
+          className="px-3 py-1.5 rounded-lg text-sm font-bold tracking-wide"
+          style={{ background: "#a05828", color: "#fff", fontFamily: "var(--font-inter)" }}
+        >
+          Casier {wine.rack.name}
+        </span>
+        <span className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+          {wine.quantity} bouteille{wine.quantity > 1 ? "s" : ""}
+        </span>
+      </div>
+
+      {decoded ? (
+        <div className="space-y-3">
+          {/* Étagère + côté */}
+          <div className="grid grid-cols-2 gap-3">
+            <div
+              className="rounded-xl p-3.5"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+            >
+              <p className="text-xs mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+                Étagère
+              </p>
+              <p className="text-xl font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}>
+                {decoded.start.totalLevels - decoded.start.levelIndex}
+                <span className="text-xs font-normal ml-1.5" style={{ color: "var(--text-faint)" }}>
+                  / {decoded.start.totalLevels}
+                </span>
+              </p>
+            </div>
+            <div
+              className="rounded-xl p-3.5"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+            >
+              <p className="text-xs mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+                Rangée
+              </p>
+              <p className="text-base font-semibold capitalize" style={{ fontFamily: "var(--font-inter)" }}>
+                {decoded.start.side}
+              </p>
+            </div>
+          </div>
+
+          {/* Position(s) */}
+          <div
+            className="rounded-xl p-3.5"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+          >
+            <p className="text-xs mb-1.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+              {wine.quantity > 1 ? "Emplacements" : "Emplacement"}
+            </p>
+            {wine.quantity > 1 && decoded.end ? (
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}>
+                  {decoded.start.col + 1}
+                </span>
+                <span style={{ color: "var(--text-faint)" }}>→</span>
+                <span className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}>
+                  {decoded.end.col + 1}
+                </span>
+                <span className="text-xs ml-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+                  sur {decoded.start.colsInRow}
+                </span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}>
+                  {decoded.start.col + 1}
+                </span>
+                <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+                  sur {decoded.start.colsInRow}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        wine.rackRow != null && wine.rackCol != null && (
+          <p className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+            Ligne {wine.rackRow + 1}, position {wine.rackCol + 1}
+          </p>
+        )
+      )}
+    </div>
+  );
+}
+
+function Badge({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+  return (
+    <div
+      className="px-4 py-2.5 rounded-xl"
+      style={{
+        background: accent ? "rgba(196, 152, 60, 0.12)" : "rgba(255,255,255,0.05)",
+        border: accent ? "1px solid rgba(196, 152, 60, 0.28)" : "1px solid var(--border)",
+      }}
+    >
+      <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
         {label}
       </p>
-      <p className="text-sm font-medium" style={{ fontFamily: "var(--font-inter)" }}>
+      <p
+        className="text-sm font-semibold"
+        style={{ fontFamily: "var(--font-inter)", color: accent ? "var(--gold)" : "var(--foreground)" }}
+      >
         {value}
       </p>
     </div>
