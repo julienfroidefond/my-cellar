@@ -63,16 +63,28 @@ function WinesContent() {
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
 
-  const [filters, setFilters] = useState<Filters>({
-    color:    searchParams.get("color")    ?? "",
-    country:  searchParams.get("country")  ?? "",
-    region:   searchParams.get("region")   ?? "",
-    grape:    searchParams.get("grape")    ?? "",
-    priceMin: searchParams.get("priceMin") ?? "",
-    priceMax: searchParams.get("priceMax") ?? "",
-    stock:    (searchParams.get("stock")  as Filters["stock"])  ?? "",
-    racked:   (searchParams.get("racked") as Filters["racked"]) ?? "",
-    search:   searchParams.get("search")   ?? "",
+  const [filters, setFilters] = useState<Filters>(() => {
+    // URL params have highest priority (shareable links, dashboard clicks)
+    const fromUrl: Filters = {
+      color:    searchParams.get("color")    ?? "",
+      country:  searchParams.get("country")  ?? "",
+      region:   searchParams.get("region")   ?? "",
+      grape:    searchParams.get("grape")    ?? "",
+      priceMin: searchParams.get("priceMin") ?? "",
+      priceMax: searchParams.get("priceMax") ?? "",
+      stock:    (searchParams.get("stock")  as Filters["stock"])  ?? "",
+      racked:   (searchParams.get("racked") as Filters["racked"]) ?? "",
+      search:   searchParams.get("search")   ?? "",
+    };
+    if (Object.values(fromUrl).some(Boolean)) return fromUrl;
+
+    // Restore from localStorage (search is intentionally excluded)
+    try {
+      const saved = localStorage.getItem("wine-filters");
+      if (saved) return { ...EMPTY_FILTERS, ...JSON.parse(saved), search: "" };
+    } catch {}
+
+    return EMPTY_FILTERS;
   });
 
   // Fetch once, filter client-side
@@ -82,8 +94,11 @@ function WinesContent() {
       .then(data => { setAllWines(data); setLoading(false); });
   }, []);
 
-  // Sync to URL (for shareable links + back-nav from dashboard)
+  // Persist to localStorage + sync URL
   useEffect(() => {
+    const { search: _, ...toSave } = filters;
+    try { localStorage.setItem("wine-filters", JSON.stringify(toSave)); } catch {}
+
     const p = new URLSearchParams();
     for (const [k, v] of Object.entries(filters)) if (v) p.set(k, v as string);
     router.replace(`/wines${p.toString() ? `?${p}` : ""}`, { scroll: false });
