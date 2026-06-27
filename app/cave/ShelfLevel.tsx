@@ -265,7 +265,11 @@ function Slot({
           <img
             src={wine.imageUrl}
             alt=""
-            style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 38%" }}
+            style={{
+              width: "100%", height: "100%",
+              objectFit: "cover",
+              objectPosition: "center 55%",
+            }}
           />
         </div>
       ) : (
