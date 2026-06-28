@@ -38,7 +38,7 @@ jobs:
         env:
           DOCKER_BUILDKIT: 1
         run: |
-          docker build \
+          docker build --no-cache \
             -t ${{ env.IMAGE }}:latest \
             -t ${{ env.IMAGE }}:${{ steps.version.outputs.version }} \
             -t ${{ env.IMAGE }}:${{ steps.version.outputs.version }}-${{ steps.version.outputs.sha }} \
