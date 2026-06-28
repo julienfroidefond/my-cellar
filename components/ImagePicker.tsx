@@ -12,7 +12,7 @@ interface Props {
 const SEARCH_LINKS = [
   { label: "Vivino", url: (q: string) => `https://www.vivino.com/search/wines?q=${encodeURIComponent(q)}` },
   { label: "Wine-Searcher", url: (q: string) => `https://www.wine-searcher.com/find/${encodeURIComponent(q)}` },
-  { label: "iDealwine", url: (q: string) => `https://www.idealwine.com/vins-recherche.jsp?q=${encodeURIComponent(q)}` },
+  { label: "Google Images", url: (q: string) => `https://www.google.com/search?tbm=isch&q=${encodeURIComponent(q + " bouteille vin")}` },
 ];
 
 export default function ImagePicker({ wineId, wineName, currentImage, onSelect }: Props) {
