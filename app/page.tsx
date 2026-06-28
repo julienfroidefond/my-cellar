@@ -1,28 +1,11 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import CellarCharts from "@/components/CellarCharts";
 
-const colorConfig: Record<string, { label: string; bg: string; dot: string; border: string; text: string }> = {
-  rouge: {
-    label: "Rouge",
-    bg: "rgba(160, 28, 46, 0.08)",
-    dot: "#c02030",
-    border: "rgba(160, 28, 46, 0.20)",
-    text: "#9b1424",
-  },
-  blanc: {
-    label: "Blanc",
-    bg: "rgba(196, 152, 60, 0.08)",
-    dot: "#b87a2c",
-    border: "rgba(196, 152, 60, 0.22)",
-    text: "#8a5a1a",
-  },
-  rosé: {
-    label: "Rosé",
-    bg: "rgba(210, 100, 120, 0.08)",
-    dot: "#d4647a",
-    border: "rgba(210, 100, 120, 0.22)",
-    text: "#a03050",
-  },
+const colorConfig: Record<string, { label: string; dot: string; border: string }> = {
+  rouge: { label: "Rouge", dot: "#c02030", border: "rgba(160, 28, 46, 0.20)" },
+  blanc: { label: "Blanc", dot: "#b87a2c", border: "rgba(196, 152, 60, 0.22)" },
+  rosé: { label: "Rosé", dot: "#d4647a", border: "rgba(210, 100, 120, 0.22)" },
 };
 
 export default async function DashboardPage() {
@@ -53,8 +36,6 @@ export default async function DashboardPage() {
     .filter((w) => (w.marketPrice ?? 0) >= 30)
     .sort((a, b) => (b.marketPrice ?? 0) - (a.marketPrice ?? 0))
     .slice(0, 6);
-
-  const maxRegion = topRegions[0]?.[1] ?? 1;
 
   const winesWithImage = wines.filter((w) => w.imageUrl && w.quantity > 0);
   const heroWine = winesWithImage.length > 0
@@ -149,106 +130,6 @@ export default async function DashboardPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-14 space-y-14">
-        {/* Répartition par couleur */}
-        <section>
-          <SectionTitle eyebrow="Collection">Répartition par couleur</SectionTitle>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-            {Object.entries(byColor).map(([color, count]) => {
-              const cfg = colorConfig[color] ?? {
-                label: color,
-                bg: "rgba(26,10,14,0.04)",
-                dot: "#888",
-                border: "rgba(26,10,14,0.10)",
-                text: "var(--text-muted)",
-              };
-              const pct = Math.round((count / totalBottles) * 100);
-              return (
-                <Link
-                  href={`/wines?color=${color}`}
-                  key={color}
-                  className="rounded-2xl p-6 block transition-transform duration-200 hover:-translate-y-0.5"
-                  style={{
-                    background: "var(--surface)",
-                    border: `1px solid ${cfg.border}`,
-                    boxShadow: "0 2px 12px rgba(26,10,14,0.06)",
-                  }}
-                >
-                  <div className="flex items-center gap-3 mb-5">
-                    <div
-                      className="w-3 h-3 rounded-full shrink-0"
-                      style={{ background: cfg.dot }}
-                    />
-                    <span
-                      className="text-xs tracking-[0.15em] uppercase font-semibold"
-                      style={{ fontFamily: "var(--font-inter)", color: cfg.text }}
-                    >
-                      {cfg.label}
-                    </span>
-                  </div>
-                  <div
-                    className="text-5xl font-bold mb-1"
-                    style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
-                  >
-                    {count}
-                  </div>
-                  <div className="text-sm mb-5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                    {pct}% de la cave
-                  </div>
-                  <div className="h-1 rounded-full" style={{ background: "var(--surface-2)" }}>
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{ width: `${pct}%`, background: cfg.dot }}
-                    />
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-
-        {/* Régions */}
-        <section>
-          <SectionTitle eyebrow="Géographie">Par région</SectionTitle>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-8">
-            {topRegions.map(([region, count]) => (
-              <Link
-                href={`/wines?region=${encodeURIComponent(region)}`}
-                key={region}
-                className="rounded-xl p-4 flex items-center gap-4 transition-transform duration-200 hover:-translate-y-0.5"
-                style={{
-                  background: "var(--surface)",
-                  border: "1px solid var(--border)",
-                  boxShadow: "0 1px 6px rgba(26,10,14,0.05)",
-                }}
-              >
-                <div className="flex-1 min-w-0">
-                  <span
-                    className="font-medium text-sm block truncate"
-                    style={{ fontFamily: "var(--font-inter)", color: "var(--foreground)" }}
-                  >
-                    {region}
-                  </span>
-                  <div className="mt-2 h-1 rounded-full" style={{ background: "var(--surface-2)" }}>
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${Math.round((count / maxRegion) * 100)}%`,
-                        background: "var(--wine-red)",
-                      }}
-                    />
-                  </div>
-                </div>
-                <span
-                  className="text-sm font-bold shrink-0 w-8 text-right"
-                  style={{ color: "var(--wine-red)", fontFamily: "var(--font-playfair)" }}
-                >
-                  {count}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </section>
-
         {/* Vins premium */}
         {premiumWines.length > 0 && (
           <section>
@@ -346,6 +227,14 @@ export default async function DashboardPage() {
             </div>
           </section>
         )}
+
+        {/* Charts — couleur & région */}
+        <section>
+          <SectionTitle eyebrow="Statistiques">Répartition de la cave</SectionTitle>
+          <div className="mt-8">
+            <CellarCharts byColor={byColor} topRegions={topRegions} />
+          </div>
+        </section>
 
         {/* Quick actions */}
         <section className="flex gap-3 flex-wrap pb-8">
