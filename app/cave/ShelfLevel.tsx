@@ -254,39 +254,19 @@ function Slot({
       }}
       className="hover:scale-110 active:scale-95 transition-transform"
     >
-      {wine.imageUrl ? (
+      <div style={{
+        width: "100%", height: "100%", borderRadius: "50%",
+        background: `radial-gradient(circle at 35% 32%, ${c.hi}ee, ${c.base}ff 55%, ${c.base})`,
+        boxShadow: isSelected
+          ? `0 0 0 2.5px var(--wine-red), 0 4px 14px ${c.base}90`
+          : `0 2px 8px ${c.base}40, inset 0 1px 2px rgba(255,255,255,0.15)`,
+        transition: "box-shadow 0.15s",
+      }}>
         <div style={{
-          width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden",
-          boxShadow: isSelected
-            ? `0 0 0 2.5px var(--wine-red), 0 4px 14px ${c.base}90`
-            : `0 2px 8px ${c.base}40`,
-        }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={wine.imageUrl}
-            alt=""
-            style={{
-              width: "100%", height: "100%",
-              objectFit: "cover",
-              objectPosition: "center 55%",
-            }}
-          />
-        </div>
-      ) : (
-        <div style={{
-          width: "100%", height: "100%", borderRadius: "50%",
-          background: `radial-gradient(circle at 35% 32%, ${c.hi}ee, ${c.base}ff 55%, ${c.base})`,
-          boxShadow: isSelected
-            ? `0 0 0 2.5px var(--wine-red), 0 4px 14px ${c.base}90`
-            : `0 2px 8px ${c.base}40, inset 0 1px 2px rgba(255,255,255,0.15)`,
-          transition: "box-shadow 0.15s",
-        }}>
-          <div style={{
-            position: "absolute", top: "15%", left: "20%", width: "26%", height: "16%",
-            borderRadius: "50%", background: "rgba(255,255,255,0.40)", transform: "rotate(-30deg)",
-          }} />
-        </div>
-      )}
+          position: "absolute", top: "15%", left: "20%", width: "26%", height: "16%",
+          borderRadius: "50%", background: "rgba(255,255,255,0.40)", transform: "rotate(-30deg)",
+        }} />
+      </div>
     </button>
   );
 }
