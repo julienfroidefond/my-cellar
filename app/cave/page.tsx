@@ -146,20 +146,20 @@ export default async function CavePage() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-24">
           <p
-            className="text-xs tracking-[0.45em] uppercase mb-5 font-semibold"
+            className="animate-fade-up text-xs tracking-[0.45em] uppercase mb-5 font-semibold"
             style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}
           >
             Visualisation
           </p>
           <h1
-            className="text-6xl md:text-8xl font-bold leading-none mb-4"
+            className="animate-fade-up-1 text-6xl md:text-8xl font-bold leading-none mb-4"
             style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
           >
             Ma Cave<br />
             <span style={{ color: "var(--wine-red)" }}>à Vin</span>
           </h1>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-14 max-w-3xl">
+          <div className="animate-fade-up-2 grid grid-cols-2 md:grid-cols-4 gap-4 mt-14 max-w-3xl">
             {[
               { value: allRacks.length, label: "Casier" + (allRacks.length > 1 ? "s" : "") },
               { value: totalBottles, label: "Bouteilles rangées" },
@@ -195,7 +195,7 @@ export default async function CavePage() {
         </div>
       </div>
 
-      <div className="max-w-3xl mx-auto px-6 pb-12">
+      <div className="animate-fade-up-3 max-w-3xl mx-auto px-6 pb-12">
         {/* Legend */}
         <div className="flex items-center gap-6 mb-8 text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
           {[

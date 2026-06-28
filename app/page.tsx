@@ -119,7 +119,7 @@ export default async function DashboardPage() {
       >
         {heroWine?.imageUrl && (
           <div
-            className="absolute hidden md:block"
+            className="animate-fade-bottle absolute hidden md:block"
             style={{ right: "16%", top: "-5%", bottom: "-5%", width: 200, zIndex: 20, pointerEvents: "none" }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -134,13 +134,13 @@ export default async function DashboardPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-24">
           <div className="max-w-xl">
             <p
-              className="text-xs tracking-[0.45em] uppercase mb-5"
+              className="animate-fade-up text-xs tracking-[0.45em] uppercase mb-5"
               style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}
             >
               Collection personnelle
             </p>
             <h1
-              className="text-6xl md:text-8xl font-bold mb-4 leading-none"
+              className="animate-fade-up-1 text-6xl md:text-8xl font-bold mb-4 leading-none"
               style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
             >
               Ma Cave<br />
@@ -148,7 +148,7 @@ export default async function DashboardPage() {
             </h1>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-14 max-w-3xl">
+          <div className="animate-fade-up-2 grid grid-cols-2 md:grid-cols-4 gap-4 mt-14 max-w-3xl">
             {[
               { value: totalBottles, label: "Bouteilles" },
               { value: wines.length, label: "Références" },
@@ -172,7 +172,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-14 space-y-14">
+      <div className="animate-fade-up-3 max-w-7xl mx-auto px-6 py-14 space-y-14">
         {premiumTotal > 0 && (
           <PremiumCarousel initialWines={premiumWines} total={premiumTotal} />
         )}

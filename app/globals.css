@@ -75,6 +75,11 @@ body {
   to   { opacity: 1; transform: translateX(0); }
 }
 
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 .animate-fade-in {
   animation: fadeIn 0.4s ease forwards;
 }
@@ -86,6 +91,18 @@ body {
 .animate-slide-right {
   animation: fadeSlideRight 0.28s ease forwards;
 }
+
+/* Page entry animations with staggered delays */
+.animate-fade-up {
+  opacity: 0;
+  animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-fade-up-1 { opacity: 0; animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.08s forwards; }
+.animate-fade-up-2 { opacity: 0; animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.16s forwards; }
+.animate-fade-up-3 { opacity: 0; animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.26s forwards; }
+.animate-fade-up-4 { opacity: 0; animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.38s forwards; }
+
+.animate-fade-bottle { opacity: 0; animation: fadeIn 0.9s ease 0.3s forwards; }
 
 /* Diagonal accent — red stripe crossing hero sections */
 .diagonal-stripe {
