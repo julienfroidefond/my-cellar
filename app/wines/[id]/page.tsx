@@ -4,6 +4,7 @@ import Link from "next/link";
 import DeleteWineButton from "./DeleteWineButton";
 import AddBottleButton from "./AddBottleButton";
 import { decodeSlot } from "@/lib/rack-configs";
+import { estimateMaturity } from "@/lib/maturity";
 
 const COLOR_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
   rouge: { label: "Rouge", color: "#c0193b", bg: "rgba(160,28,46,0.07)", border: "rgba(160,28,46,0.18)" },
@@ -24,11 +25,21 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
   };
 
   const currentYear = new Date().getFullYear();
+
+  // Fenêtre manuelle ou estimation automatique
+  const hasManualWindow = !!(wine.drinkFrom && wine.drinkUntil);
+  const maturityEstimate = !hasManualWindow
+    ? estimateMaturity({ region: wine.region, appellation: wine.appellation, color: wine.color, vintage: wine.vintage })
+    : null;
+
+  const drinkFrom  = wine.drinkFrom  ?? maturityEstimate?.drinkFrom  ?? null;
+  const drinkUntil = wine.drinkUntil ?? maturityEstimate?.drinkUntil ?? null;
+
   const drinkStatus =
-    wine.drinkFrom && wine.drinkUntil
-      ? currentYear < wine.drinkFrom
+    drinkFrom && drinkUntil
+      ? currentYear < drinkFrom
         ? "trop-tôt"
-        : currentYear > wine.drinkUntil
+        : currentYear > drinkUntil
         ? "dépassé"
         : "optimal"
       : null;
@@ -115,9 +126,10 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             {wine.country && wine.country !== "France" && <StatPill label="Pays" value={wine.country} />}
             {drinkStatus && (
               <StatPill
-                label="Dégustation"
-                value={`${wine.drinkFrom}–${wine.drinkUntil}`}
+                label={hasManualWindow ? "Dégustation" : "Maturité estimée"}
+                value={`${drinkFrom}–${drinkUntil}`}
                 status={drinkStatus}
+                estimated={!hasManualWindow}
               />
             )}
           </div>
@@ -146,8 +158,8 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                 { label: "Cépage(s)", value: wine.grapeVarieties },
                 { label: "Volume", value: wine.volume ? `${wine.volume} cl` : null },
                 { label: "Quantité", value: wine.quantity.toString() },
-                { label: "Boire à partir de", value: wine.drinkFrom?.toString() },
-                { label: "Boire avant", value: wine.drinkUntil?.toString() },
+                { label: hasManualWindow ? "Boire à partir de" : "Boire à partir de (est.)", value: drinkFrom?.toString() },
+                { label: hasManualWindow ? "Boire avant" : "Boire avant (est.)", value: drinkUntil?.toString() },
               ]
                 .filter((item) => item.value)
                 .map(({ label, value }) => (
@@ -161,6 +173,17 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                   </div>
                 ))}
             </dl>
+
+            {maturityEstimate && (
+              <div className="mt-6 pt-6" style={{ borderTop: "1px solid var(--border)" }}>
+                <p className="text-xs mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+                  Profil de maturité
+                </p>
+                <p className="text-sm leading-relaxed italic" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+                  {maturityEstimate.note}
+                </p>
+              </div>
+            )}
 
             {wine.notes && (
               <div className="mt-6 pt-6" style={{ borderTop: "1px solid var(--border)" }}>
@@ -245,11 +268,13 @@ function StatPill({
   value,
   highlight,
   status,
+  estimated,
 }: {
   label: string;
   value: string;
   highlight?: boolean;
   status?: "optimal" | "trop-tôt" | "dépassé";
+  estimated?: boolean;
 }) {
   const statusColor =
     status === "optimal" ? "#1a7a3c" :
@@ -268,7 +293,7 @@ function StatPill({
         border: highlight
           ? "1px solid rgba(192,25,59,0.22)"
           : status
-          ? `1px solid ${statusColor}38`
+          ? `1px dashed ${statusColor}55`
           : "1px solid var(--border)",
         boxShadow: "0 1px 6px rgba(26,10,14,0.05)",
       }}
@@ -283,6 +308,7 @@ function StatPill({
           color: highlight ? "var(--wine-red)" : status ? statusColor : "var(--foreground)",
         }}
       >
+        {estimated && <span className="mr-1 font-normal opacity-60">~</span>}
         {value}
         {status && (
           <span className="ml-2 text-xs font-normal opacity-70">

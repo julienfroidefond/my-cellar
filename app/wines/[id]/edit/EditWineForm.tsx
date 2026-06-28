@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ImagePicker from "@/components/ImagePicker";
+import { estimateMaturity } from "@/lib/maturity";
 
 const COLORS = ["rouge", "blanc", "rosé"];
 const REGIONS = [
@@ -198,6 +199,30 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
                     <input type="number" value={form.drinkUntil} onChange={(e) => set("drinkUntil", e.target.value)} style={inputStyle} />
                   </Field>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const est = estimateMaturity({
+                      region: form.region || null,
+                      appellation: form.appellation || null,
+                      color: form.color || null,
+                      vintage: form.vintage ? parseInt(form.vintage) : null,
+                    });
+                    if (est) {
+                      set("drinkFrom", est.drinkFrom.toString());
+                      set("drinkUntil", est.drinkUntil.toString());
+                    }
+                  }}
+                  className="text-xs px-3 py-1.5 rounded-full transition-opacity hover:opacity-80"
+                  style={{
+                    fontFamily: "var(--font-inter)",
+                    color: "var(--wine-red)",
+                    border: "1px solid rgba(192,25,59,0.25)",
+                    background: "rgba(192,25,59,0.07)",
+                  }}
+                >
+                  ✦ Estimer la maturité
+                </button>
                 <Field label="Notes">
                   <textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={3} style={{ ...inputStyle, resize: "vertical" }} />
                 </Field>
