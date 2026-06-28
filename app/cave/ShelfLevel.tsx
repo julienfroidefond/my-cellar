@@ -33,19 +33,19 @@ export function ShelfLevel({
   labelMode: boolean;
 }) {
   const sharedStyle = {
-    background: "rgba(255,255,255,0.018)",
-    border: "1px solid rgba(255,255,255,0.055)",
+    background: "rgba(26,10,14,0.04)",
+    border: "1px solid rgba(26,10,14,0.09)",
   };
   const labelStyle: React.CSSProperties = {
     fontFamily: "var(--font-inter)",
     fontSize: "9px",
     letterSpacing: "0.1em",
-    color: "rgba(255,255,255,0.30)",
+    color: "rgba(26,10,14,0.35)",
   };
   const subLabelStyle: React.CSSProperties = {
     fontFamily: "var(--font-inter)",
     fontSize: "8px",
-    color: "rgba(255,255,255,0.28)",
+    color: "rgba(26,10,14,0.32)",
     marginBottom: 6,
   };
 
@@ -148,23 +148,23 @@ function LabelRow({
       return (
         <button
           onClick={onEmptyClick}
-          className="flex items-center gap-2.5 w-full px-2 py-1 rounded-lg text-left transition-all hover:bg-white/5"
+          className="flex items-center gap-2.5 w-full px-2 py-1 rounded-lg text-left transition-all hover:bg-black/5"
           style={{ fontFamily: "var(--font-inter)" }}
         >
           <div
             className="w-2.5 h-2.5 rounded-full shrink-0 flex items-center justify-center"
-            style={{ border: "1.5px dashed rgba(196,152,60,0.6)", color: "rgba(196,152,60,0.7)", fontSize: 8 }}
+            style={{ border: "1.5px dashed rgba(192,25,59,0.55)", color: "rgba(192,25,59,0.55)", fontSize: 8 }}
           >
             +
           </div>
-          <span className="text-xs italic" style={{ color: "rgba(196,152,60,0.6)" }}>Placer ici</span>
+          <span className="text-xs italic" style={{ color: "rgba(192,25,59,0.55)" }}>Placer ici</span>
         </button>
       );
     }
     return (
       <div className="flex items-center gap-2.5 px-2 py-1">
-        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ border: "1px dashed rgba(255,255,255,0.15)" }} />
-        <span className="text-xs" style={{ color: "rgba(255,255,255,0.18)" }}>—</span>
+        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ border: "1px dashed rgba(26,10,14,0.20)" }} />
+        <span className="text-xs" style={{ color: "rgba(26,10,14,0.25)" }}>—</span>
       </div>
     );
   }
@@ -172,10 +172,10 @@ function LabelRow({
   return (
     <button
       onClick={() => onSelect(wine)}
-      className="flex items-center gap-2.5 w-full px-2 py-1 rounded-lg text-left transition-all hover:bg-white/5 active:scale-[0.99]"
+      className="flex items-center gap-2.5 w-full px-2 py-1 rounded-lg text-left transition-all hover:bg-black/5 active:scale-[0.99]"
       style={{
-        background: isSelected ? "rgba(196,152,60,0.1)" : "transparent",
-        outline: isSelected ? "1px solid rgba(196,152,60,0.35)" : "none",
+        background: isSelected ? "rgba(192,25,59,0.07)" : "transparent",
+        outline: isSelected ? "1px solid rgba(192,25,59,0.25)" : "none",
         opacity: dim ? 0.75 : 1,
       }}
     >
@@ -223,10 +223,10 @@ function Slot({
         >
           <div style={{
             width: size * 0.82, height: size * 0.82, borderRadius: "50%",
-            border: "1.5px dashed rgba(196,152,60,0.6)",
+            border: "1.5px dashed rgba(192,25,59,0.55)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            color: "rgba(196,152,60,0.7)", fontSize: size * 0.38, lineHeight: 1,
-            background: "rgba(196,152,60,0.07)",
+            color: "rgba(192,25,59,0.55)", fontSize: size * 0.38, lineHeight: 1,
+            background: "rgba(192,25,59,0.05)",
           }}>
             +
           </div>
@@ -235,7 +235,7 @@ function Slot({
     }
     return (
       <div style={{ width: size, height: size, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: size * 0.72, height: size * 0.72, borderRadius: "50%", border: "1px dashed rgba(255,255,255,0.15)" }} />
+        <div style={{ width: size * 0.72, height: size * 0.72, borderRadius: "50%", border: "1px dashed rgba(26,10,14,0.18)" }} />
       </div>
     );
   }
@@ -258,8 +258,8 @@ function Slot({
         <div style={{
           width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden",
           boxShadow: isSelected
-            ? `0 0 0 2.5px var(--gold), 0 4px 14px ${c.base}90`
-            : `0 2px 8px ${c.base}55`,
+            ? `0 0 0 2.5px var(--wine-red), 0 4px 14px ${c.base}90`
+            : `0 2px 8px ${c.base}40`,
         }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -277,8 +277,8 @@ function Slot({
           width: "100%", height: "100%", borderRadius: "50%",
           background: `radial-gradient(circle at 35% 32%, ${c.hi}ee, ${c.base}ff 55%, ${c.base})`,
           boxShadow: isSelected
-            ? `0 0 0 2.5px var(--gold), 0 4px 14px ${c.base}90`
-            : `0 2px 8px ${c.base}55, inset 0 1px 2px rgba(255,255,255,0.2)`,
+            ? `0 0 0 2.5px var(--wine-red), 0 4px 14px ${c.base}90`
+            : `0 2px 8px ${c.base}40, inset 0 1px 2px rgba(255,255,255,0.15)`,
           transition: "box-shadow 0.15s",
         }}>
           <div style={{

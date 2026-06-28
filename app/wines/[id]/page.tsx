@@ -5,9 +5,9 @@ import DeleteWineButton from "./DeleteWineButton";
 import { decodeSlot, slotLabel } from "@/lib/rack-configs";
 
 const COLOR_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
-  rouge: { label: "Rouge", color: "#c02030", bg: "rgba(160, 28, 46, 0.20)", border: "rgba(160, 28, 46, 0.40)" },
-  blanc: { label: "Blanc", color: "#c4983c", bg: "rgba(196, 152, 60, 0.15)", border: "rgba(196, 152, 60, 0.35)" },
-  rosé:  { label: "Rosé",  color: "#d4647a", bg: "rgba(210, 100, 120, 0.15)", border: "rgba(210, 100, 120, 0.35)" },
+  rouge: { label: "Rouge", color: "#c02030", bg: "rgba(160, 28, 46, 0.08)", border: "rgba(160, 28, 46, 0.20)" },
+  blanc: { label: "Blanc", color: "#a07820", bg: "rgba(196, 152, 60, 0.08)", border: "rgba(196, 152, 60, 0.20)" },
+  rosé:  { label: "Rosé",  color: "#b84060", bg: "rgba(210, 100, 120, 0.08)", border: "rgba(210, 100, 120, 0.20)" },
 };
 
 export default async function WineDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -18,8 +18,8 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
   const cfg = COLOR_CONFIG[wine.color ?? ""] ?? {
     label: wine.color ?? "Inconnu",
     color: "#666",
-    bg: "rgba(255,255,255,0.05)",
-    border: "rgba(255,255,255,0.12)",
+    bg: "rgba(26,10,14,0.04)",
+    border: "rgba(26,10,14,0.12)",
   };
 
   return (
@@ -27,7 +27,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
       {/* Header */}
       <div
         className="relative overflow-hidden"
-        style={{ background: `linear-gradient(160deg, ${cfg.bg} 0%, var(--background) 60%)`, borderBottom: `1px solid ${cfg.border}` }}
+        style={{ background: `linear-gradient(160deg, ${cfg.bg} 0%, var(--background) 70%)`, borderBottom: `1px solid ${cfg.border}` }}
       >
         <div className="max-w-4xl mx-auto px-6 pt-10 pb-14">
           <Link
@@ -82,7 +82,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                 <img
                   src={wine.imageUrl}
                   alt={wine.name}
-                  style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.5))" }}
+                  style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 4px 24px rgba(0,0,0,0.18))" }}
                 />
               </div>
             )}
@@ -95,7 +95,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
           {/* Détails */}
           <div
             className="rounded-2xl p-6"
-            style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+            style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.06)" }}
           >
             <h2
               className="text-base font-semibold mb-5 pb-4"
@@ -139,7 +139,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             {/* Valorisation */}
             <div
               className="rounded-2xl p-6"
-              style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+              style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.06)" }}
             >
               <h2
                 className="text-base font-semibold mb-5 pb-4"
@@ -165,7 +165,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                     </p>
                     <p
                       className="text-3xl font-bold"
-                      style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}
+                      style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}
                     >
                       {wine.marketPrice.toFixed(2)} €
                     </p>
@@ -191,7 +191,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             {wine.notes && (
               <div
                 className="rounded-2xl p-6"
-                style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+                style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.06)" }}
               >
                 <h2
                   className="text-base font-semibold mb-3 pb-4"
@@ -213,7 +213,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             href={`/wines/${wine.id}/edit`}
             className="px-5 py-2.5 rounded-full text-sm transition-all hover:opacity-80"
             style={{
-              background: "var(--surface-2)",
+              background: "var(--surface)",
               border: "1px solid var(--border)",
               fontFamily: "var(--font-inter)",
               color: "var(--text-muted)",
@@ -240,7 +240,7 @@ function CavePosition({ wine }: {
     return (
       <div
         className="rounded-2xl p-6"
-        style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+        style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.06)" }}
       >
         <h2
           className="text-base font-semibold mb-4 pb-4"
@@ -249,14 +249,14 @@ function CavePosition({ wine }: {
           Position en cave
         </h2>
         <div className="flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full shrink-0" style={{ background: "rgba(255,255,255,0.2)" }} />
+          <div className="w-2 h-2 rounded-full shrink-0" style={{ background: "rgba(26,10,14,0.18)" }} />
           <p className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
             Non rangée
           </p>
           <Link
             href="/cave"
             className="ml-auto text-xs px-3 py-1.5 rounded-full transition-opacity hover:opacity-80"
-            style={{ fontFamily: "var(--font-inter)", color: "var(--gold)", border: "1px solid rgba(196,152,60,0.3)", background: "rgba(196,152,60,0.08)" }}
+            style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", border: "1px solid rgba(192,25,59,0.20)", background: "rgba(192,25,59,0.08)" }}
           >
             Ranger →
           </Link>
@@ -273,7 +273,7 @@ function CavePosition({ wine }: {
   return (
     <div
       className="rounded-2xl p-6"
-      style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+      style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.06)" }}
     >
       <div className="flex items-center justify-between mb-4 pb-4" style={{ borderBottom: "1px solid var(--border)" }}>
         <h2 className="text-base font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>
@@ -281,8 +281,8 @@ function CavePosition({ wine }: {
         </h2>
         <Link
           href="/cave"
-          className="text-xs transition-opacity hover:opacity-80"
-          style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}
+          className="text-xs px-3 py-1.5 rounded-full transition-opacity hover:opacity-80"
+          style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", border: "1px solid rgba(192,25,59,0.20)", background: "rgba(192,25,59,0.08)" }}
         >
           Voir la cave →
         </Link>
@@ -307,12 +307,12 @@ function CavePosition({ wine }: {
           <div className="grid grid-cols-2 gap-3">
             <div
               className="rounded-xl p-3.5"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+              style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
             >
               <p className="text-xs mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
                 Étagère
               </p>
-              <p className="text-xl font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}>
+              <p className="text-xl font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}>
                 {decoded.start.totalLevels - decoded.start.levelIndex}
                 <span className="text-xs font-normal ml-1.5" style={{ color: "var(--text-faint)" }}>
                   / {decoded.start.totalLevels}
@@ -321,7 +321,7 @@ function CavePosition({ wine }: {
             </div>
             <div
               className="rounded-xl p-3.5"
-              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+              style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
             >
               <p className="text-xs mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
                 Rangée
@@ -335,18 +335,18 @@ function CavePosition({ wine }: {
           {/* Position(s) */}
           <div
             className="rounded-xl p-3.5"
-            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
+            style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
           >
             <p className="text-xs mb-1.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
               {wine.quantity > 1 ? "Emplacements" : "Emplacement"}
             </p>
             {wine.quantity > 1 && decoded.end ? (
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}>
+                <span className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}>
                   {decoded.start.col + 1}
                 </span>
                 <span style={{ color: "var(--text-faint)" }}>→</span>
-                <span className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}>
+                <span className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}>
                   {decoded.end.col + 1}
                 </span>
                 <span className="text-xs ml-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
@@ -355,7 +355,7 @@ function CavePosition({ wine }: {
               </div>
             ) : (
               <div className="flex items-center gap-2">
-                <span className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}>
+                <span className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}>
                   {decoded.start.col + 1}
                 </span>
                 <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
@@ -381,8 +381,8 @@ function Badge({ label, value, accent }: { label: string; value: string; accent?
     <div
       className="px-4 py-2.5 rounded-xl"
       style={{
-        background: accent ? "rgba(196, 152, 60, 0.12)" : "rgba(255,255,255,0.05)",
-        border: accent ? "1px solid rgba(196, 152, 60, 0.28)" : "1px solid var(--border)",
+        background: accent ? "rgba(192,25,59,0.10)" : "rgba(26,10,14,0.04)",
+        border: accent ? "1px solid rgba(192,25,59,0.25)" : "1px solid var(--border)",
       }}
     >
       <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
@@ -390,7 +390,7 @@ function Badge({ label, value, accent }: { label: string; value: string; accent?
       </p>
       <p
         className="text-sm font-semibold"
-        style={{ fontFamily: "var(--font-inter)", color: accent ? "var(--gold)" : "var(--foreground)" }}
+        style={{ fontFamily: "var(--font-inter)", color: accent ? "var(--wine-red)" : "var(--foreground)" }}
       >
         {value}
       </p>

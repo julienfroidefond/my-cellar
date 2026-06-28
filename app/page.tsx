@@ -4,24 +4,24 @@ import Link from "next/link";
 const colorConfig: Record<string, { label: string; bg: string; dot: string; border: string; text: string }> = {
   rouge: {
     label: "Rouge",
-    bg: "rgba(160, 28, 46, 0.18)",
+    bg: "rgba(160, 28, 46, 0.08)",
     dot: "#c02030",
-    border: "rgba(160, 28, 46, 0.40)",
-    text: "#e06070",
+    border: "rgba(160, 28, 46, 0.20)",
+    text: "#9b1424",
   },
   blanc: {
     label: "Blanc",
-    bg: "rgba(196, 152, 60, 0.15)",
-    dot: "#c4983c",
-    border: "rgba(196, 152, 60, 0.35)",
-    text: "#d8b05a",
+    bg: "rgba(196, 152, 60, 0.08)",
+    dot: "#b87a2c",
+    border: "rgba(196, 152, 60, 0.22)",
+    text: "#8a5a1a",
   },
   rosé: {
     label: "Rosé",
-    bg: "rgba(210, 100, 120, 0.15)",
+    bg: "rgba(210, 100, 120, 0.08)",
     dot: "#d4647a",
-    border: "rgba(210, 100, 120, 0.35)",
-    text: "#e07a90",
+    border: "rgba(210, 100, 120, 0.22)",
+    text: "#a03050",
   },
 };
 
@@ -58,55 +58,37 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      {/* Hero */}
-      <div className="relative overflow-hidden" style={{ minHeight: 480 }}>
-        {/* Background image */}
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?auto=format&fit=crop&w=1920&q=80')",
-            backgroundSize: "cover",
-            backgroundPosition: "center 40%",
-          }}
-        />
-        {/* Overlay gradients */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(13,8,11,0.72) 0%, rgba(13,8,11,0.85) 60%, var(--background) 100%)",
-          }}
-        />
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage:
-              "radial-gradient(ellipse at 15% 50%, var(--wine-red) 0%, transparent 55%), radial-gradient(ellipse at 85% 20%, var(--gold) 0%, transparent 45%)",
-          }}
-        />
+      {/* Hero — editorial cream + diagonal red stripe */}
+      <div
+        className="diagonal-stripe relative overflow-hidden"
+        style={{ minHeight: 480, background: "var(--background)" }}
+      >
+        {/* Everything inside is stacked above the stripe (z-index:1) */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24">
+          <div className="max-w-xl">
+            <p
+              className="text-xs tracking-[0.45em] uppercase mb-5"
+              style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}
+            >
+              Collection personnelle
+            </p>
+            <h1
+              className="text-6xl md:text-8xl font-bold mb-4 leading-none"
+              style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
+            >
+              Ma Cave<br />
+              <span style={{ color: "var(--wine-red)" }}>à Vin</span>
+            </h1>
+            <p
+              className="text-sm mt-5"
+              style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+            >
+              Julien Froidefond · 2, rue Winston Churchill
+            </p>
+          </div>
 
-        <div className="relative max-w-7xl mx-auto px-6 py-24 text-center">
-          <p
-            className="text-xs tracking-[0.45em] uppercase mb-5"
-            style={{ color: "var(--gold)", fontFamily: "var(--font-inter)", fontWeight: 500 }}
-          >
-            Collection personnelle
-          </p>
-          <h1
-            className="text-6xl md:text-7xl font-bold mb-4"
-            style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)", lineHeight: 1.1 }}
-          >
-            Ma Cave à Vin
-          </h1>
-          <p
-            className="text-base mb-14"
-            style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-          >
-            Julien Froidefond · 2, rue Winston Churchill
-          </p>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto">
+          {/* Stat cards row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-14 max-w-3xl">
             {[
               { value: totalBottles, label: "Bouteilles" },
               { value: wines.length, label: "Références" },
@@ -115,25 +97,21 @@ export default async function DashboardPage() {
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="rounded-2xl p-5 relative overflow-hidden text-left"
+                className="rounded-2xl p-5 text-left"
                 style={{
-                  background: "rgba(13, 8, 11, 0.70)",
-                  border: "1px solid rgba(196, 152, 60, 0.22)",
-                  backdropFilter: "blur(12px)",
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "0 2px 12px rgba(26,10,14,0.07)",
                 }}
               >
                 <div
-                  className="absolute top-0 left-0 w-0.5 h-full rounded-l"
-                  style={{ background: "var(--gold)", opacity: 0.7 }}
-                />
-                <div
-                  className="text-3xl font-bold mb-1 pl-3"
-                  style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}
+                  className="text-3xl font-bold mb-1"
+                  style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}
                 >
                   {stat.value}
                 </div>
                 <div
-                  className="text-xs tracking-wider uppercase pl-3"
+                  className="text-xs tracking-wider uppercase"
                   style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
                 >
                   {stat.label}
@@ -152,26 +130,30 @@ export default async function DashboardPage() {
             {Object.entries(byColor).map(([color, count]) => {
               const cfg = colorConfig[color] ?? {
                 label: color,
-                bg: "rgba(255,255,255,0.05)",
+                bg: "rgba(26,10,14,0.04)",
                 dot: "#888",
-                border: "rgba(255,255,255,0.12)",
-                text: "rgba(255,255,255,0.7)",
+                border: "rgba(26,10,14,0.10)",
+                text: "var(--text-muted)",
               };
               const pct = Math.round((count / totalBottles) * 100);
               return (
                 <Link
                   href={`/wines?color=${color}`}
                   key={color}
-                  className="rounded-2xl p-6 block transition-all duration-300 hover:scale-[1.02] hover:brightness-110"
-                  style={{ background: cfg.bg, border: `1px solid ${cfg.border}` }}
+                  className="rounded-2xl p-6 block transition-all duration-300 hover:scale-[1.02]"
+                  style={{
+                    background: "var(--surface)",
+                    border: `1px solid ${cfg.border}`,
+                    boxShadow: "0 2px 12px rgba(26,10,14,0.06)",
+                  }}
                 >
                   <div className="flex items-center gap-3 mb-5">
                     <div
                       className="w-3 h-3 rounded-full shrink-0"
-                      style={{ background: cfg.dot, boxShadow: `0 0 8px ${cfg.dot}80` }}
+                      style={{ background: cfg.dot }}
                     />
                     <span
-                      className="text-xs tracking-[0.15em] uppercase font-medium"
+                      className="text-xs tracking-[0.15em] uppercase font-semibold"
                       style={{ fontFamily: "var(--font-inter)", color: cfg.text }}
                     >
                       {cfg.label}
@@ -186,10 +168,10 @@ export default async function DashboardPage() {
                   <div className="text-sm mb-5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
                     {pct}% de la cave
                   </div>
-                  <div className="h-1 rounded-full" style={{ background: "rgba(255,255,255,0.08)" }}>
+                  <div className="h-1 rounded-full" style={{ background: "var(--surface-2)" }}>
                     <div
                       className="h-full rounded-full transition-all"
-                      style={{ width: `${pct}%`, background: cfg.dot, boxShadow: `0 0 8px ${cfg.dot}60` }}
+                      style={{ width: `${pct}%`, background: cfg.dot }}
                     />
                   </div>
                 </Link>
@@ -207,7 +189,11 @@ export default async function DashboardPage() {
                 href={`/wines?region=${encodeURIComponent(region)}`}
                 key={region}
                 className="rounded-xl p-4 flex items-center gap-4 transition-all duration-200 hover:scale-[1.02]"
-                style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "0 1px 6px rgba(26,10,14,0.05)",
+                }}
               >
                 <div className="flex-1 min-w-0">
                   <span
@@ -216,7 +202,7 @@ export default async function DashboardPage() {
                   >
                     {region}
                   </span>
-                  <div className="mt-2 h-0.5 rounded-full" style={{ background: "var(--border)" }}>
+                  <div className="mt-2 h-1 rounded-full" style={{ background: "var(--surface-2)" }}>
                     <div
                       className="h-full rounded-full"
                       style={{
@@ -228,7 +214,7 @@ export default async function DashboardPage() {
                 </div>
                 <span
                   className="text-sm font-bold shrink-0 w-8 text-right"
-                  style={{ color: "var(--gold)", fontFamily: "var(--font-playfair)" }}
+                  style={{ color: "var(--wine-red)", fontFamily: "var(--font-playfair)" }}
                 >
                   {count}
                 </span>
@@ -248,20 +234,24 @@ export default async function DashboardPage() {
               {premiumWines.map((wine) => {
                 const cfg = colorConfig[wine.color ?? ""] ?? {
                   dot: "#888",
-                  border: "rgba(255,255,255,0.1)",
-                  text: "rgba(255,255,255,0.6)",
+                  border: "rgba(26,10,14,0.10)",
+                  text: "var(--text-muted)",
                 };
                 return (
                   <Link
                     key={wine.id}
                     href={`/wines/${wine.id}`}
                     className="rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02] block relative overflow-hidden"
-                    style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+                    style={{
+                      background: "var(--surface)",
+                      border: `1px solid ${cfg.border}`,
+                      boxShadow: "0 2px 12px rgba(26,10,14,0.07)",
+                    }}
                   >
                     {/* Bottle image */}
                     {wine.imageUrl && (
                       <div className="absolute right-0 top-0 bottom-0 pointer-events-none" style={{ width: 80 }}>
-                        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, var(--surface-2) 0%, transparent 50%)" }} />
+                        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, var(--surface) 0%, transparent 50%)" }} />
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={wine.imageUrl}
@@ -269,8 +259,8 @@ export default async function DashboardPage() {
                           style={{
                             position: "absolute", bottom: 0, right: 8,
                             height: "95%", objectFit: "contain",
-                            opacity: 0.85,
-                            filter: "drop-shadow(0 4px 20px rgba(0,0,0,0.6))",
+                            opacity: 0.90,
+                            filter: "drop-shadow(0 4px 16px rgba(26,10,14,0.18))",
                           }}
                         />
                       </div>
@@ -281,7 +271,7 @@ export default async function DashboardPage() {
                         <div className="flex items-center gap-2">
                           <div
                             className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ background: cfg.dot, boxShadow: `0 0 6px ${cfg.dot}70` }}
+                            style={{ background: cfg.dot }}
                           />
                           <span
                             className="text-xs uppercase tracking-wider"
@@ -292,14 +282,14 @@ export default async function DashboardPage() {
                         </div>
                         <span
                           className="text-xl font-bold"
-                          style={{ color: "var(--gold)", fontFamily: "var(--font-playfair)" }}
+                          style={{ color: "var(--wine-red)", fontFamily: "var(--font-playfair)" }}
                         >
                           {wine.marketPrice?.toFixed(0)} €
                         </span>
                       </div>
                       <h3
                         className="font-semibold mb-1 line-clamp-2 leading-snug"
-                        style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem" }}
+                        style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem", color: "var(--foreground)" }}
                       >
                         {wine.name}
                       </h3>
@@ -307,7 +297,12 @@ export default async function DashboardPage() {
                         {wine.vintage && (
                           <span
                             className="text-xs px-2 py-0.5 rounded"
-                            style={{ background: "rgba(255,255,255,0.07)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+                            style={{
+                              background: "var(--surface-2)",
+                              fontFamily: "var(--font-inter)",
+                              color: "var(--text-muted)",
+                              border: "1px solid var(--border)",
+                            }}
                           >
                             {wine.vintage}
                           </span>
@@ -337,9 +332,9 @@ export default async function DashboardPage() {
           </Link>
           <Link
             href="/cave"
-            className="px-6 py-3 rounded-full text-sm font-medium transition-opacity hover:opacity-80"
+            className="px-6 py-3 rounded-full text-sm font-medium transition-all hover:border-[var(--wine-red)] hover:text-[var(--wine-red)]"
             style={{
-              background: "rgba(255,255,255,0.06)",
+              background: "transparent",
               border: "1px solid var(--border)",
               fontFamily: "var(--font-inter)",
               color: "var(--text-muted)",
@@ -349,10 +344,10 @@ export default async function DashboardPage() {
           </Link>
           <Link
             href="/wines/add"
-            className="px-6 py-3 rounded-full text-sm font-medium transition-opacity hover:opacity-90"
+            className="px-6 py-3 rounded-full text-sm font-medium transition-all hover:opacity-90"
             style={{
-              background: "rgba(196, 152, 60, 0.12)",
-              border: "1px solid rgba(196, 152, 60, 0.3)",
+              background: "rgba(184, 122, 44, 0.10)",
+              border: "1px solid rgba(184, 122, 44, 0.28)",
               color: "var(--gold)",
               fontFamily: "var(--font-inter)",
             }}
@@ -371,7 +366,7 @@ function SectionTitle({ children, eyebrow }: { children: React.ReactNode; eyebro
       {eyebrow && (
         <p
           className="text-xs tracking-[0.3em] uppercase mb-2"
-          style={{ fontFamily: "var(--font-inter)", color: "var(--gold)", fontWeight: 500 }}
+          style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", fontWeight: 600 }}
         >
           {eyebrow}
         </p>

@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0d080b;
-  --foreground: #f2ece6;
-  --wine-red: #a01c2e;
-  --wine-deep: #700e1d;
-  --wine-light: #d43553;
-  --gold: #c4983c;
-  --gold-light: #e0c48a;
-  --surface: #180f12;
-  --surface-2: #231519;
-  --border: #3d2229;
-  --text-muted: rgba(242, 236, 230, 0.62);
-  --text-faint: rgba(242, 236, 230, 0.38);
+  --background: #f5f0ec;
+  --foreground: #1a0a0e;
+  --wine-red: #c0193b;
+  --wine-deep: #8a0f25;
+  --wine-light: #e03050;
+  --gold: #b87a2c;
+  --gold-light: #d4a050;
+  --surface: #ffffff;
+  --surface-2: #ede6dd;
+  --border: rgba(26,10,14,0.09);
+  --text-muted: rgba(26,10,14,0.55);
+  --text-faint: rgba(26,10,14,0.32);
 }
 
 @theme inline {
@@ -48,7 +48,7 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--surface);
+  background: var(--surface-2);
 }
 ::-webkit-scrollbar-thumb {
   background: var(--wine-red);
@@ -57,7 +57,7 @@ body {
 
 ::selection {
   background: var(--wine-red);
-  color: var(--gold-light);
+  color: #fff;
 }
 
 @keyframes fadeIn {
@@ -65,34 +65,49 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-
 .animate-fade-in {
   animation: fadeIn 0.4s ease forwards;
 }
 
-.glass {
-  background: rgba(160, 28, 46, 0.07);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(196, 152, 60, 0.18);
+/* Diagonal accent — red stripe crossing hero sections */
+.diagonal-stripe {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
 }
-
-.gold-gradient {
-  background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.wine-gradient {
-  background: linear-gradient(135deg, var(--wine-deep) 0%, var(--wine-red) 100%);
+.diagonal-stripe::after {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -8%;
+  width: 38%;
+  height: 220%;
+  background: var(--wine-red);
+  transform: rotate(14deg);
+  transform-origin: top right;
+  opacity: 0.92;
 }
 
 .card {
-  background: var(--surface-2);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 1rem;
+}
+
+.input-base {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-family: var(--font-inter);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.input-base:focus {
+  border-color: rgba(192,25,59,0.4);
 }

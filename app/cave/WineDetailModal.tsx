@@ -24,26 +24,26 @@ export function WineDetailModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(8px)" }}
+      style={{ background: "rgba(26,10,14,0.45)", backdropFilter: "blur(12px)" }}
       onClick={onClose}
     >
       <div
         className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl overflow-hidden"
-        style={{ background: "#130b0e" }}
+        style={{ background: "#ffffff", boxShadow: "0 24px 64px rgba(26,10,14,0.18)" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header coloré */}
         <div
           className="relative px-6 pt-6 pb-8 text-center"
           style={{
-            background: `linear-gradient(170deg, ${c.base}50 0%, ${c.base}20 60%, transparent 100%)`,
-            borderBottom: `1px solid ${c.base}35`,
+            background: `linear-gradient(170deg, ${c.base}12 0%, ${c.base}06 60%, transparent 100%)`,
+            borderBottom: `1px solid rgba(26,10,14,0.07)`,
           }}
         >
           <button
             onClick={onClose}
-            className="absolute top-4 right-5 w-8 h-8 flex items-center justify-center rounded-full transition-all hover:opacity-90"
-            style={{ background: "rgba(255,255,255,0.08)", color: "var(--text-muted)", fontSize: 14 }}
+            className="absolute top-4 right-5 w-8 h-8 flex items-center justify-center rounded-full hover:opacity-90 transition-opacity"
+            style={{ background: "rgba(26,10,14,0.07)", color: "var(--text-muted)", fontSize: 14 }}
           >
             ✕
           </button>
@@ -54,7 +54,7 @@ export function WineDetailModal({
               <img
                 src={wine.imageUrl}
                 alt=""
-                style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.6))" }}
+                style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 4px 16px rgba(26,10,14,0.25))" }}
               />
             </div>
           ) : (
@@ -63,7 +63,7 @@ export function WineDetailModal({
               style={{
                 width: 68, height: 68,
                 background: `radial-gradient(circle at 35% 30%, ${c.hi}ff, ${c.base}ff 60%, ${c.base}cc)`,
-                boxShadow: `0 0 0 6px ${c.base}20, 0 8px 28px ${c.base}60`,
+                boxShadow: `0 0 0 6px ${c.base}14, 0 8px 28px ${c.base}40`,
               }}
             >
               <div style={{
@@ -84,7 +84,7 @@ export function WineDetailModal({
             {wine.vintage && (
               <span
                 className="text-xs px-3 py-1 rounded-full font-medium"
-                style={{ background: "rgba(196,152,60,0.18)", color: "var(--gold)", border: "1px solid rgba(196,152,60,0.3)", fontFamily: "var(--font-inter)" }}
+                style={{ background: "rgba(184,122,44,0.12)", color: "var(--gold)", border: "1px solid rgba(184,122,44,0.25)", fontFamily: "var(--font-inter)" }}
               >
                 {wine.vintage}
               </span>
@@ -92,7 +92,7 @@ export function WineDetailModal({
             {wine.color && (
               <span
                 className="text-xs px-3 py-1 rounded-full font-medium"
-                style={{ background: `${c.base}30`, color: c.hi, border: `1px solid ${c.base}50`, fontFamily: "var(--font-inter)" }}
+                style={{ background: `${c.base}12`, color: c.base, border: `1px solid ${c.base}30`, fontFamily: "var(--font-inter)" }}
               >
                 {c.label}
               </span>
@@ -100,7 +100,7 @@ export function WineDetailModal({
             {wine.appellation && (
               <span
                 className="text-xs px-3 py-1 rounded-full"
-                style={{ background: "rgba(255,255,255,0.07)", color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}
+                style={{ background: "rgba(26,10,14,0.05)", color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}
               >
                 {wine.appellation}
               </span>
@@ -111,7 +111,7 @@ export function WineDetailModal({
         {/* Infos */}
         <div
           className="px-6 py-4 flex items-center gap-6"
-          style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}
+          style={{ borderBottom: "1px solid rgba(26,10,14,0.07)" }}
         >
           {wine.region && (
             <div className="flex-1 min-w-0">
@@ -121,7 +121,7 @@ export function WineDetailModal({
           )}
           <div className="shrink-0 text-center">
             <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>En cave</p>
-            <p className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}>
+            <p className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}>
               {wine.totalInCellar}
               <span className="text-xs font-normal ml-1" style={{ color: "var(--text-faint)" }}>btl</span>
             </p>
@@ -133,7 +133,7 @@ export function WineDetailModal({
           <button
             onClick={onDrink}
             disabled={!!pending}
-            className="flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-semibold transition-all hover:brightness-110 disabled:opacity-50"
+            className="flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
             style={{ fontFamily: "var(--font-inter)", background: "var(--wine-red)", color: "#fff", boxShadow: "0 4px 16px rgba(160,28,46,0.45)" }}
           >
             {pending === "drink" ? "En cours…" : <><span>🍷</span> Boire une bouteille</>}
@@ -142,8 +142,8 @@ export function WineDetailModal({
           <div className="flex gap-2">
             <Link
               href={`/wines/${wine.id}`}
-              className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium transition-opacity hover:opacity-80"
-              style={{ fontFamily: "var(--font-inter)", background: "rgba(255,255,255,0.07)", border: "1px solid rgba(255,255,255,0.1)" }}
+              className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity"
+              style={{ fontFamily: "var(--font-inter)", background: "rgba(26,10,14,0.05)", border: "1px solid rgba(26,10,14,0.10)", color: "var(--foreground)" }}
               onClick={onClose}
             >
               Voir la fiche
@@ -152,8 +152,8 @@ export function WineDetailModal({
               <button
                 onClick={onUnrack}
                 disabled={!!pending}
-                className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
-                style={{ fontFamily: "var(--font-inter)", background: "rgba(196,152,60,0.10)", color: "var(--gold)", border: "1px solid rgba(196,152,60,0.25)" }}
+                className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                style={{ fontFamily: "var(--font-inter)", background: "rgba(184,122,44,0.10)", color: "var(--gold)", border: "1px solid rgba(184,122,44,0.25)" }}
               >
                 {pending === "unrack" ? "…" : "↩ Retirer"}
               </button>
@@ -163,8 +163,8 @@ export function WineDetailModal({
           <button
             onClick={onDelete}
             disabled={!!pending}
-            className="flex items-center justify-center py-2.5 rounded-2xl text-xs font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
-            style={{ fontFamily: "var(--font-inter)", color: "rgba(255,80,80,0.65)", border: "1px solid rgba(255,80,80,0.12)" }}
+            className="flex items-center justify-center py-2.5 rounded-2xl text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+            style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", border: "1px solid rgba(192,25,59,0.20)" }}
           >
             {pending === "delete" ? "En cours…" : "🗑 Retirer définitivement du stock"}
           </button>

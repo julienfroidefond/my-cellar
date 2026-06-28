@@ -154,10 +154,10 @@ function WinesContent() {
       {/* ── Page header ── */}
       <div
         className="relative overflow-hidden"
-        style={{ background: "linear-gradient(180deg, rgba(24,15,18,0.8) 0%, var(--background) 100%)", borderBottom: "1px solid var(--border)" }}
+        style={{ background: "var(--background)", borderBottom: "1px solid var(--border)" }}
       >
         <div className="max-w-7xl mx-auto px-6 py-12">
-          <p className="text-xs tracking-[0.35em] uppercase mb-3" style={{ color: "var(--gold)", fontFamily: "var(--font-inter)", fontWeight: 500 }}>
+          <p className="text-xs tracking-[0.35em] uppercase mb-3" style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 500 }}>
             Inventaire
           </p>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -187,7 +187,7 @@ function WinesContent() {
                 onChange={e => set("search", e.target.value)}
                 className="w-64 px-5 py-2.5 rounded-full text-sm outline-none transition-all"
                 style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
-                onFocus={e => (e.target.style.borderColor = "rgba(196,152,60,0.45)")}
+                onFocus={e => (e.target.style.borderColor = "rgba(192,25,59,0.40)")}
                 onBlur={e  => (e.target.style.borderColor = "var(--border)")}
               />
             </div>
@@ -207,13 +207,13 @@ function WinesContent() {
               className="ml-auto flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition-all"
               style={{
                 fontFamily: "var(--font-inter)",
-                background: (showFilters || activeCount > 0) ? "rgba(196,152,60,0.12)" : "var(--surface-2)",
-                border: (showFilters || activeCount > 0) ? "1px solid rgba(196,152,60,0.35)" : "1px solid var(--border)",
-                color: (showFilters || activeCount > 0) ? "var(--gold)" : "var(--text-muted)",
+                background: (showFilters || activeCount > 0) ? "rgba(192,25,59,0.08)" : "var(--surface-2)",
+                border: (showFilters || activeCount > 0) ? "1px solid rgba(192,25,59,0.25)" : "1px solid var(--border)",
+                color: (showFilters || activeCount > 0) ? "var(--wine-red)" : "var(--text-muted)",
               }}
             >
               <span style={{ fontSize: 13 }}>⚙</span>
-              Filtres {activeCount > 0 && <span className="px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ background: "var(--gold)", color: "#000" }}>{activeCount}</span>}
+              Filtres {activeCount > 0 && <span className="px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ background: "var(--wine-red)", color: "white" }}>{activeCount}</span>}
               <span style={{ fontSize: 10 }}>{showFilters ? "▲" : "▼"}</span>
             </button>
           </div>
@@ -257,7 +257,7 @@ function WinesContent() {
                     placeholder="Merlot, Chardonnay…"
                     className="w-full px-4 py-2 rounded-xl text-sm outline-none transition-all"
                     style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
-                    onFocus={e => (e.target.style.borderColor = "rgba(196,152,60,0.45)")}
+                    onFocus={e => (e.target.style.borderColor = "rgba(192,25,59,0.40)")}
                     onBlur={e  => (e.target.style.borderColor = "var(--border)")}
                   />
                   {filters.grape && options.grapes.filter(g => g.toLowerCase().includes(filters.grape.toLowerCase())).slice(0, 6).map(g => (
@@ -265,7 +265,7 @@ function WinesContent() {
                       key={g}
                       onClick={() => set("grape", g)}
                       className="mt-1 mr-1.5 text-xs px-2.5 py-1 rounded-full transition-all hover:opacity-80"
-                      style={{ background: "rgba(255,255,255,0.07)", border: "1px solid var(--border)", color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}
+                      style={{ background: "rgba(26,10,14,0.06)", border: "1px solid var(--border)", color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}
                     >
                       {g}
                     </button>
@@ -300,7 +300,7 @@ function WinesContent() {
                         key={label as string}
                         onClick={() => setFilters(f => ({ ...f, priceMin: min ? String(min) : "", priceMax: max ? String(max) : "" }))}
                         className="text-xs px-2.5 py-1 rounded-full transition-all hover:opacity-80"
-                        style={{ background: "rgba(255,255,255,0.06)", border: "1px solid var(--border)", color: "var(--text-faint)", fontFamily: "var(--font-inter)" }}
+                        style={{ background: "rgba(26,10,14,0.06)", border: "1px solid var(--border)", color: "var(--text-faint)", fontFamily: "var(--font-inter)" }}
                       >
                         {label as string}
                       </button>
@@ -348,7 +348,7 @@ function WinesContent() {
               <button
                 onClick={() => setFilters(EMPTY_FILTERS)}
                 className="mt-4 text-sm px-5 py-2 rounded-full transition-opacity hover:opacity-80"
-                style={{ fontFamily: "var(--font-inter)", color: "var(--gold)", border: "1px solid rgba(196,152,60,0.3)", background: "rgba(196,152,60,0.08)" }}
+                style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", border: "1px solid rgba(192,25,59,0.25)", background: "rgba(192,25,59,0.08)" }}
               >
                 Effacer les filtres
               </button>
@@ -374,8 +374,9 @@ function WineCard({ wine, index }: { wine: Wine; index: number }) {
       href={`/wines/${wine.id}`}
       className="group block rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative"
       style={{
-        background: "var(--surface-2)",
+        background: "var(--surface)",
         border: "1px solid var(--border)",
+        boxShadow: "0 2px 8px rgba(26,10,14,0.06)",
         animationDelay: `${index * 30}ms`,
         animation: "fadeIn 0.4s ease forwards",
         opacity: 0,
@@ -385,19 +386,19 @@ function WineCard({ wine, index }: { wine: Wine; index: number }) {
 
       {wine.imageUrl && (
         <div className="absolute right-0 bottom-0 pointer-events-none" style={{ width: 72, top: 3 }}>
-          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, var(--surface-2) 0%, transparent 45%)" }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, var(--surface) 0%, transparent 45%)" }} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={wine.imageUrl}
             alt=""
-            style={{ position: "absolute", bottom: 0, right: 6, height: "92%", objectFit: "contain", opacity: 0.88, filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.5))" }}
+            style={{ position: "absolute", bottom: 0, right: 6, height: "92%", objectFit: "contain", opacity: 0.88, filter: "drop-shadow(0 4px 16px rgba(26,10,14,0.12))" }}
           />
         </div>
       )}
 
       <div className="p-5" style={{ paddingRight: wine.imageUrl ? 80 : undefined }}>
         <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="font-semibold leading-snug line-clamp-2 flex-1" style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem" }}>
+          <h3 className="font-semibold leading-snug line-clamp-2 flex-1" style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem", color: "var(--foreground)" }}>
             {wine.name}
           </h3>
           {wine.quantity > 1 && (
@@ -406,7 +407,7 @@ function WineCard({ wine, index }: { wine: Wine; index: number }) {
             </span>
           )}
           {wine.quantity === 0 && (
-            <span className="shrink-0 text-xs px-2.5 py-1 rounded-full" style={{ background: "rgba(255,255,255,0.06)", color: "var(--text-faint)", fontFamily: "var(--font-inter)", border: "1px solid var(--border)" }}>
+            <span className="shrink-0 text-xs px-2.5 py-1 rounded-full" style={{ background: "rgba(26,10,14,0.06)", color: "var(--text-faint)", fontFamily: "var(--font-inter)", border: "1px solid var(--border)" }}>
               Épuisé
             </span>
           )}
@@ -490,9 +491,9 @@ function Chip({ active, onClick, label, dot, small }: { active: boolean; onClick
       style={{
         padding: small ? "4px 12px" : "6px 16px",
         fontSize: small ? "0.75rem" : "0.875rem",
-        background: active ? "var(--wine-red)" : "var(--surface-2)",
-        border: `1px solid ${active ? "var(--wine-red)" : "var(--border)"}`,
-        color: active ? "white" : "var(--text-muted)",
+        background: active ? "rgba(192,25,59,0.08)" : "var(--surface)",
+        border: `1px solid ${active ? "rgba(192,25,59,0.22)" : "var(--border)"}`,
+        color: active ? "var(--wine-red)" : "var(--text-muted)",
         fontFamily: "var(--font-inter)",
         fontWeight: active ? 500 : 400,
       }}
@@ -512,9 +513,9 @@ function ToggleBtn({ active, onClick, label }: { active: boolean; onClick: () =>
       className="px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all"
       style={{
         fontFamily: "var(--font-inter)",
-        background: active ? "rgba(196,152,60,0.18)" : "rgba(255,255,255,0.04)",
-        border: active ? "1px solid rgba(196,152,60,0.4)" : "1px solid var(--border)",
-        color: active ? "var(--gold)" : "var(--text-muted)",
+        background: active ? "rgba(192,25,59,0.08)" : "var(--surface-2)",
+        border: active ? "1px solid rgba(192,25,59,0.25)" : "1px solid var(--border)",
+        color: active ? "var(--wine-red)" : "var(--text-muted)",
       }}
     >
       {label}
@@ -528,7 +529,7 @@ function Tag({ children }: { children: React.ReactNode }) {
   return (
     <span
       className="text-xs px-2.5 py-0.5 rounded-full"
-      style={{ background: "rgba(255,255,255,0.07)", fontFamily: "var(--font-inter)", color: "var(--text-muted)", border: "1px solid rgba(255,255,255,0.08)" }}
+      style={{ background: "var(--surface-2)", fontFamily: "var(--font-inter)", color: "var(--text-muted)", border: "1px solid var(--border)" }}
     >
       {children}
     </span>

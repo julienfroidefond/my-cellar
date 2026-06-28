@@ -144,7 +144,7 @@ export default async function CavePage() {
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(180deg, rgba(13,8,11,0.78) 0%, rgba(13,8,11,0.88) 60%, var(--background) 100%)",
+              "linear-gradient(180deg, rgba(245,240,236,0.45) 0%, rgba(245,240,236,0.72) 60%, var(--background) 100%)",
           }}
         />
         <div className="relative max-w-3xl mx-auto px-6 py-12">
@@ -189,7 +189,7 @@ export default async function CavePage() {
             </div>
           ))}
           <div className="flex items-center gap-2">
-            <div className="rounded-full border border-dashed" style={{ width: 10, height: 10, borderColor: "rgba(255,255,255,0.3)" }} />
+            <div className="rounded-full border border-dashed" style={{ width: 10, height: 10, borderColor: "rgba(26,10,14,0.30)" }} />
             <span>Vide</span>
           </div>
         </div>

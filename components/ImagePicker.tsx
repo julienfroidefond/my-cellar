@@ -51,7 +51,7 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
       <div className="flex items-start gap-5">
         <div
           className="rounded-2xl flex items-center justify-center shrink-0 overflow-hidden"
-          style={{ width: 72, height: 140, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+          style={{ width: 72, height: 140, background: "rgba(26,10,14,0.04)", border: "1px solid rgba(26,10,14,0.09)" }}
         >
           {preview ? (
             <img src={preview} alt="Bouteille" className="w-full h-full object-contain" onError={() => { setPreview(null); setUrlError(true); }} />
@@ -66,7 +66,7 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
             type="button"
             onClick={() => fileRef.current?.click()}
             className="w-full text-sm px-4 py-2.5 rounded-xl text-left transition-opacity hover:opacity-80"
-            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)", fontFamily: "var(--font-inter)", color: "rgba(255,255,255,0.7)" }}
+            style={{ background: "rgba(26,10,14,0.04)", border: "1px solid rgba(26,10,14,0.10)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
           >
             {uploading ? "Upload en cours…" : "📁 Uploader un fichier"}
           </button>
@@ -80,10 +80,10 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
               placeholder="Coller une URL d'image…"
               className="flex-1 px-3 py-2.5 rounded-xl text-sm"
               style={{
-                background: "rgba(255,255,255,0.05)",
-                border: `1px solid ${urlError ? "rgba(255,80,80,0.5)" : "rgba(255,255,255,0.12)"}`,
+                background: "rgba(26,10,14,0.04)",
+                border: `1px solid ${urlError ? "rgba(255,80,80,0.5)" : "rgba(26,10,14,0.10)"}`,
                 fontFamily: "var(--font-inter)",
-                color: "#fff",
+                color: "#1a0a0e",
                 outline: "none",
               }}
             />
@@ -92,7 +92,7 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
               onClick={applyUrl}
               disabled={!pasteUrl.trim()}
               className="px-3 py-2.5 rounded-xl text-sm disabled:opacity-30 transition-opacity hover:opacity-80"
-              style={{ background: "rgba(201,169,110,0.2)", color: "#c9a96e", border: "1px solid rgba(201,169,110,0.3)", fontFamily: "var(--font-inter)" }}
+              style={{ background: "rgba(192,25,59,0.10)", color: "var(--wine-red)", border: "1px solid rgba(192,25,59,0.25)", fontFamily: "var(--font-inter)" }}
             >
               OK
             </button>
@@ -108,7 +108,7 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
               type="button"
               onClick={() => { setPreview(null); onSelect(""); }}
               className="text-xs transition-opacity hover:opacity-80"
-              style={{ fontFamily: "var(--font-inter)", color: "rgba(255,80,80,0.6)" }}
+              style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}
             >
               Supprimer l'image
             </button>
@@ -117,8 +117,8 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
       </div>
 
       {/* Liens de recherche */}
-      <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-        <p className="text-xs mb-2.5" style={{ fontFamily: "var(--font-inter)", color: "rgba(255,255,255,0.35)" }}>
+      <div className="rounded-xl p-3" style={{ background: "rgba(26,10,14,0.04)", border: "1px solid rgba(26,10,14,0.08)" }}>
+        <p className="text-xs mb-2.5" style={{ fontFamily: "var(--font-inter)", color: "rgba(26,10,14,0.40)" }}>
           Chercher l'image sur…
         </p>
         <div className="flex gap-2 flex-wrap">
@@ -129,13 +129,13 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs px-3 py-1.5 rounded-full transition-opacity hover:opacity-80"
-              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", fontFamily: "var(--font-inter)", color: "rgba(255,255,255,0.6)" }}
+              style={{ background: "rgba(26,10,14,0.05)", border: "1px solid rgba(26,10,14,0.09)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
             >
               {label} ↗
             </a>
           ))}
         </div>
-        <p className="text-xs mt-2" style={{ fontFamily: "var(--font-inter)", color: "rgba(255,255,255,0.2)" }}>
+        <p className="text-xs mt-2" style={{ fontFamily: "var(--font-inter)", color: "rgba(26,10,14,0.30)" }}>
           Clic droit sur l'image → "Copier l'adresse de l'image" → coller ci-dessus
         </p>
       </div>

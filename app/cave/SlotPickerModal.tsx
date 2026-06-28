@@ -22,20 +22,20 @@ export function SlotPickerModal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(8px)" }}
+      style={{ background: "rgba(26,10,14,0.45)", backdropFilter: "blur(12px)" }}
       onClick={onCancel}
     >
       <div
         className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl overflow-hidden flex flex-col"
-        style={{ background: "#130b0e", maxHeight: "80vh" }}
+        style={{ background: "#ffffff", boxShadow: "0 24px 64px rgba(26,10,14,0.18)", maxHeight: "80vh" }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="relative px-6 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <div className="relative px-6 pt-5 pb-4" style={{ borderBottom: "1px solid rgba(26,10,14,0.07)" }}>
           <button
             onClick={onCancel}
-            className="absolute top-4 right-5 w-8 h-8 flex items-center justify-center rounded-full transition-all hover:opacity-90"
-            style={{ background: "rgba(255,255,255,0.08)", color: "var(--text-muted)", fontSize: 14 }}
+            className="absolute top-4 right-5 w-8 h-8 flex items-center justify-center rounded-full hover:opacity-90 transition-opacity"
+            style={{ background: "rgba(26,10,14,0.07)", color: "var(--text-muted)", fontSize: 14 }}
           >
             ✕
           </button>
@@ -63,7 +63,7 @@ export function SlotPickerModal({
               <button
                 key={wine.id}
                 onClick={() => onPlace(wine)}
-                className="flex items-center gap-3 w-full px-3.5 py-3 rounded-xl text-left transition-all hover:brightness-110 active:scale-[0.99]"
+                className="flex items-center gap-3 w-full px-3.5 py-3 rounded-xl text-left hover:opacity-90 transition-opacity active:scale-[0.99]"
                 style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
               >
                 {wine.imageUrl ? (
@@ -106,11 +106,11 @@ export function SlotPickerModal({
         </div>
 
         {/* Cancel */}
-        <div className="px-5 py-4" style={{ borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+        <div className="px-5 py-4" style={{ borderTop: "1px solid rgba(26,10,14,0.07)" }}>
           <button
             onClick={onCancel}
-            className="w-full py-3 rounded-2xl text-sm font-medium transition-opacity hover:opacity-80"
-            style={{ fontFamily: "var(--font-inter)", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-muted)" }}
+            className="w-full py-3 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity"
+            style={{ fontFamily: "var(--font-inter)", background: "rgba(26,10,14,0.05)", border: "1px solid rgba(26,10,14,0.10)", color: "var(--text-muted)" }}
           >
             Annuler
           </button>

@@ -16,22 +16,23 @@ export default function Navigation() {
     <nav
       className="sticky top-0 z-50"
       style={{
-        background: "rgba(13, 8, 11, 0.95)",
-        backdropFilter: "blur(24px)",
-        borderBottom: "1px solid rgba(61, 34, 41, 0.9)",
-        boxShadow: "0 1px 24px rgba(0,0,0,0.4)",
+        background: "rgba(245,240,236,0.92)",
+        backdropFilter: "blur(20px)",
+        borderBottom: "1px solid rgba(26,10,14,0.10)",
+        boxShadow: "0 1px 0 rgba(26,10,14,0.06)",
       }}
     >
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3">
-          <span className="text-xl">🍷</span>
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center"
+            style={{ background: "var(--wine-red)" }}
+          >
+            <span style={{ fontSize: 14 }}>🍷</span>
+          </div>
           <span
-            className="text-sm tracking-[0.25em] uppercase"
-            style={{
-              fontFamily: "var(--font-playfair)",
-              color: "var(--gold)",
-              fontWeight: 600,
-            }}
+            className="text-sm tracking-[0.18em] uppercase"
+            style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)", fontWeight: 700 }}
           >
             Ma Cave
           </span>
@@ -44,13 +45,13 @@ export default function Navigation() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="px-4 py-2 rounded-full text-sm transition-all duration-200"
+                className="px-4 py-2 rounded-full text-sm transition-all duration-150"
                 style={{
                   fontFamily: "var(--font-inter)",
-                  background: isActive ? "rgba(196, 152, 60, 0.14)" : "transparent",
-                  color: isActive ? "var(--gold)" : "var(--text-muted)",
-                  border: isActive ? "1px solid rgba(196, 152, 60, 0.28)" : "1px solid transparent",
-                  fontWeight: isActive ? 500 : 400,
+                  background: isActive ? "rgba(192,25,59,0.08)" : "transparent",
+                  color: isActive ? "var(--wine-red)" : "var(--text-muted)",
+                  border: isActive ? "1px solid rgba(192,25,59,0.2)" : "1px solid transparent",
+                  fontWeight: isActive ? 600 : 400,
                 }}
               >
                 {link.label}
@@ -59,7 +60,7 @@ export default function Navigation() {
           })}
           <Link
             href="/wines/add"
-            className="ml-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 hover:opacity-90"
+            className="ml-2 px-4 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
             style={{
               fontFamily: "var(--font-inter)",
               background: "var(--wine-red)",

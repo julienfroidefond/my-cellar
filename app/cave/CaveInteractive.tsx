@@ -92,10 +92,10 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
       {placing && (
         <div
           className="flex items-center justify-between px-5 py-3.5 rounded-xl mb-5"
-          style={{ background: "rgba(196,152,60,0.10)", border: "1px solid rgba(196,152,60,0.38)" }}
+          style={{ background: "rgba(192,25,59,0.07)", border: "1px solid rgba(192,25,59,0.30)" }}
         >
           <div>
-            <p className="text-sm font-semibold" style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}>
+            <p className="text-sm font-semibold" style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}>
               Ranger — {placing.name}
             </p>
             <p className="text-xs mt-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
@@ -105,7 +105,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
           <button
             onClick={() => setPlacing(null)}
             className="text-xs px-3 py-1.5 rounded-full transition-opacity hover:opacity-100"
-            style={{ fontFamily: "var(--font-inter)", border: "1px solid rgba(255,255,255,0.22)", color: "var(--text-muted)" }}
+            style={{ fontFamily: "var(--font-inter)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
           >
             Annuler
           </button>
@@ -119,9 +119,9 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
           style={{
             fontFamily: "var(--font-inter)",
-            background: showLabels ? "rgba(196,152,60,0.18)" : "rgba(255,255,255,0.06)",
-            border: showLabels ? "1px solid rgba(196,152,60,0.35)" : "1px solid rgba(255,255,255,0.12)",
-            color: showLabels ? "var(--gold)" : "var(--text-muted)",
+            background: showLabels ? "rgba(192,25,59,0.08)" : "rgba(26,10,14,0.04)",
+            border: showLabels ? "1px solid rgba(192,25,59,0.30)" : "1px solid var(--border)",
+            color: showLabels ? "var(--wine-red)" : "var(--text-muted)",
           }}
         >
           <span style={{ fontSize: 11 }}>{showLabels ? "◉" : "○"}</span>
@@ -156,13 +156,13 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
               style={{
                 background: "var(--surface)",
                 border: (placing || targetSlot?.rackId === rack.id)
-                  ? "1px solid rgba(196,152,60,0.38)"
+                  ? "1px solid rgba(192,25,59,0.35)"
                   : "1px solid var(--border)",
               }}
             >
               <div
                 className="flex items-center gap-4 px-5 py-3"
-                style={{ borderBottom: "1px solid var(--border)", background: "var(--surface-2)" }}
+                style={{ borderBottom: "1px solid var(--border)", background: "var(--surface)" }}
               >
                 <span
                   className="font-bold px-3 py-1 rounded-lg text-sm tracking-wide"
@@ -173,7 +173,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
                 <span className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
                   {filledSlots} / {totalSlots}
                 </span>
-                <div className="flex-1 h-1 rounded-full ml-1" style={{ background: "rgba(255,255,255,0.07)" }}>
+                <div className="flex-1 h-1 rounded-full ml-1" style={{ background: "rgba(26,10,14,0.08)" }}>
                   <div className="h-full rounded-full transition-all" style={{ width: `${fillPct}%`, background: "var(--wine-red)" }} />
                 </div>
               </div>
@@ -203,7 +203,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
       {unracked.length > 0 && (
         <div className="mt-10">
           <div className="mb-5">
-            <p className="text-xs tracking-[0.3em] uppercase mb-2" style={{ fontFamily: "var(--font-inter)", color: "var(--gold)", fontWeight: 500 }}>
+            <p className="text-xs tracking-[0.3em] uppercase mb-2" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", fontWeight: 500 }}>
               Non rangés
             </p>
             <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>À ranger</h2>
@@ -241,7 +241,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
                     <Link
                       href={`/wines/${wine.id}`}
                       className="text-xs px-3 py-1.5 rounded-full transition-opacity hover:opacity-80"
-                      style={{ fontFamily: "var(--font-inter)", border: "1px solid rgba(255,255,255,0.18)", color: "var(--text-muted)" }}
+                      style={{ fontFamily: "var(--font-inter)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
                     >
                       Voir
                     </Link>
@@ -250,9 +250,9 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
                       className="text-xs px-3 py-1.5 rounded-full transition-all hover:opacity-90"
                       style={{
                         fontFamily: "var(--font-inter)",
-                        background: placing?.id === wine.id ? "var(--gold)" : "rgba(196,152,60,0.18)",
-                        color: placing?.id === wine.id ? "#fff" : "var(--gold)",
-                        border: "1px solid rgba(196,152,60,0.35)",
+                        background: placing?.id === wine.id ? "var(--wine-red)" : "rgba(192,25,59,0.08)",
+                        color: placing?.id === wine.id ? "#fff" : "var(--wine-red)",
+                        border: "1px solid rgba(192,25,59,0.30)",
                         fontWeight: 500,
                       }}
                     >

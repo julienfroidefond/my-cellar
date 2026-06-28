@@ -142,9 +142,9 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
                 {COLORS.map((c) => (
                   <button key={c} type="button" onClick={() => set("color", c)} className="px-4 py-2 rounded-full text-sm capitalize transition-all"
                     style={{
-                      background: form.color === c ? (c === "rouge" ? "var(--wine-red)" : c === "blanc" ? "rgba(201,169,110,0.4)" : "rgba(220,120,130,0.4)") : "var(--surface-2)",
+                      background: form.color === c ? (c === "rouge" ? "var(--wine-red)" : c === "blanc" ? "rgba(160,120,44,0.18)" : "rgba(184,64,96,0.18)") : "var(--surface)",
                       border: `1px solid ${form.color === c ? "transparent" : "var(--border)"}`,
-                      color: form.color === c ? "white" : "rgba(245,240,235,0.6)",
+                      color: form.color === c ? "white" : "var(--text-muted)",
                       fontFamily: "var(--font-inter)",
                     }}
                   >{c}</button>
@@ -203,7 +203,7 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
               {loading ? "Enregistrement…" : "Enregistrer"}
             </button>
             <button type="button" onClick={() => router.back()} className="px-6 py-3 rounded-full text-sm"
-              style={{ background: "var(--surface-2)", border: "1px solid var(--border)", fontFamily: "var(--font-inter)" }}>
+              style={{ background: "var(--surface)", border: "1px solid var(--border)", fontFamily: "var(--font-inter)" }}>
               Annuler
             </button>
           </div>
@@ -215,14 +215,14 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "10px 14px", borderRadius: "10px",
-  background: "var(--surface-2)", border: "1px solid var(--border)",
+  background: "var(--surface)", border: "1px solid var(--border)",
   color: "var(--foreground)", fontSize: "0.875rem", fontFamily: "var(--font-inter)", outline: "none",
 };
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-2xl p-6 space-y-5" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-      <h2 className="text-base font-semibold mb-5" style={{ fontFamily: "var(--font-playfair)", color: "var(--gold)" }}>{title}</h2>
+    <div className="rounded-2xl p-6 space-y-5" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.06)" }}>
+      <h2 className="text-base font-semibold mb-5" style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}>{title}</h2>
       {children}
     </div>
   );
