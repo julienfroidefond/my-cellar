@@ -142,9 +142,9 @@ export default async function CavePage() {
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
 
       {/* ── Hero ──────────────────────────────────────── */}
-      <div className="diagonal-stripe relative overflow-hidden" style={{ minHeight: 380, background: "var(--background)" }}>
+      <div className="diagonal-stripe relative overflow-hidden" style={{ minHeight: 480, background: "var(--background)" }}>
 
-        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-10 pb-16">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24">
           <p
             className="text-xs tracking-[0.45em] uppercase mb-5 font-semibold"
             style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}
@@ -159,7 +159,7 @@ export default async function CavePage() {
             <span style={{ color: "var(--wine-red)" }}>à Vin</span>
           </h1>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 max-w-2xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-14 max-w-3xl">
             {[
               { value: allRacks.length, label: "Casier" + (allRacks.length > 1 ? "s" : "") },
               { value: totalBottles, label: "Bouteilles rangées" },

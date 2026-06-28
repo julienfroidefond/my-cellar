@@ -157,8 +157,8 @@ export default async function HistoryPage() {
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
 
       {/* ── Hero ──────────────────────────────────────── */}
-      <div className="diagonal-stripe relative overflow-hidden" style={{ minHeight: 320, background: "var(--background)" }}>
-        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-10 pb-14">
+      <div className="diagonal-stripe relative overflow-hidden" style={{ minHeight: 480, background: "var(--background)" }}>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24">
           <p className="text-xs tracking-[0.45em] uppercase mb-5 font-semibold" style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}>
             Journal
           </p>
@@ -167,7 +167,7 @@ export default async function HistoryPage() {
             <span style={{ color: "var(--wine-red)" }}>Dégustations</span>
           </h1>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-10 max-w-xl">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-14 max-w-3xl">
             {[
               { value: total, label: "Bouteilles bues" },
               { value: uniqueNames.size, label: "Vins différents" },
@@ -188,7 +188,7 @@ export default async function HistoryPage() {
 
       {/* ── Charts ──────────────────────────────────── */}
       {entries.length > 0 && (
-        <div className="max-w-5xl mx-auto px-6 pb-4 pt-10">
+        <div className="max-w-7xl mx-auto px-6 pb-4 pt-10">
           <div className="mb-6">
             <p
               className="text-xs tracking-[0.3em] uppercase mb-2"
@@ -208,7 +208,7 @@ export default async function HistoryPage() {
       )}
 
       {/* ── Timeline ────────────────────────────────── */}
-      <div className="max-w-3xl mx-auto px-6 py-10">
+      <div className="max-w-7xl mx-auto px-6 py-10">
         {entries.length === 0 ? (
           <div className="text-center py-28">
             <p style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)", fontSize: "0.875rem" }}>
@@ -236,7 +236,7 @@ export default async function HistoryPage() {
                   </div>
 
                   {/* Entries */}
-                  <div className="space-y-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {dayEntries.map((entry) => {
                       const dot = COLOR_DOT[entry.color ?? ""] ?? "#888";
                       const imgUrl = getImage(entry.wineName);
