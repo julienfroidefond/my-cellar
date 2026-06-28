@@ -88,6 +88,10 @@ function WinesContent() {
   const [allWines, setAllWines] = useState<Wine[]>([]);
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
+  type SortKey = "name" | "stock-desc" | "price-desc" | "vintage-desc";
+  const [sort, setSort] = useState<SortKey>(() => {
+    try { return (localStorage.getItem("wine-sort") as SortKey) || "name"; } catch { return "name"; }
+  });
 
   const [filters, setFilters] = useState<Filters>(() => {
     // URL params have highest priority (shareable links, dashboard clicks)
@@ -120,6 +124,11 @@ function WinesContent() {
       .then(r => r.json())
       .then(data => { setAllWines(data); setLoading(false); });
   }, []);
+
+  // Persist sort to localStorage
+  useEffect(() => {
+    try { localStorage.setItem("wine-sort", sort); } catch {}
+  }, [sort]);
 
   // Persist to localStorage + sync URL
   useEffect(() => {
@@ -187,7 +196,18 @@ function WinesContent() {
       if (!`${w.name} ${w.producer ?? ""} ${w.appellation ?? ""} ${w.region ?? ""} ${w.country ?? ""}`.toLowerCase().includes(q)) return false;
     }
     return true;
-  }), [allWines, filters, currentYear]);
+  }).sort((a, b) => {
+    switch (sort) {
+      case "stock-desc":  return totalQuantity(b) - totalQuantity(a);
+      case "price-desc":  return (bestMarketPrice(b) ?? -1) - (bestMarketPrice(a) ?? -1);
+      case "vintage-desc": {
+        const va = Math.max(0, ...a.vintages.map(v => v.vintage ?? 0));
+        const vb = Math.max(0, ...b.vintages.map(v => v.vintage ?? 0));
+        return vb - va;
+      }
+      default: return a.name.localeCompare(b.name, "fr");
+    }
+  }), [allWines, filters, sort, currentYear]);
 
   function set<K extends keyof Filters>(key: K, value: Filters[K]) {
     setFilters(f => ({ ...f, [key]: value }));
@@ -236,6 +256,17 @@ function WinesContent() {
                   Tout effacer
                 </button>
               )}
+              <select
+                value={sort}
+                onChange={e => setSort(e.target.value as typeof sort)}
+                className="px-4 py-2.5 rounded-full text-sm outline-none cursor-pointer"
+                style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-muted)", fontFamily: "var(--font-inter)", appearance: "none", paddingRight: "2rem" }}
+              >
+                <option value="name">A → Z</option>
+                <option value="stock-desc">Stock ↓</option>
+                <option value="price-desc">Prix ↓</option>
+                <option value="vintage-desc">Millésime ↓</option>
+              </select>
               <input
                 type="text"
                 placeholder="Rechercher un vin…"

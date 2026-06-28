@@ -163,6 +163,11 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
   });
   if (!wine) notFound();
 
+  const wineHistory = await prisma.wineHistory.findMany({
+    where: { wineName: wine.name },
+    orderBy: { consumedAt: "desc" },
+  });
+
   const cfg = COLOR_CONFIG[wine.color ?? ""] ?? {
     label: wine.color ?? "Inconnu",
     color: "var(--text-muted)",
@@ -260,6 +265,64 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                 ))}
               </div>
             )}
+
+            {/* Historique */}
+            {wineHistory.length > 0 && (() => {
+              // Group by day + vintage + action
+              const groups = new Map<string, { action: string; vintage: number | null; date: Date; count: number }>();
+              for (const h of wineHistory) {
+                const day = new Date(h.consumedAt).toDateString();
+                const key = `${day}|${h.vintage ?? ""}|${h.action}`;
+                const existing = groups.get(key);
+                if (existing) { existing.count += h.quantity; }
+                else { groups.set(key, { action: h.action, vintage: h.vintage, date: new Date(h.consumedAt), count: h.quantity }); }
+              }
+              const rows = Array.from(groups.values());
+
+              return (
+                <div className="mt-10">
+                  <div className="mb-4">
+                    <p className="text-xs tracking-[0.3em] uppercase font-semibold mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Historique</p>
+                    <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>Consommation</h2>
+                  </div>
+                  <div className="space-y-2">
+                    {rows.map((h, i) => (
+                      <div
+                        key={i}
+                        className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl"
+                        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span
+                            className="text-xs px-2.5 py-1 rounded-full font-medium shrink-0"
+                            style={{
+                              background: h.action === "bu" ? "rgba(192,25,59,0.09)" : "rgba(26,10,14,0.06)",
+                              color: h.action === "bu" ? "var(--wine-red)" : "var(--text-muted)",
+                              fontFamily: "var(--font-inter)",
+                            }}
+                          >
+                            {h.action === "bu" ? "Bu" : "Retiré"}
+                          </span>
+                          {h.vintage && (
+                            <span className="text-sm font-semibold" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
+                              {h.vintage}
+                            </span>
+                          )}
+                          {h.count > 1 && (
+                            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(26,10,14,0.05)", color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}>
+                              ×{h.count}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+                          {h.date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Sidebar — 1/3 */}
