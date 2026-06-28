@@ -96,10 +96,6 @@ export default async function CavePage() {
 
   const unrackedCount = unrackedWines.reduce((s, w) => s + w.quantity, 0);
 
-  const heroBottleUrl =
-    allRacks.flatMap((r) => r.wines).find((w) => w.imageUrl)?.imageUrl ??
-    unrackedWines.find((w) => w.imageUrl)?.imageUrl ??
-    null;
 
   const racks: RackData[] = allRacks.map((rack) => {
     const config = RACK_CONFIGS[rack.name] ?? defaultConfig();
@@ -145,24 +141,6 @@ export default async function CavePage() {
 
       {/* ── Hero ──────────────────────────────────────── */}
       <div className="diagonal-stripe relative overflow-hidden" style={{ minHeight: 380, background: "var(--background)" }}>
-
-        {heroBottleUrl && (
-          <div
-            className="absolute hidden md:block pointer-events-none"
-            style={{ right: "14%", top: "-6%", bottom: "-6%", width: 170, zIndex: 20 }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={heroBottleUrl}
-              alt=""
-              style={{
-                height: "112%", width: "100%",
-                objectFit: "contain", objectPosition: "center",
-                filter: "drop-shadow(-10px 18px 36px rgba(26,10,14,0.32))",
-              }}
-            />
-          </div>
-        )}
 
         <div className="relative z-10 max-w-5xl mx-auto px-6 pt-10 pb-16">
           <p
