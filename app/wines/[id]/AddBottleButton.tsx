@@ -49,7 +49,7 @@ export default function AddBottleButton({ id, vintage }: { id: string; vintage: 
 
       {open && (
         <div
-          className="absolute left-0 mt-2 rounded-2xl p-5 z-50"
+          className="absolute left-0 bottom-full mb-2 rounded-2xl p-5 z-50"
           style={{
             background: "var(--surface)",
             border: "1px solid var(--border)",

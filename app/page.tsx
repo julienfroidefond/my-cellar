@@ -1,12 +1,9 @@
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import CellarCharts from "@/components/CellarCharts";
+import PremiumCarousel from "@/components/PremiumCarousel";
+import { estimateMaturity } from "@/lib/maturity";
 
-const colorConfig: Record<string, { label: string; dot: string; border: string }> = {
-  rouge: { label: "Rouge", dot: "#c02030", border: "rgba(160, 28, 46, 0.20)" },
-  blanc: { label: "Blanc", dot: "#b87a2c", border: "rgba(196, 152, 60, 0.22)" },
-  rosé: { label: "Rosé", dot: "#d4647a", border: "rgba(210, 100, 120, 0.22)" },
-};
 
 export default async function DashboardPage() {
   const wines = await prisma.wine.findMany({ orderBy: { name: "asc" } });
@@ -32,9 +29,47 @@ export default async function DashboardPage() {
   const vintages = wines.filter((w) => w.vintage).map((w) => w.vintage!);
   const oldestVintage = vintages.length ? Math.min(...vintages) : null;
 
-  const premiumWines = wines
-    .filter((w) => (w.marketPrice ?? 0) >= 30)
-    .sort((a, b) => (b.marketPrice ?? 0) - (a.marketPrice ?? 0))
+  const winesWithPrice = wines
+    .filter((w) => w.marketPrice != null)
+    .sort((a, b) => (b.marketPrice ?? 0) - (a.marketPrice ?? 0));
+  const premiumWines = winesWithPrice.slice(0, 6);
+  const premiumTotal = Math.min(winesWithPrice.length, 18);
+
+  // ── Maturité ──────────────────────────────────────────────────────────────
+  const currentYear = new Date().getFullYear();
+
+  const winesWithMaturity = wines
+    .filter((w) => w.quantity > 0)
+    .map((w) => {
+      const hasManual = !!(w.drinkFrom && w.drinkUntil);
+      const est = !hasManual
+        ? estimateMaturity({ region: w.region, appellation: w.appellation, color: w.color, vintage: w.vintage })
+        : null;
+      const from  = w.drinkFrom  ?? est?.drinkFrom  ?? null;
+      const until = w.drinkUntil ?? est?.drinkUntil ?? null;
+      const status =
+        from && until
+          ? currentYear > until   ? "dépassé"
+          : currentYear >= from   ? "optimal"
+          : currentYear >= from - 2 ? "bientôt"
+          : "trop-tôt"
+          : null;
+      return { ...w, effectiveDrinkFrom: from, effectiveDrinkUntil: until, status, isEstimated: !hasManual };
+    });
+
+  const readyWines = winesWithMaturity
+    .filter((w) => w.status === "optimal")
+    .sort((a, b) => (a.effectiveDrinkUntil ?? 9999) - (b.effectiveDrinkUntil ?? 9999))
+    .slice(0, 8);
+
+  const soonWines = winesWithMaturity
+    .filter((w) => w.status === "bientôt")
+    .sort((a, b) => (a.effectiveDrinkFrom ?? 9999) - (b.effectiveDrinkFrom ?? 9999))
+    .slice(0, 4);
+
+  const pastWines = winesWithMaturity
+    .filter((w) => w.status === "dépassé")
+    .sort((a, b) => (b.effectiveDrinkUntil ?? 0) - (a.effectiveDrinkUntil ?? 0))
     .slice(0, 6);
 
   const winesWithImage = wines.filter((w) => w.imageUrl && w.quantity > 0);
@@ -130,102 +165,9 @@ export default async function DashboardPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-6 py-14 space-y-14">
-        {/* Vins premium */}
-        {premiumWines.length > 0 && (
-          <section>
-            <SectionTitle eyebrow="Pépites">Les trésors de la cave</SectionTitle>
-            <p className="text-sm mt-2 mb-8" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-              Vins estimés à plus de 30 € la bouteille
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {premiumWines.map((wine) => {
-                const cfg = colorConfig[wine.color ?? ""] ?? {
-                  dot: "#888",
-                  border: "rgba(26,10,14,0.10)",
-                  text: "var(--text-muted)",
-                };
-                return (
-                  <Link
-                    key={wine.id}
-                    href={`/wines/${wine.id}`}
-                    className="rounded-2xl p-5 transition-transform duration-200 hover:-translate-y-0.5 block relative overflow-hidden"
-                    style={{
-                      background: "var(--surface)",
-                      border: `1px solid ${cfg.border}`,
-                      boxShadow: "0 2px 12px rgba(26,10,14,0.07)",
-                    }}
-                  >
-                    {/* Bottle image */}
-                    {wine.imageUrl && (
-                      <div className="absolute right-0 top-0 bottom-0 pointer-events-none" style={{ width: 80 }}>
-                        <div className="absolute inset-0" style={{ background: "linear-gradient(to right, var(--surface) 0%, transparent 50%)" }} />
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={wine.imageUrl}
-                          alt=""
-                          style={{
-                            position: "absolute", bottom: 0, right: 8,
-                            height: "95%", objectFit: "contain",
-                            opacity: 0.90,
-                            filter: "drop-shadow(0 4px 16px rgba(26,10,14,0.18))",
-                          }}
-                        />
-                      </div>
-                    )}
-
-                    <div style={{ paddingRight: wine.imageUrl ? 72 : undefined }}>
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-2.5 h-2.5 rounded-full shrink-0"
-                            style={{ background: cfg.dot }}
-                          />
-                          <span
-                            className="text-xs uppercase tracking-wider"
-                            style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-                          >
-                            {colorConfig[wine.color ?? ""]?.label ?? wine.color}
-                          </span>
-                        </div>
-                        <span
-                          className="text-xl font-bold"
-                          style={{ color: "var(--wine-red)", fontFamily: "var(--font-playfair)" }}
-                        >
-                          {wine.marketPrice?.toFixed(0)} €
-                        </span>
-                      </div>
-                      <h3
-                        className="font-semibold mb-1 line-clamp-2 leading-snug"
-                        style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem", color: "var(--foreground)" }}
-                      >
-                        {wine.name}
-                      </h3>
-                      <div className="flex items-center gap-2 mt-3">
-                        {wine.vintage && (
-                          <span
-                            className="text-xs px-2 py-0.5 rounded"
-                            style={{
-                              background: "var(--surface-2)",
-                              fontFamily: "var(--font-inter)",
-                              color: "var(--text-muted)",
-                              border: "1px solid var(--border)",
-                            }}
-                          >
-                            {wine.vintage}
-                          </span>
-                        )}
-                        {wine.appellation && (
-                          <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
-                            {wine.appellation}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
+        {/* Vins premium — carousel */}
+        {premiumTotal > 0 && (
+          <PremiumCarousel initialWines={premiumWines} total={premiumTotal} />
         )}
 
         {/* Charts — couleur & région */}
