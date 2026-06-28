@@ -186,73 +186,70 @@ export default async function DashboardPage() {
               Basé sur les fenêtres de dégustation saisies ou estimées automatiquement
             </p>
 
-            <div className="grid md:grid-cols-2 gap-8">
-
-              {/* Prêtes + bientôt */}
-              {(readyWines.length > 0 || soonWines.length > 0) && (
+            <div className="space-y-8">
+              {/* Prêtes à boire */}
+              {readyWines.length > 0 && (
                 <div>
-                  {readyWines.length > 0 && (
-                    <>
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-2 h-2 rounded-full" style={{ background: "#1a7a3c" }} />
-                        <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "#1a7a3c" }}>
-                          Prêtes à boire — {readyWines.length} vin{readyWines.length > 1 ? "s" : ""}
-                        </span>
-                      </div>
-                      <div className="space-y-2 mb-6">
-                        {readyWines.map((w) => (
-                          <MaturityCard
-                            key={w.id}
-                            wine={w}
-                            badge={`Boire avant ${w.effectiveDrinkUntil}`}
-                            badgeColor="#1a7a3c"
-                            badgeBg="rgba(26,122,60,0.09)"
-                            urgent={w.effectiveDrinkUntil !== null && w.effectiveDrinkUntil <= currentYear + 1}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-                  {soonWines.length > 0 && (
-                    <>
-                      <div className="flex items-center gap-2 mb-4">
-                        <div className="w-2 h-2 rounded-full" style={{ background: "#b87a2c" }} />
-                        <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "#b87a2c" }}>
-                          Bientôt prêtes — {soonWines.length} vin{soonWines.length > 1 ? "s" : ""}
-                        </span>
-                      </div>
-                      <div className="space-y-2">
-                        {soonWines.map((w) => (
-                          <MaturityCard
-                            key={w.id}
-                            wine={w}
-                            badge={`À partir de ${w.effectiveDrinkFrom}`}
-                            badgeColor="#b87a2c"
-                            badgeBg="rgba(184,122,44,0.09)"
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
+                  <div className="flex items-center gap-2 mb-5">
+                    <div className="w-2 h-2 rounded-full" style={{ background: "#1a7a3c" }} />
+                    <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "#1a7a3c" }}>
+                      Prêtes à boire — {readyWines.length} vin{readyWines.length > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {readyWines.map((w) => (
+                      <MaturityCard
+                        key={w.id}
+                        wine={w}
+                        badge={`avant ${w.effectiveDrinkUntil}`}
+                        badgeColor="#1a7a3c"
+                        badgeBg="rgba(26,122,60,0.09)"
+                        urgent={w.effectiveDrinkUntil !== null && w.effectiveDrinkUntil <= currentYear + 1}
+                      />
+                    ))}
+                  </div>
                 </div>
               )}
 
-              {/* Passées */}
+              {/* Bientôt prêtes */}
+              {soonWines.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-5">
+                    <div className="w-2 h-2 rounded-full" style={{ background: "#b87a2c" }} />
+                    <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "#b87a2c" }}>
+                      Bientôt prêtes — {soonWines.length} vin{soonWines.length > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {soonWines.map((w) => (
+                      <MaturityCard
+                        key={w.id}
+                        wine={w}
+                        badge={`dès ${w.effectiveDrinkFrom}`}
+                        badgeColor="#b87a2c"
+                        badgeBg="rgba(184,122,44,0.09)"
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Passées leur apogée */}
               {pastWines.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="w-2 h-2 rounded-full" style={{ background: "rgba(26,10,14,0.30)" }} />
+                  <div className="flex items-center gap-2 mb-5">
+                    <div className="w-2 h-2 rounded-full" style={{ background: "rgba(26,10,14,0.28)" }} />
                     <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
                       Passées leur apogée — {pastWines.length} vin{pastWines.length > 1 ? "s" : ""}
                     </span>
                   </div>
-                  <div className="space-y-2">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {pastWines.map((w) => (
                       <MaturityCard
                         key={w.id}
                         wine={w}
-                        badge={`Apogée jusqu'en ${w.effectiveDrinkUntil}`}
-                        badgeColor="rgba(26,10,14,0.35)"
+                        badge={`apogée ${w.effectiveDrinkUntil}`}
+                        badgeColor="rgba(26,10,14,0.40)"
                         badgeBg="rgba(26,10,14,0.05)"
                         faded
                       />
@@ -317,7 +314,7 @@ function MaturityCard({
   faded,
   urgent,
 }: {
-  wine: { id: string; name: string; vintage: number | null; color: string | null; quantity: number; isEstimated: boolean };
+  wine: { id: string; name: string; vintage: number | null; color: string | null; quantity: number; imageUrl: string | null; isEstimated: boolean };
   badge: string;
   badgeColor: string;
   badgeBg: string;
@@ -327,30 +324,58 @@ function MaturityCard({
   return (
     <Link
       href={`/wines/${wine.id}`}
-      className="flex items-center gap-3 rounded-xl px-4 py-3 transition-transform duration-150 hover:-translate-y-0.5"
+      className="rounded-2xl p-5 block relative overflow-hidden transition-transform duration-200 hover:-translate-y-0.5"
       style={{
         background: "var(--surface)",
-        border: urgent ? `1px solid rgba(26,122,60,0.25)` : "1px solid var(--border)",
-        boxShadow: "0 1px 6px rgba(26,10,14,0.05)",
-        opacity: faded ? 0.7 : 1,
+        border: urgent ? `1px solid ${badgeColor}40` : "1px solid var(--border)",
+        boxShadow: urgent ? `0 2px 16px ${badgeColor}18` : "0 2px 8px rgba(26,10,14,0.06)",
+        opacity: faded ? 0.72 : 1,
       }}
     >
-      <div className="w-2 h-2 rounded-full shrink-0" style={{ background: COLOR_DOT[wine.color ?? ""] ?? "rgba(26,10,14,0.25)" }} />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate" style={{ fontFamily: "var(--font-inter)", color: faded ? "var(--text-muted)" : "var(--foreground)" }}>
-          {wine.name}
-        </p>
-        <p className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
-          {wine.vintage ?? "—"} · {wine.quantity} bouteille{wine.quantity > 1 ? "s" : ""}
-          {wine.isEstimated && <span className="ml-1 opacity-60">~estimé</span>}
+      {/* Bottle image */}
+      {wine.imageUrl && (
+        <div className="absolute right-0 top-0 bottom-0 pointer-events-none" style={{ width: 72 }}>
+          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, var(--surface) 0%, transparent 55%)" }} />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={wine.imageUrl}
+            alt=""
+            style={{
+              position: "absolute", bottom: 0, right: 6,
+              height: "92%", objectFit: "contain",
+              opacity: faded ? 0.5 : 0.88,
+              filter: "drop-shadow(0 3px 10px rgba(26,10,14,0.15))",
+            }}
+          />
+        </div>
+      )}
+
+      <div style={{ paddingRight: wine.imageUrl ? 64 : undefined }}>
+        {/* Badge */}
+        <span
+          className="inline-block text-xs px-2.5 py-1 rounded-full font-medium mb-3"
+          style={{ background: badgeBg, color: badgeColor, fontFamily: "var(--font-inter)", border: `1px solid ${badgeColor}35` }}
+        >
+          {badge}
+        </span>
+
+        {/* Color dot + name */}
+        <div className="flex items-start gap-2 mb-1">
+          <div className="w-2 h-2 rounded-full shrink-0 mt-1.5" style={{ background: COLOR_DOT[wine.color ?? ""] ?? "rgba(26,10,14,0.25)" }} />
+          <p
+            className="text-sm font-semibold leading-snug line-clamp-2"
+            style={{ fontFamily: "var(--font-inter)", color: faded ? "var(--text-muted)" : "var(--foreground)" }}
+          >
+            {wine.name}
+          </p>
+        </div>
+
+        {/* Meta */}
+        <p className="text-xs ml-4" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+          {wine.vintage ?? "—"} · {wine.quantity} bt{wine.quantity > 1 ? "s" : ""}
+          {wine.isEstimated && <span className="ml-1">~</span>}
         </p>
       </div>
-      <span
-        className="text-xs px-2.5 py-1 rounded-full shrink-0 font-medium"
-        style={{ background: badgeBg, color: badgeColor, fontFamily: "var(--font-inter)", border: `1px solid ${badgeColor}30` }}
-      >
-        {badge}
-      </span>
     </Link>
   );
 }
