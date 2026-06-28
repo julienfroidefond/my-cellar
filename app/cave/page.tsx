@@ -88,6 +88,19 @@ export default async function CavePage() {
     .flatMap((r) => r.wines)
     .reduce((s, w) => s + w.quantity, 0);
 
+  const totalCapacity = allRacks.reduce((sum, rack) => {
+    const config = RACK_CONFIGS[rack.name] ?? defaultConfig();
+    return sum + config.levels.reduce((s, l) => s + l.front + l.back, 0);
+  }, 0);
+  const occupancyPct = totalCapacity > 0 ? Math.round((totalBottles / totalCapacity) * 100) : 0;
+
+  const unrackedCount = unrackedWines.reduce((s, w) => s + w.quantity, 0);
+
+  const heroBottleUrl =
+    allRacks.flatMap((r) => r.wines).find((w) => w.imageUrl)?.imageUrl ??
+    unrackedWines.find((w) => w.imageUrl)?.imageUrl ??
+    null;
+
   const racks: RackData[] = allRacks.map((rack) => {
     const config = RACK_CONFIGS[rack.name] ?? defaultConfig();
     return {
@@ -129,48 +142,75 @@ export default async function CavePage() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      {/* Header avec image */}
-      <div className="relative overflow-hidden" style={{ minHeight: 210 }}>
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1474722883778-792e7990302f?auto=format&fit=crop&w=1600&q=80')",
-            backgroundSize: "cover",
-            backgroundPosition: "center 55%",
-          }}
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(245,240,236,0.45) 0%, rgba(245,240,236,0.72) 60%, var(--background) 100%)",
-          }}
-        />
-        <div className="relative max-w-3xl mx-auto px-6 py-12">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-            <div>
-              <p
-                className="text-xs tracking-[0.35em] uppercase mb-3"
-                style={{ color: "var(--gold)", fontFamily: "var(--font-inter)", fontWeight: 500 }}
+
+      {/* ── Hero ──────────────────────────────────────── */}
+      <div className="diagonal-stripe relative overflow-hidden" style={{ minHeight: 380, background: "var(--background)" }}>
+
+        {heroBottleUrl && (
+          <div
+            className="absolute hidden md:block pointer-events-none"
+            style={{ right: "14%", top: "-6%", bottom: "-6%", width: 170, zIndex: 20 }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={heroBottleUrl}
+              alt=""
+              style={{
+                height: "112%", width: "100%",
+                objectFit: "contain", objectPosition: "center",
+                filter: "drop-shadow(-10px 18px 36px rgba(26,10,14,0.32))",
+              }}
+            />
+          </div>
+        )}
+
+        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-10 pb-16">
+          <p
+            className="text-xs tracking-[0.45em] uppercase mb-5 font-semibold"
+            style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}
+          >
+            Visualisation
+          </p>
+          <h1
+            className="text-6xl md:text-8xl font-bold leading-none mb-4"
+            style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
+          >
+            Ma Cave<br />
+            <span style={{ color: "var(--wine-red)" }}>à Vin</span>
+          </h1>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10 max-w-2xl">
+            {[
+              { value: allRacks.length, label: "Casier" + (allRacks.length > 1 ? "s" : "") },
+              { value: totalBottles, label: "Bouteilles rangées" },
+              { value: `${occupancyPct} %`, label: "Taux d'occupation" },
+              ...(unrackedCount > 0
+                ? [{ value: unrackedCount, label: "À ranger" }]
+                : [{ value: totalCapacity, label: "Capacité totale" }]),
+            ].map((stat) => (
+              <div
+                key={stat.label}
+                className="rounded-2xl p-5"
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "0 2px 12px rgba(26,10,14,0.07)",
+                }}
               >
-                Visualisation
-              </p>
-              <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: "var(--font-playfair)" }}>
-                Ma Cave
-              </h1>
-              <p className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                {allRacks.length} casier{allRacks.length > 1 ? "s" : ""} · {totalBottles} bouteille{totalBottles > 1 ? "s" : ""}
-                {unracked.length > 0 && ` · ${unracked.reduce((s, w) => s + w.quantity, 0)} à ranger`}
-              </p>
-            </div>
-            <Link
-              href="/wines/add"
-              className="px-5 py-2.5 rounded-full text-sm font-medium self-start transition-opacity hover:opacity-90"
-              style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}
-            >
-              + Ajouter un vin
-            </Link>
+                <div
+                  className="text-3xl font-bold mb-1"
+                  style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}
+                >
+                  {stat.value}
+                </div>
+                <div
+                  className="text-xs tracking-wider uppercase"
+                  style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+                >
+                  {stat.label}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
