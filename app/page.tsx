@@ -146,9 +146,6 @@ export default async function DashboardPage() {
               Ma Cave<br />
               <span style={{ color: "var(--wine-red)" }}>à Vin</span>
             </h1>
-            <p className="text-sm mt-5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-              Julien Froidefond · 2, rue Winston Churchill
-            </p>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-14 max-w-3xl">
