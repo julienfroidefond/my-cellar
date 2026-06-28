@@ -440,8 +440,7 @@ function WineCard({ wine, index }: { wine: Wine; index: number }) {
         background: "var(--surface)",
         border: "1px solid var(--border)",
         boxShadow: "0 2px 8px rgba(26,10,14,0.06)",
-        animationDelay: `${index * 30}ms`,
-        animation: "fadeIn 0.4s ease forwards",
+        animation: `fadeIn 0.4s ease ${index * 30}ms forwards`,
         opacity: 0,
       }}
     >
