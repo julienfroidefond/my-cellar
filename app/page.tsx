@@ -99,7 +99,6 @@ export default async function DashboardPage() {
                 width: "100%",
                 objectFit: "contain",
                 objectPosition: "center",
-                filter: "drop-shadow(-12px 20px 40px rgba(26,10,14,0.35))",
               }}
             />
           </div>
