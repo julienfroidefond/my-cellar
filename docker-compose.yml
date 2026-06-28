@@ -7,6 +7,8 @@ services:
       - NODE_ENV=production
       - DATABASE_URL=file:/data/cellar.db
       - DB_PATH=/data/cellar.db
+      - AUTH_PASSWORD=${AUTH_PASSWORD}
+      - AUTH_SECRET=${AUTH_SECRET}
     volumes:
       - cellar-db:/data
       - cellar-images:/app/public/wines

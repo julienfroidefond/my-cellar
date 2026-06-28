@@ -4,7 +4,10 @@ import EditWineForm from "./EditWineForm";
 
 export default async function EditWinePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const wine = await prisma.wine.findUnique({ where: { id } });
+  const wine = await prisma.wine.findUnique({
+    where: { id },
+    include: { vintages: { orderBy: { vintage: "desc" } } },
+  });
   if (!wine) notFound();
   return <EditWineForm wine={wine} />;
 }

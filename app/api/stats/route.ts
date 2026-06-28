@@ -2,28 +2,44 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
 export async function GET() {
-  const wines = await prisma.wine.findMany();
+  const vintages = await prisma.wineVintage.findMany({
+    include: { wine: true },
+  });
 
-  const totalBottles = wines.reduce((sum, w) => sum + w.quantity, 0);
-  const totalMarketValue = wines.reduce((sum, w) => sum + (w.marketPrice ?? 0) * w.quantity, 0);
-  const byColor = wines.reduce<Record<string, number>>((acc, w) => {
-    const color = w.color ?? "inconnu";
-    acc[color] = (acc[color] ?? 0) + w.quantity;
+  const activeVintages = vintages.filter((v) => v.quantity > 0);
+
+  const totalBottles = activeVintages.reduce((sum, v) => sum + v.quantity, 0);
+
+  const distinctWineIds = new Set(activeVintages.map((v) => v.wineId));
+  const totalWines = distinctWineIds.size;
+
+  const totalMarketValue = activeVintages.reduce(
+    (sum, v) => sum + (v.marketPrice ?? 0) * v.quantity,
+    0
+  );
+
+  const byColor = activeVintages.reduce<Record<string, number>>((acc, v) => {
+    const color = v.wine.color ?? "inconnu";
+    acc[color] = (acc[color] ?? 0) + v.quantity;
     return acc;
   }, {});
-  const byRegion = wines.reduce<Record<string, number>>((acc, w) => {
-    const region = w.region ?? "inconnu";
-    acc[region] = (acc[region] ?? 0) + w.quantity;
+
+  const byRegion = activeVintages.reduce<Record<string, number>>((acc, v) => {
+    const region = v.wine.region ?? "inconnu";
+    acc[region] = (acc[region] ?? 0) + v.quantity;
     return acc;
   }, {});
 
-  const vintages = wines.filter((w) => w.vintage).map((w) => w.vintage!);
-  const oldestVintage = vintages.length ? Math.min(...vintages) : null;
-  const newestVintage = vintages.length ? Math.max(...vintages) : null;
+  const vintageyears = activeVintages
+    .filter((v) => v.vintage != null)
+    .map((v) => v.vintage as number);
+
+  const oldestVintage = vintageyears.length ? Math.min(...vintageyears) : null;
+  const newestVintage = vintageyears.length ? Math.max(...vintageyears) : null;
 
   return NextResponse.json({
     totalBottles,
-    totalWines: wines.length,
+    totalWines,
     totalMarketValue,
     byColor,
     byRegion,

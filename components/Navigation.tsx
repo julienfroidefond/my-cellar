@@ -13,6 +13,11 @@ const links = [
 export default function Navigation() {
   const pathname = usePathname();
 
+  async function handleLogout() {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    window.location.href = '/login';
+  }
+
   return (
     <nav
       className="sticky top-0 z-50"
@@ -70,6 +75,18 @@ export default function Navigation() {
           >
             + Ajouter
           </Link>
+          <button
+            onClick={handleLogout}
+            className="ml-1 px-3 py-2 rounded-full text-sm transition-all duration-150 hover:opacity-80"
+            style={{
+              fontFamily: "var(--font-inter)",
+              color: "var(--text-muted)",
+              border: "1px solid transparent",
+            }}
+            title="Se déconnecter"
+          >
+            ↪
+          </button>
         </div>
       </div>
     </nav>

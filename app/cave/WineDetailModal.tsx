@@ -141,7 +141,7 @@ export function WineDetailModal({
 
           <div className="flex gap-2">
             <Link
-              href={`/wines/${wine.id}`}
+              href={`/wines/${wine.wineId}`}
               className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity"
               style={{ fontFamily: "var(--font-inter)", background: "rgba(26,10,14,0.05)", border: "1px solid rgba(26,10,14,0.10)", color: "var(--foreground)" }}
               onClick={onClose}
@@ -155,7 +155,7 @@ export function WineDetailModal({
                 className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
                 style={{ fontFamily: "var(--font-inter)", background: "rgba(184,122,44,0.10)", color: "var(--gold)", border: "1px solid rgba(184,122,44,0.25)" }}
               >
-                {pending === "unrack" ? "…" : "↩ Retirer"}
+                {pending === "unrack" ? "…" : "↩ Retirer 1 bouteille"}
               </button>
             )}
           </div>

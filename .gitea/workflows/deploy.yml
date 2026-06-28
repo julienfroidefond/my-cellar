@@ -51,6 +51,9 @@ jobs:
           docker push ${{ env.IMAGE }}:${{ steps.version.outputs.version }}-${{ steps.version.outputs.sha }}
 
       - name: Pull new image and restart container
+        env:
+          AUTH_PASSWORD: ${{ secrets.AUTH_PASSWORD }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
         run: |
           docker pull ${{ env.IMAGE }}:latest
           cd /Users/julienfroidefond/Sites/docker-stack

@@ -28,11 +28,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
       name: "add_wine",
-      description: "Ajouter un vin à la cave. Utilisez cet outil pour insérer un nouveau vin avec toutes ses informations.",
+      description: "Ajouter un vin à la cave. Crée une fiche Wine + son premier millésime WineVintage.",
       inputSchema: {
         type: "object",
         properties: {
-          name: { type: "string", description: "Nom complet du vin" },
+          name: { type: "string", description: "Nom du vin (sans le producteur)" },
           producer: { type: "string", description: "Producteur ou domaine" },
           vintage: { type: "number", description: "Millésime (année)" },
           quantity: { type: "number", description: "Nombre de bouteilles (défaut: 1)" },
@@ -44,7 +44,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
           grapeVarieties: { type: "string", description: "Cépages (ex: Cabernet Sauvignon, Merlot)" },
           purchasePrice: { type: "number", description: "Prix d'achat en euros" },
           marketPrice: { type: "number", description: "Prix du marché estimé en euros" },
-          notes: { type: "string", description: "Notes, commentaires, occasion d'achat" },
+          notes: { type: "string", description: "Notes, commentaires" },
           drinkFrom: { type: "number", description: "Année à partir de laquelle boire" },
           drinkUntil: { type: "number", description: "Année jusqu'à laquelle boire" },
         },
@@ -53,59 +53,53 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     },
     {
       name: "list_wines",
-      description: "Lister les vins de la cave avec filtres optionnels.",
+      description: "Lister les vins de la cave avec leurs millésimes.",
       inputSchema: {
         type: "object",
         properties: {
           color: { type: "string", enum: ["rouge", "blanc", "rosé"], description: "Filtrer par couleur" },
           region: { type: "string", description: "Filtrer par région" },
-          search: { type: "string", description: "Recherche textuelle" },
+          search: { type: "string", description: "Recherche textuelle (nom, producteur, appellation)" },
         },
       },
     },
     {
       name: "get_wine",
-      description: "Obtenir les détails d'un vin par son ID.",
+      description: "Obtenir les détails d'un vin par son ID (Wine.id), avec tous ses millésimes.",
       inputSchema: {
         type: "object",
         properties: {
-          id: { type: "string", description: "ID du vin" },
+          id: { type: "string", description: "ID du vin (Wine.id)" },
         },
         required: ["id"],
       },
     },
     {
       name: "update_wine",
-      description: "Mettre à jour les informations d'un vin existant.",
+      description: "Mettre à jour les informations de niveau vin (nom, producteur, couleur, région, appellation, notes, imageUrl). Ne modifie pas les millésimes.",
       inputSchema: {
         type: "object",
         properties: {
-          id: { type: "string", description: "ID du vin à modifier" },
+          id: { type: "string", description: "ID du vin (Wine.id)" },
           name: { type: "string" },
           producer: { type: "string" },
-          vintage: { type: "number" },
-          quantity: { type: "number" },
           color: { type: "string", enum: ["rouge", "blanc", "rosé"] },
           region: { type: "string" },
           appellation: { type: "string" },
           country: { type: "string" },
           grapeVarieties: { type: "string" },
-          purchasePrice: { type: "number" },
-          marketPrice: { type: "number" },
           notes: { type: "string" },
-          drinkFrom: { type: "number" },
-          drinkUntil: { type: "number" },
         },
         required: ["id"],
       },
     },
     {
       name: "delete_wine",
-      description: "Supprimer un vin de la cave.",
+      description: "Supprimer un vin et tous ses millésimes de la cave.",
       inputSchema: {
         type: "object",
         properties: {
-          id: { type: "string", description: "ID du vin à supprimer" },
+          id: { type: "string", description: "ID du vin (Wine.id)" },
         },
         required: ["id"],
       },
@@ -146,13 +140,33 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   try {
     if (name === "add_wine") {
-      const data = AddWineSchema.parse(args);
-      const wine = await prisma.wine.create({ data });
+      const { vintage, quantity, volume, purchasePrice, marketPrice, drinkFrom, drinkUntil, ...wineData } =
+        AddWineSchema.parse(args);
+
+      const wine = await prisma.wine.create({
+        data: {
+          ...wineData,
+          vintages: {
+            create: {
+              vintage: vintage ?? null,
+              quantity,
+              volume,
+              purchasePrice: purchasePrice ?? null,
+              marketPrice: marketPrice ?? null,
+              drinkFrom: drinkFrom ?? null,
+              drinkUntil: drinkUntil ?? null,
+            },
+          },
+        },
+        include: { vintages: true },
+      });
+
+      const v = wine.vintages[0];
       return {
         content: [
           {
             type: "text",
-            text: `✅ Vin ajouté avec succès !\nID: ${wine.id}\nNom: ${wine.name}\nMillésime: ${wine.vintage ?? "—"}\nQuantité: ${wine.quantity} bouteille(s)`,
+            text: `✅ Vin ajouté !\nID: ${wine.id}\nNom: ${wine.name}\nMillésime: ${v?.vintage ?? "—"}\nQuantité: ${v?.quantity ?? 1} bouteille(s)`,
           },
         ],
       };
@@ -176,12 +190,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             : {}),
         },
         orderBy: { name: "asc" },
+        include: { vintages: { orderBy: { vintage: "desc" } } },
       });
 
-      const lines = wines.map(
-        (w) =>
-          `• [${w.id}] ${w.name}${w.vintage ? ` (${w.vintage})` : ""} — ${w.quantity}× ${w.color ?? "?"} — ${w.appellation ?? w.region ?? "?"} — ${w.marketPrice ? `${w.marketPrice}€` : "prix inconnu"}`
-      );
+      const lines = wines.map((w) => {
+        const totalQty = w.vintages.reduce((s, v) => s + v.quantity, 0);
+        const vintageList = w.vintages.map((v) => `${v.vintage ?? "?"}×${v.quantity}`).join(", ");
+        return `• [${w.id}] ${w.name}${w.producer ? ` / ${w.producer}` : ""} — ${totalQty} btl (${vintageList}) — ${w.color ?? "?"} — ${w.appellation ?? w.region ?? "?"}`;
+      });
 
       return {
         content: [
@@ -195,7 +211,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     if (name === "get_wine") {
       const { id } = args as { id: string };
-      const wine = await prisma.wine.findUnique({ where: { id }, include: { rack: true } });
+      const wine = await prisma.wine.findUnique({
+        where: { id },
+        include: { vintages: { orderBy: { vintage: "desc" } } },
+      });
       if (!wine) return { content: [{ type: "text", text: "❌ Vin non trouvé" }] };
       return {
         content: [
@@ -209,7 +228,12 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     if (name === "update_wine") {
       const { id, ...data } = args as Record<string, unknown>;
-      const wine = await prisma.wine.update({ where: { id: id as string }, data });
+      const { vintage: _v, quantity: _q, volume: _vol, purchasePrice: _pp, marketPrice: _mp, drinkFrom: _df, drinkUntil: _du, ...wineData } = data as Record<string, unknown>;
+      const wine = await prisma.wine.update({
+        where: { id: id as string },
+        data: wineData,
+        include: { vintages: true },
+      });
       return {
         content: [{ type: "text", text: `✅ Vin mis à jour : ${wine.name}` }],
       };
@@ -217,27 +241,32 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     if (name === "delete_wine") {
       const { id } = args as { id: string };
-      const wine = await prisma.wine.delete({ where: { id } });
+      const wine = await prisma.wine.findUnique({ where: { id }, include: { vintages: true } });
+      if (!wine) return { content: [{ type: "text", text: "❌ Vin non trouvé" }] };
+      await prisma.wine.delete({ where: { id } });
       return {
-        content: [{ type: "text", text: `🗑️ Vin supprimé : ${wine.name}` }],
+        content: [{ type: "text", text: `🗑️ Vin supprimé : ${wine.name} (${wine.vintages.length} millésime(s))` }],
       };
     }
 
     if (name === "get_stats") {
-      const wines = await prisma.wine.findMany();
-      const totalBottles = wines.reduce((s, w) => s + w.quantity, 0);
-      const totalValue = wines.reduce((s, w) => s + (w.marketPrice ?? 0) * w.quantity, 0);
-      const byColor = wines.reduce<Record<string, number>>((acc, w) => {
-        const c = w.color ?? "autre";
-        acc[c] = (acc[c] ?? 0) + w.quantity;
+      const vintages = await prisma.wineVintage.findMany({
+        include: { wine: { select: { color: true, region: true } } },
+      });
+      const totalBottles = vintages.reduce((s, v) => s + v.quantity, 0);
+      const totalValue = vintages.reduce((s, v) => s + (v.marketPrice ?? 0) * v.quantity, 0);
+      const byColor = vintages.reduce<Record<string, number>>((acc, v) => {
+        const c = v.wine.color ?? "autre";
+        acc[c] = (acc[c] ?? 0) + v.quantity;
         return acc;
       }, {});
+      const wineCount = new Set(vintages.filter((v) => v.quantity > 0).map((v) => v.wineId)).size;
       return {
         content: [
           {
             type: "text",
             text: `📊 Statistiques de la cave :
-• Total : ${totalBottles} bouteilles, ${wines.length} références
+• Total : ${totalBottles} bouteilles, ${wineCount} références
 • Valeur estimée : ${totalValue.toFixed(2)} €
 • Par couleur : ${Object.entries(byColor).map(([c, n]) => `${c}: ${n}`).join(", ")}`,
           },

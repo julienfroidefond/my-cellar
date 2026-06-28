@@ -40,6 +40,7 @@ export default function AddWinePage() {
     if (!form.name.trim()) return;
     setLoading(true);
 
+    // Flat payload — API creates Wine + first WineVintage
     const payload: Record<string, unknown> = {
       name: form.name,
       producer: form.producer || null,
