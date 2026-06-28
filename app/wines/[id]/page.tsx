@@ -4,6 +4,7 @@ import Link from "next/link";
 import DeleteWineButton from "./DeleteWineButton";
 import AddBottleButton from "./AddBottleButton";
 import DrinkButton from "./DrinkButton";
+import RemoveStockButton from "./RemoveStockButton";
 import { decodeSlot } from "@/lib/rack-configs";
 import { estimateMaturity } from "@/lib/maturity";
 import type { WineVintage } from "@/app/generated/prisma/client";
@@ -75,7 +76,12 @@ function VintageRow({ v, wine }: {
             {v.quantity === 0 ? "Épuisé" : `${v.quantity} bouteille${v.quantity > 1 ? "s" : ""}`}
           </div>
         </div>
-        {v.quantity > 0 && <DrinkButton vintageId={v.id} wineName="" />}
+        {v.quantity > 0 && (
+          <div className="flex items-center gap-2 shrink-0">
+            <RemoveStockButton vintageId={v.id} />
+            <DrinkButton vintageId={v.id} wineName="" />
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-sm">

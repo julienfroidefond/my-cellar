@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { decodeSlot, slotLabel } from "@/lib/rack-configs";
 import { BOTTLE } from "./constants";
 import type { WineRef } from "./types";
@@ -14,10 +15,22 @@ export function SlotPickerModal({
   onPlace: (wine: WineRef) => void;
   onCancel: () => void;
 }) {
+  const [search, setSearch] = useState("");
+
   const rackRow = Math.floor(slotIndex / numCols);
   const rackCol = slotIndex % numCols;
   const decoded = decodeSlot(rackName, rackRow, rackCol, 1);
   const posLabel = decoded ? slotLabel(decoded.start) : `Emplacement ${slotIndex + 1}`;
+
+  const q = search.trim().toLowerCase();
+  const filtered = q
+    ? wines.filter((w) =>
+        w.name.toLowerCase().includes(q) ||
+        w.producer?.toLowerCase().includes(q) ||
+        w.appellation?.toLowerCase().includes(q) ||
+        w.vintage?.toString().includes(q)
+      )
+    : wines;
 
   return (
     <div
@@ -50,14 +63,33 @@ export function SlotPickerModal({
               {posLabel}
             </span>
           </div>
-          <p className="text-lg font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>
+          <p className="text-lg font-semibold mb-3" style={{ fontFamily: "var(--font-playfair)" }}>
             Quel vin ranger ici ?
           </p>
+          <input
+            autoFocus
+            type="text"
+            placeholder="Rechercher…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none"
+            style={{
+              fontFamily: "var(--font-inter)",
+              background: "rgba(26,10,14,0.04)",
+              border: "1px solid rgba(26,10,14,0.12)",
+              color: "var(--foreground)",
+            }}
+          />
         </div>
 
         {/* Wine list */}
         <div className="overflow-y-auto flex-1 px-4 py-3 space-y-1.5">
-          {wines.map((wine) => {
+          {filtered.length === 0 && (
+            <p className="text-center text-sm py-6" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+              Aucun résultat
+            </p>
+          )}
+          {filtered.map((wine) => {
             const c = BOTTLE[wine.color ?? ""] ?? { base: "#555", hi: "#888", label: "" };
             return (
               <button
