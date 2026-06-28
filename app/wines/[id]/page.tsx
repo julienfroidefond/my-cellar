@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import DeleteWineButton from "./DeleteWineButton";
+import AddBottleButton from "./AddBottleButton";
 import { decodeSlot } from "@/lib/rack-configs";
 
 const COLOR_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -90,6 +91,19 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
               {wine.producer}
             </p>
           )}
+
+          {/* Action buttons */}
+          <div className="flex flex-wrap gap-3 mt-8 mb-2">
+            <Link
+              href={`/wines/${wine.id}/edit`}
+              className="px-5 py-2.5 rounded-full text-sm font-medium transition-opacity hover:opacity-90"
+              style={{ background: "var(--wine-red)", color: "#fff", fontFamily: "var(--font-inter)" }}
+            >
+              Modifier
+            </Link>
+            <AddBottleButton id={wine.id} vintage={wine.vintage} />
+            <DeleteWineButton id={wine.id} name={wine.name} />
+          </div>
 
           {/* Stat pills */}
           <div className="flex flex-wrap gap-3 mt-6">
@@ -208,17 +222,6 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="flex gap-3 pt-4">
-          <Link
-            href={`/wines/${wine.id}/edit`}
-            className="px-6 py-2.5 rounded-full text-sm font-medium transition-opacity hover:opacity-90"
-            style={{ background: "var(--wine-red)", color: "#fff", fontFamily: "var(--font-inter)" }}
-          >
-            Modifier
-          </Link>
-          <DeleteWineButton id={wine.id} name={wine.name} />
-        </div>
       </div>
     </div>
   );
