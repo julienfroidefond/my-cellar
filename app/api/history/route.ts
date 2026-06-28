@@ -3,7 +3,8 @@ import { prisma } from "@/lib/db";
 
 export async function GET() {
   const history = await prisma.wineHistory.findMany({
-    orderBy: { createdAt: "desc" },
+    where: { action: "bu" },
+    orderBy: { consumedAt: "desc" },
   });
   return NextResponse.json(history);
 }

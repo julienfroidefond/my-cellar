@@ -125,7 +125,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
           }}
         >
           <span style={{ fontSize: 11 }}>{showLabels ? "◉" : "○"}</span>
-          {showLabels ? "Masquer les noms" : "Afficher les noms"}
+          {showLabels ? "Masquer les étiquettes" : "Afficher les étiquettes"}
         </button>
       </div>
 

@@ -1,168 +1,317 @@
 import { prisma } from "@/lib/db";
+import HistoryCharts from "@/components/HistoryCharts";
 
-const COLORS: Record<string, { label: string; color: string }> = {
-  rouge: { label: "Rouge", color: "#c02030" },
-  blanc: { label: "Blanc", color: "#c4983c" },
-  rosé:  { label: "Rosé",  color: "#d4647a" },
+const COLOR_DOT: Record<string, string> = {
+  rouge: "#c02030",
+  blanc: "#c4983c",
+  rosé:  "#d4647a",
 };
 
-function formatDate(date: Date): string {
+function normalize(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+function formatDateLabel(date: Date): string {
   return new Intl.DateTimeFormat("fr-FR", {
+    weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
   }).format(date);
 }
 
-function formatDateKey(date: Date): string {
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(date);
+function dateKey(date: Date): string {
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
 }
 
-function formatTime(date: Date): string {
-  return new Intl.DateTimeFormat("fr-FR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+function Stars({ rating }: { rating: number }) {
+  return (
+    <span className="flex items-center gap-0.5">
+      {[1, 2, 3, 4, 5].map((n) => {
+        const filled = rating >= n;
+        const half = !filled && rating >= n - 0.5;
+        return (
+          <span
+            key={n}
+            style={{
+              fontSize: 11,
+              color: filled || half ? "#c4983c" : "rgba(26,10,14,0.18)",
+              opacity: half ? 0.65 : 1,
+            }}
+          >
+            ★
+          </span>
+        );
+      })}
+      <span className="ml-1 text-xs tabular-nums" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+        {rating.toFixed(1)}
+      </span>
+    </span>
+  );
 }
 
 export default async function HistoryPage() {
-  const entries = await prisma.wineHistory.findMany({
-    orderBy: { createdAt: "desc" },
+  const [entries, winesWithImages] = await Promise.all([
+    prisma.wineHistory.findMany({
+      where: { action: "bu" },
+      orderBy: { consumedAt: "desc" },
+    }),
+    prisma.wine.findMany({
+      where: { imageUrl: { not: null } },
+      select: { name: true, imageUrl: true },
+    }),
+  ]);
+
+  // Build list of [normalizedName, imageUrl] for substring matching
+  const imageIndex: Array<[string, string]> = winesWithImages
+    .filter((w) => w.imageUrl)
+    .map((w) => [normalize(w.name), w.imageUrl!]);
+
+  function getImage(wineName: string): string | null {
+    const key = normalize(wineName);
+    // 1. exact match
+    const exact = imageIndex.find(([n]) => n === key);
+    if (exact) return exact[1];
+    // 2. wine DB name contains history name (e.g. "chateaubatailleylionsdebatailley" ⊃ "lionsdebatailley")
+    const contains = imageIndex.find(([n]) => n.includes(key));
+    if (contains) return contains[1];
+    // 3. history name contains wine DB name (reverse)
+    const reverse = imageIndex.find(([n]) => key.includes(n));
+    if (reverse) return reverse[1];
+    return null;
+  }
+
+  const total = entries.reduce((s, e) => s + e.quantity, 0);
+  const withRating = entries.filter((e) => e.rating !== null);
+  const avgRating =
+    withRating.length > 0
+      ? withRating.reduce((s, e) => s + (e.rating ?? 0), 0) / withRating.length
+      : null;
+  const uniqueNames = new Set(entries.map((e) => `${e.wineName}|${e.vintage ?? ""}`));
+
+  // ── Charts data ────────────────────────────────────────────────────────────
+  const byColor = entries.reduce<Record<string, number>>((acc, e) => {
+    const c = e.color ?? "autre";
+    acc[c] = (acc[c] ?? 0) + e.quantity;
+    return acc;
+  }, {});
+
+  const monthMap = new Map<string, number>();
+  for (const e of entries) {
+    const d = new Date(e.consumedAt);
+    const mk = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+    monthMap.set(mk, (monthMap.get(mk) ?? 0) + e.quantity);
+  }
+
+  function buildMonthRange(first: string, last: string): string[] {
+    const [sy, sm] = first.split("-").map(Number);
+    const [ey, em] = last.split("-").map(Number);
+    const keys: string[] = [];
+    let y = sy, m = sm;
+    while (y < ey || (y === ey && m <= em)) {
+      keys.push(`${y}-${String(m).padStart(2, "0")}`);
+      if (++m > 12) { m = 1; y++; }
+    }
+    return keys;
+  }
+
+  const now = new Date();
+  const todayKey = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+  const firstKey = [...monthMap.keys()].sort()[0] ?? todayKey;
+  const byMonth = buildMonthRange(firstKey, todayKey).slice(-18).map((mk) => {
+    const [yr, mo] = mk.split("-").map(Number);
+    const label = new Intl.DateTimeFormat("fr-FR", { month: "short", year: "2-digit" })
+      .format(new Date(yr, mo - 1, 1));
+    return { month: label, value: monthMap.get(mk) ?? 0 };
   });
 
-  // Group by day
+  const ratingDist = [1, 2, 3, 4, 5].map((star) => ({
+    label: `${star}★`,
+    value: entries.filter((e) => e.rating !== null && Math.round(e.rating!) === star).length,
+  }));
+  const hasRatings = withRating.length > 0;
+
+  const appellationMap = entries.reduce<Record<string, number>>((acc, e) => {
+    if (!e.appellation) return acc;
+    acc[e.appellation] = (acc[e.appellation] ?? 0) + e.quantity;
+    return acc;
+  }, {});
+  const topAppellations = Object.entries(appellationMap)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([name, value]) => ({ name, value }));
+
+  // Group by UTC day
   const byDay = new Map<string, typeof entries>();
   for (const entry of entries) {
-    const key = formatDateKey(new Date(entry.createdAt));
+    const key = dateKey(new Date(entry.consumedAt));
     if (!byDay.has(key)) byDay.set(key, []);
     byDay.get(key)!.push(entry);
   }
 
-  const totalBu = entries.filter(e => e.action === "bu").reduce((s, e) => s + e.quantity, 0);
-  const totalRetire = entries.filter(e => e.action === "retiré").reduce((s, e) => s + e.quantity, 0);
-
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
 
-      {/* Header */}
-      <div
-        className="relative overflow-hidden"
-        style={{ background: "var(--background)", borderBottom: "1px solid var(--border)" }}
-      >
-        <div className="max-w-3xl mx-auto px-6 py-12">
-          <p className="text-xs tracking-[0.35em] uppercase mb-3" style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 500 }}>
+      {/* ── Hero ──────────────────────────────────────── */}
+      <div className="diagonal-stripe relative overflow-hidden" style={{ minHeight: 320, background: "var(--background)" }}>
+        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-10 pb-14">
+          <p className="text-xs tracking-[0.45em] uppercase mb-5 font-semibold" style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}>
             Journal
           </p>
-          <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
-            Historique
+          <h1 className="text-6xl md:text-8xl font-bold leading-none mb-4" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
+            Mes<br />
+            <span style={{ color: "var(--wine-red)" }}>Dégustations</span>
           </h1>
-          <p style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)", fontSize: "0.875rem" }}>
-            {entries.length === 0
-              ? "Aucun événement enregistré"
-              : `${totalBu} bouteille${totalBu > 1 ? "s" : ""} bue${totalBu > 1 ? "s" : ""}${totalRetire > 0 ? ` · ${totalRetire} retirée${totalRetire > 1 ? "s" : ""}` : ""}`}
-          </p>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-10 max-w-xl">
+            {[
+              { value: total, label: "Bouteilles bues" },
+              { value: uniqueNames.size, label: "Vins différents" },
+              ...(avgRating !== null ? [{ value: avgRating.toFixed(1) + " / 5", label: "Note moyenne" }] : []),
+            ].map((stat) => (
+              <div key={stat.label} className="rounded-2xl p-5" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.07)" }}>
+                <div className="text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}>
+                  {stat.value}
+                </div>
+                <div className="text-xs tracking-wider uppercase" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+                  {stat.label}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
+      {/* ── Charts ──────────────────────────────────── */}
+      {entries.length > 0 && (
+        <div className="max-w-5xl mx-auto px-6 pb-4 pt-10">
+          <div className="mb-6">
+            <p
+              className="text-xs tracking-[0.3em] uppercase mb-2"
+              style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", fontWeight: 600 }}
+            >
+              Analyse
+            </p>
+            <h2
+              className="text-2xl font-semibold"
+              style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
+            >
+              Statistiques
+            </h2>
+          </div>
+          <HistoryCharts byColor={byColor} byMonth={byMonth} ratingDist={ratingDist} hasRatings={hasRatings} topAppellations={topAppellations} />
+        </div>
+      )}
+
+      {/* ── Timeline ────────────────────────────────── */}
       <div className="max-w-3xl mx-auto px-6 py-10">
         {entries.length === 0 ? (
           <div className="text-center py-28">
-            <div className="text-4xl mb-4" style={{ opacity: 0.3 }}>📖</div>
-            <p style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-              L&apos;historique apparaîtra ici quand vous boirez ou retirerez des bouteilles.
+            <p style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)", fontSize: "0.875rem" }}>
+              Aucune dégustation enregistrée.
             </p>
           </div>
         ) : (
           <div className="space-y-10">
-            {[...byDay.entries()].map(([day, dayEntries]) => (
-              <div key={day}>
-                {/* Day header */}
-                <div className="flex items-center gap-4 mb-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] shrink-0" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
-                    {day}
-                  </p>
-                  <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
-                </div>
+            {[...byDay.entries()].map(([key, dayEntries]) => {
+              const date = new Date(key + "T12:00:00Z");
+              const label = formatDateLabel(date);
+              return (
+                <div key={key}>
+                  {/* Day header */}
+                  <div className="flex items-center gap-4 mb-5">
+                    <div className="shrink-0">
+                      <p className="text-xs font-semibold tracking-[0.18em] uppercase capitalize" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>
+                        {label}
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+                        {dayEntries.length} bouteille{dayEntries.length > 1 ? "s" : ""}
+                      </p>
+                    </div>
+                    <div className="flex-1 h-px" style={{ background: "var(--border)" }} />
+                  </div>
 
-                {/* Entries */}
-                <div className="space-y-3">
-                  {dayEntries.map((entry) => {
-                    const colorInfo = COLORS[entry.color ?? ""] ?? { label: entry.color ?? "", color: "#888" };
-                    const isBu = entry.action === "bu";
+                  {/* Entries */}
+                  <div className="space-y-2.5">
+                    {dayEntries.map((entry) => {
+                      const dot = COLOR_DOT[entry.color ?? ""] ?? "#888";
+                      const imgUrl = getImage(entry.wineName);
 
-                    return (
-                      <div
-                        key={entry.id}
-                        className="flex items-center gap-4 rounded-2xl p-4"
-                        style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.04)" }}
-                      >
-                        {/* Action icon */}
+                      return (
                         <div
-                          className="w-9 h-9 rounded-full shrink-0 flex items-center justify-center text-base"
-                          style={{
-                            background: isBu ? "rgba(192,25,59,0.08)" : "rgba(26,10,14,0.06)",
-                            border: isBu ? "1px solid rgba(192,25,59,0.20)" : "1px solid var(--border)",
-                          }}
+                          key={entry.id}
+                          className="relative rounded-2xl overflow-hidden"
+                          style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.06)" }}
                         >
-                          {isBu ? "🍷" : "📦"}
-                        </div>
+                          {/* Top color bar — same as WineCard */}
+                          <div style={{ height: 3, background: `linear-gradient(90deg, ${dot}cc, ${dot}33)` }} />
 
-                        {/* Wine info */}
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-baseline gap-2 flex-wrap">
-                            <span className="font-semibold leading-snug" style={{ fontFamily: "var(--font-playfair)", fontSize: "0.95rem", color: "var(--foreground)" }}>
-                              {entry.wineName}
-                            </span>
-                            {entry.vintage && (
-                              <span className="text-xs px-2 py-0.5 rounded-full shrink-0" style={{ background: "var(--surface-2)", border: "1px solid var(--border)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                                {entry.vintage}
-                              </span>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                          {/* Bottle image — absolutely right with fade, same as WineCard */}
+                          {imgUrl && (
+                            <div className="absolute right-0 bottom-0 pointer-events-none" style={{ width: 72, top: 3 }}>
+                              <div className="absolute inset-0" style={{ background: "linear-gradient(to right, var(--surface) 0%, transparent 45%)" }} />
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={imgUrl}
+                                alt=""
+                                style={{ position: "absolute", bottom: 0, right: 6, height: "92%", objectFit: "contain", opacity: 0.88, filter: "drop-shadow(0 4px 16px rgba(26,10,14,0.12))" }}
+                              />
+                            </div>
+                          )}
+
+                          {/* Content */}
+                          <div className="p-5" style={{ paddingRight: imgUrl ? 80 : undefined }}>
+                            <div className="flex items-start gap-3 mb-1">
+                              <h3 className="font-semibold leading-snug flex-1" style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem", color: "var(--foreground)" }}>
+                                {entry.wineName}
+                              </h3>
+                            </div>
+
                             {entry.producer && (
-                              <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+                              <p className="text-sm mb-3" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
                                 {entry.producer}
-                              </span>
+                              </p>
                             )}
-                            {entry.appellation && (
-                              <>
-                                {entry.producer && <span style={{ color: "var(--text-faint)", fontSize: "0.6rem" }}>·</span>}
-                                <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+
+                            <div className="flex items-center gap-2 flex-wrap">
+                              {entry.vintage && (
+                                <span className="text-xs px-2.5 py-1 rounded-full tabular-nums" style={{ background: "rgba(26,10,14,0.06)", border: "1px solid var(--border)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+                                  {entry.vintage}
+                                </span>
+                              )}
+                              {entry.appellation && (
+                                <span className="text-xs px-2.5 py-1 rounded-full" style={{ background: "rgba(26,10,14,0.06)", border: "1px solid var(--border)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
                                   {entry.appellation}
                                 </span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Right side */}
-                        <div className="shrink-0 flex flex-col items-end gap-1.5">
-                          <div className="flex items-center gap-2">
-                            {entry.quantity > 1 && (
-                              <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: "rgba(192,25,59,0.08)", color: "var(--wine-red)", fontFamily: "var(--font-inter)", border: "1px solid rgba(192,25,59,0.15)" }}>
-                                ×{entry.quantity}
-                              </span>
-                            )}
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-2 h-2 rounded-full shrink-0" style={{ background: colorInfo.color }} />
-                              <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>{colorInfo.label}</span>
+                              )}
+                              {entry.country && entry.country !== "France" && (
+                                <span className="text-xs px-2.5 py-1 rounded-full" style={{ background: "rgba(26,10,14,0.06)", border: "1px solid var(--border)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+                                  {entry.country}
+                                </span>
+                              )}
+                              <div className="ml-auto flex items-center gap-1.5">
+                                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: dot, boxShadow: `0 0 5px ${dot}80` }} />
+                                <span className="text-xs capitalize" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>{entry.color}</span>
+                              </div>
                             </div>
+
+                            {entry.rating !== null && (
+                              <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
+                                <Stars rating={entry.rating!} />
+                              </div>
+                            )}
                           </div>
-                          <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
-                            {formatTime(new Date(entry.createdAt))}
-                          </span>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

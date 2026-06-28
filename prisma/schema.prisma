@@ -51,7 +51,11 @@ model WineHistory {
   color       String?
   appellation String?
   region      String?
+  country     String?
+  volume      Int      @default(75)
   quantity    Int      @default(1)
+  rating      Float?
   imageUrl    String?
+  consumedAt  DateTime @default(now())
   createdAt   DateTime @default(now())
 }

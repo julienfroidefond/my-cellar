@@ -56,9 +56,9 @@ export function ShelfLevel({
         {backSlots.length > 0 && (
           <div className="px-3 pt-2 pb-1">
             <p style={subLabelStyle}>arrière (P2)</p>
-            <div className="space-y-0.5">
+            <div className="grid grid-cols-2 gap-1">
               {backSlots.map(({ wine, slotIndex }) => (
-                <LabelRow
+                <LabelCard
                   key={slotIndex}
                   wine={wine}
                   dim
@@ -70,11 +70,11 @@ export function ShelfLevel({
             </div>
           </div>
         )}
-        <div className="px-3 pt-1 pb-2">
+        <div className="px-3 pt-1 pb-3">
           <p style={subLabelStyle}>avant (P1)</p>
-          <div className="space-y-0.5">
+          <div className="grid grid-cols-2 gap-1">
             {frontSlots.map(({ wine, slotIndex }) => (
-              <LabelRow
+              <LabelCard
                 key={slotIndex}
                 wine={wine}
                 dim={false}
@@ -130,9 +130,9 @@ export function ShelfLevel({
   );
 }
 
-// ─── LabelRow ─────────────────────────────────────────────────────────────────
+// ─── LabelCard ───────────────────────────────────────────────────────────────
 
-function LabelRow({
+function LabelCard({
   wine, dim, onSelect, isSelected, onEmptyClick,
 }: {
   wine: WineRef | null;
@@ -148,12 +148,12 @@ function LabelRow({
       return (
         <button
           onClick={onEmptyClick}
-          className="flex items-center gap-2.5 w-full px-2 py-1 rounded-lg text-left transition-all hover:bg-black/5"
-          style={{ fontFamily: "var(--font-inter)" }}
+          className="flex items-center gap-2 px-2.5 py-2 rounded-xl text-left transition-all hover:bg-black/5"
+          style={{ fontFamily: "var(--font-inter)", border: "1.5px dashed rgba(192,25,59,0.30)", background: "rgba(192,25,59,0.03)" }}
         >
           <div
-            className="w-2.5 h-2.5 rounded-full shrink-0 flex items-center justify-center"
-            style={{ border: "1.5px dashed rgba(192,25,59,0.55)", color: "rgba(192,25,59,0.55)", fontSize: 8 }}
+            className="shrink-0 flex items-center justify-center rounded-full"
+            style={{ width: 18, height: 18, border: "1.5px dashed rgba(192,25,59,0.55)", color: "rgba(192,25,59,0.55)", fontSize: 10 }}
           >
             +
           </div>
@@ -162,9 +162,12 @@ function LabelRow({
       );
     }
     return (
-      <div className="flex items-center gap-2.5 px-2 py-1">
-        <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ border: "1px dashed rgba(26,10,14,0.20)" }} />
-        <span className="text-xs" style={{ color: "rgba(26,10,14,0.25)" }}>—</span>
+      <div
+        className="flex items-center gap-2 px-2.5 py-2 rounded-xl"
+        style={{ border: "1px dashed rgba(26,10,14,0.12)" }}
+      >
+        <div className="shrink-0 rounded-full" style={{ width: 18, height: 18, border: "1px dashed rgba(26,10,14,0.18)" }} />
+        <span className="text-xs" style={{ color: "rgba(26,10,14,0.22)", fontFamily: "var(--font-inter)" }}>Vide</span>
       </div>
     );
   }
@@ -172,31 +175,56 @@ function LabelRow({
   return (
     <button
       onClick={() => onSelect(wine)}
-      className="flex items-center gap-2.5 w-full px-2 py-1 rounded-lg text-left transition-all hover:bg-black/5 active:scale-[0.99]"
+      className="flex items-center gap-2.5 w-full rounded-xl text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
       style={{
-        background: isSelected ? "rgba(192,25,59,0.07)" : "transparent",
-        outline: isSelected ? "1px solid rgba(192,25,59,0.25)" : "none",
-        opacity: dim ? 0.75 : 1,
+        padding: "6px 8px",
+        background: isSelected ? "rgba(192,25,59,0.07)" : "var(--surface)",
+        border: `1px solid ${isSelected ? "rgba(192,25,59,0.30)" : "var(--border)"}`,
+        boxShadow: "0 1px 4px rgba(26,10,14,0.06)",
+        opacity: dim ? 0.72 : 1,
       }}
     >
-      <div
-        className="w-2.5 h-2.5 rounded-full shrink-0"
-        style={{ background: c!.base, boxShadow: `0 0 5px ${c!.base}80` }}
-      />
-      <span
-        className="text-xs truncate flex-1"
-        style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
-      >
-        {wine.name}
-      </span>
-      {wine.vintage && (
-        <span
-          className="text-xs shrink-0 tabular-nums"
-          style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}
+      {/* Bottle image or color dot */}
+      <div className="shrink-0 flex items-center justify-center" style={{ width: 28, height: 42 }}>
+        {wine.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={wine.imageUrl}
+            alt=""
+            style={{ width: 28, height: 42, objectFit: "contain", filter: "drop-shadow(0 2px 6px rgba(26,10,14,0.22))" }}
+          />
+        ) : (
+          <div style={{
+            width: 10, height: 10, borderRadius: "50%",
+            background: c!.base,
+            boxShadow: `0 0 6px ${c!.base}80`,
+          }} />
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="flex-1 min-w-0">
+        <p
+          className="truncate leading-tight"
+          style={{ fontFamily: "var(--font-playfair)", fontSize: "0.72rem", fontWeight: 600, color: "var(--foreground)" }}
         >
-          {wine.vintage}
-        </span>
-      )}
+          {wine.name}
+        </p>
+        <p
+          className="truncate mt-0.5"
+          style={{ fontFamily: "var(--font-inter)", fontSize: "0.62rem", color: "var(--text-faint)" }}
+        >
+          {wine.appellation ?? wine.region ?? (c ? BOTTLE[wine.color ?? ""]?.label ?? "" : "")}
+        </p>
+        {wine.vintage && (
+          <p
+            className="tabular-nums mt-0.5"
+            style={{ fontFamily: "var(--font-inter)", fontSize: "0.62rem", color: "var(--text-muted)", fontWeight: 500 }}
+          >
+            {wine.vintage}
+          </p>
+        )}
+      </div>
     </button>
   );
 }
