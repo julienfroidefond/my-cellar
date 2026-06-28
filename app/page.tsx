@@ -56,6 +56,11 @@ export default async function DashboardPage() {
 
   const maxRegion = topRegions[0]?.[1] ?? 1;
 
+  const winesWithImage = wines.filter((w) => w.imageUrl && w.quantity > 0);
+  const heroWine = winesWithImage.length > 0
+    ? winesWithImage[Math.floor(Math.random() * winesWithImage.length)]
+    : null;
+
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
       {/* Hero — editorial cream + diagonal red stripe */}
@@ -63,6 +68,27 @@ export default async function DashboardPage() {
         className="diagonal-stripe relative overflow-hidden"
         style={{ minHeight: 480, background: "var(--background)" }}
       >
+        {/* Bottle hero image — absolutely positioned, above the stripe */}
+        {heroWine?.imageUrl && (
+          <div
+            className="absolute hidden md:block"
+            style={{ right: "16%", top: "-5%", bottom: "-5%", width: 200, zIndex: 20, pointerEvents: "none" }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={heroWine.imageUrl}
+              alt={heroWine.name}
+              style={{
+                height: "110%",
+                width: "100%",
+                objectFit: "contain",
+                objectPosition: "center",
+                filter: "drop-shadow(-12px 20px 40px rgba(26,10,14,0.35))",
+              }}
+            />
+          </div>
+        )}
+
         {/* Everything inside is stacked above the stripe (z-index:1) */}
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-24">
           <div className="max-w-xl">
@@ -140,7 +166,7 @@ export default async function DashboardPage() {
                 <Link
                   href={`/wines?color=${color}`}
                   key={color}
-                  className="rounded-2xl p-6 block transition-all duration-300 hover:scale-[1.02]"
+                  className="rounded-2xl p-6 block transition-transform duration-200 hover:-translate-y-0.5"
                   style={{
                     background: "var(--surface)",
                     border: `1px solid ${cfg.border}`,
@@ -188,7 +214,7 @@ export default async function DashboardPage() {
               <Link
                 href={`/wines?region=${encodeURIComponent(region)}`}
                 key={region}
-                className="rounded-xl p-4 flex items-center gap-4 transition-all duration-200 hover:scale-[1.02]"
+                className="rounded-xl p-4 flex items-center gap-4 transition-transform duration-200 hover:-translate-y-0.5"
                 style={{
                   background: "var(--surface)",
                   border: "1px solid var(--border)",
@@ -241,7 +267,7 @@ export default async function DashboardPage() {
                   <Link
                     key={wine.id}
                     href={`/wines/${wine.id}`}
-                    className="rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02] block relative overflow-hidden"
+                    className="rounded-2xl p-5 transition-transform duration-200 hover:-translate-y-0.5 block relative overflow-hidden"
                     style={{
                       background: "var(--surface)",
                       border: `1px solid ${cfg.border}`,

@@ -71,11 +71,8 @@ body {
 
 /* Diagonal accent — red stripe crossing hero sections */
 .diagonal-stripe {
-  position: absolute;
-  inset: 0;
+  position: relative;
   overflow: hidden;
-  pointer-events: none;
-  z-index: 0;
 }
 .diagonal-stripe::after {
   content: '';
@@ -88,6 +85,8 @@ body {
   transform: rotate(14deg);
   transform-origin: top right;
   opacity: 0.92;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .card {
