@@ -41,3 +41,17 @@ model Rack {
   cols  Int    @default(12)
   wines Wine[]
 }
+
+model WineHistory {
+  id          String   @id @default(cuid())
+  action      String   // "bu" | "retiré"
+  wineName    String
+  producer    String?
+  vintage     Int?
+  color       String?
+  appellation String?
+  region      String?
+  quantity    Int      @default(1)
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+}

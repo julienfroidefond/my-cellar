@@ -7,6 +7,7 @@ const links = [
   { href: "/", label: "Accueil" },
   { href: "/cave", label: "Cave" },
   { href: "/wines", label: "Vins" },
+  { href: "/history", label: "Historique" },
 ];
 
 export default function Navigation() {

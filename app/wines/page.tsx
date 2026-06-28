@@ -148,6 +148,25 @@ function WinesContent() {
 
   const totalBottles = wines.reduce((s, w) => s + w.quantity, 0);
 
+  // Merge records with same producer+vintage into one card, summing quantities
+  const mergedWines = useMemo(() => {
+    const seen = new Map<string, Wine>();
+    for (const w of wines) {
+      const key = `${w.producer ?? ""}__${w.vintage ?? ""}`;
+      if (seen.has(key)) {
+        const existing = seen.get(key)!;
+        seen.set(key, {
+          ...existing,
+          quantity: existing.quantity + w.quantity,
+          rackId: existing.rackId || w.rackId,
+        });
+      } else {
+        seen.set(key, { ...w });
+      }
+    }
+    return [...seen.values()];
+  }, [wines]);
+
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
 
@@ -356,7 +375,7 @@ function WinesContent() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {wines.map((wine, i) => <WineCard key={wine.id} wine={wine} index={i} />)}
+            {mergedWines.map((wine, i) => <WineCard key={wine.id} wine={wine} index={i} />)}
           </div>
         )}
       </div>
@@ -372,7 +391,7 @@ function WineCard({ wine, index }: { wine: Wine; index: number }) {
   return (
     <Link
       href={`/wines/${wine.id}`}
-      className="group block rounded-2xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative"
+      className="group block rounded-2xl overflow-hidden transition-transform duration-200 hover:-translate-y-0.5 relative"
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border)",
