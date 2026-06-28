@@ -8,38 +8,58 @@ datasource db {
 }
 
 model Wine {
-  id             String   @id @default(cuid())
+  id             String        @id @default(cuid())
   name           String
   producer       String?
-  vintage        Int?
-  quantity       Int      @default(1)
-  volume         Int      @default(75)
   color          String?
   region         String?
   appellation    String?
   grapeVarieties String?
-  country        String?  @default("France")
-  purchasePrice  Float?
-  marketPrice    Float?
+  country        String?       @default("France")
   notes          String?
-  rackId         String?
-  rackRow        Int?
-  rackCol        Int?
   imageUrl       String?
-  drinkFrom      Int?
-  drinkUntil     Int?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
-  rack Rack? @relation(fields: [rackId], references: [id])
+  vintages WineVintage[]
+}
+
+model WineVintage {
+  id            String   @id @default(cuid())
+  wineId        String
+  vintage       Int?
+  quantity      Int      @default(1)
+  volume        Int      @default(75)
+  purchasePrice Float?
+  marketPrice   Float?
+  drinkFrom     Int?
+  drinkUntil    Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  wine  Wine             @relation(fields: [wineId], references: [id], onDelete: Cascade)
+  slots WineVintageSlot[]
+}
+
+model WineVintageSlot {
+  id        String   @id @default(cuid())
+  vintageId String
+  rackId    String
+  rackRow   Int
+  rackCol   Int
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+
+  vintage WineVintage @relation(fields: [vintageId], references: [id], onDelete: Cascade)
+  rack    Rack        @relation(fields: [rackId], references: [id])
 }
 
 model Rack {
-  id    String @id @default(cuid())
+  id    String            @id @default(cuid())
   name  String
-  rows  Int    @default(6)
-  cols  Int    @default(12)
-  wines Wine[]
+  rows  Int               @default(6)
+  cols  Int               @default(12)
+  slots WineVintageSlot[]
 }
 
 model WineHistory {

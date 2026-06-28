@@ -54,48 +54,44 @@ function defaultConfig(): RackConfig {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function CavePage() {
-  const [allRacks, unrackedWines, allWinesForTotal] = await Promise.all([
+  const [allRacks, allVintages] = await Promise.all([
     prisma.rack.findMany({
       include: {
-        wines: {
-          where: { quantity: { gt: 0 } },
+        slots: {
+          include: { vintage: { include: { wine: true } } },
           orderBy: [{ rackRow: "asc" }, { rackCol: "asc" }],
         },
       },
       orderBy: { name: "asc" },
     }),
-    prisma.wine.findMany({
-      where: { rackId: null, quantity: { gt: 0 } },
-      orderBy: [{ color: "asc" }, { name: "asc" }],
-    }),
-    prisma.wine.findMany({
+    prisma.wineVintage.findMany({
       where: { quantity: { gt: 0 } },
-      select: { name: true, vintage: true, quantity: true },
+      include: {
+        wine: true,
+        slots: { select: { quantity: true } },
+      },
+      orderBy: [{ wine: { color: "asc" } }, { wine: { name: "asc" } }],
     }),
   ]);
 
-  // Totaux par vin (name + vintage) pour afficher le stock réel dans la popup
-  const totalByKey = new Map<string, number>();
-  for (const w of allWinesForTotal) {
-    const k = `${w.name}|${w.vintage ?? ""}`;
-    totalByKey.set(k, (totalByKey.get(k) ?? 0) + w.quantity);
-  }
-  function cellarTotal(name: string, vintage: number | null): number {
-    return totalByKey.get(`${name}|${vintage ?? ""}`) ?? 1;
+  // For each vintage, compute total bottles physically placed in racks
+  function rackedTotal(v: (typeof allVintages)[number]): number {
+    return v.slots.reduce((s, slot) => s + slot.quantity, 0);
   }
 
+  // Vintages with at least one bottle not yet in a rack slot
+  const unrackedVintages = allVintages.filter((v) => v.quantity > rackedTotal(v));
+
   const totalBottles = allRacks
-    .flatMap((r) => r.wines)
-    .reduce((s, w) => s + w.quantity, 0);
+    .flatMap((r) => r.slots)
+    .reduce((s, slot) => s + slot.quantity, 0);
 
   const totalCapacity = allRacks.reduce((sum, rack) => {
     const config = RACK_CONFIGS[rack.name] ?? defaultConfig();
     return sum + config.levels.reduce((s, l) => s + l.front + l.back, 0);
   }, 0);
   const occupancyPct = totalCapacity > 0 ? Math.round((totalBottles / totalCapacity) * 100) : 0;
-
-  const unrackedCount = unrackedWines.reduce((s, w) => s + w.quantity, 0);
-
+  const unrackedCount = unrackedVintages.reduce((s, v) => s + (v.quantity - rackedTotal(v)), 0);
 
   const racks: RackData[] = allRacks.map((rack) => {
     const config = RACK_CONFIGS[rack.name] ?? defaultConfig();
@@ -104,36 +100,42 @@ export default async function CavePage() {
       name: rack.name,
       config,
       numCols: numColsForConfig(config),
-      wines: rack.wines.map((w) => ({
-        id: w.id,
-        name: w.name,
-        color: w.color,
-        vintage: w.vintage,
-        quantity: w.quantity,
-        totalInCellar: cellarTotal(w.name, w.vintage),
-        appellation: w.appellation,
-        region: w.region,
-        imageUrl: w.imageUrl,
-        rackId: w.rackId,
-        rackRow: w.rackRow,
-        rackCol: w.rackCol,
+      wines: rack.slots.map((slot) => ({
+        id: slot.id,
+        vintageId: slot.vintageId,
+        wineId: slot.vintage.wine.id,
+        name: slot.vintage.wine.name,
+        producer: slot.vintage.wine.producer,
+        color: slot.vintage.wine.color,
+        vintage: slot.vintage.vintage,
+        quantity: slot.quantity,
+        totalInCellar: slot.vintage.quantity,
+        appellation: slot.vintage.wine.appellation,
+        region: slot.vintage.wine.region,
+        imageUrl: slot.vintage.wine.imageUrl,
+        rackId: slot.rackId,
+        rackRow: slot.rackRow,
+        rackCol: slot.rackCol,
       })),
     };
   });
 
-  const unracked = unrackedWines.map((w) => ({
-    id: w.id,
-    name: w.name,
-    color: w.color,
-    vintage: w.vintage,
-    quantity: w.quantity,
-    totalInCellar: cellarTotal(w.name, w.vintage),
-    appellation: w.appellation,
-    region: w.region,
-    imageUrl: w.imageUrl,
-    rackId: w.rackId,
-    rackRow: w.rackRow,
-    rackCol: w.rackCol,
+  const unracked = unrackedVintages.map((v) => ({
+    id: v.id,
+    vintageId: v.id,
+    wineId: v.wine.id,
+    name: v.wine.name,
+    producer: v.wine.producer,
+    color: v.wine.color,
+    vintage: v.vintage,
+    quantity: v.quantity - rackedTotal(v),
+    totalInCellar: v.quantity,
+    appellation: v.wine.appellation,
+    region: v.wine.region,
+    imageUrl: v.wine.imageUrl,
+    rackId: null,
+    rackRow: null,
+    rackCol: null,
   }));
 
   return (

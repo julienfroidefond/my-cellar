@@ -1,10 +1,13 @@
 export type WineRef = {
-  id: string;
+  id: string;           // WineVintageSlot.id (racked) OR WineVintage.id (unracked)
+  vintageId: string;    // WineVintage.id (always)
+  wineId: string;       // Wine.id (for navigation)
   name: string;
+  producer: string | null;
   color: string | null;
   vintage: number | null;
-  quantity: number;
-  totalInCellar: number;
+  quantity: number;     // slot.quantity (racked) OR unracked bottle count (unracked)
+  totalInCellar: number; // vintage.quantity
   appellation: string | null;
   region: string | null;
   imageUrl: string | null;

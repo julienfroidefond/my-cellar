@@ -7,23 +7,31 @@ import { estimateMaturity } from "@/lib/maturity";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+interface WineVintage {
+  id: string;
+  wineId: string;
+  vintage: number | null;
+  quantity: number;
+  volume: number;
+  purchasePrice: number | null;
+  marketPrice: number | null;
+  drinkFrom: number | null;
+  drinkUntil: number | null;
+  slots: { id: string }[];
+}
+
 interface Wine {
   id: string;
   name: string;
   producer: string | null;
-  vintage: number | null;
-  quantity: number;
   color: string | null;
   region: string | null;
   appellation: string | null;
   country: string | null;
   grapeVarieties: string | null;
-  marketPrice: number | null;
-  purchasePrice: number | null;
+  notes: string | null;
   imageUrl: string | null;
-  rackId: string | null;
-  drinkFrom: number | null;
-  drinkUntil: number | null;
+  vintages: WineVintage[];
 }
 
 interface Filters {
@@ -55,6 +63,20 @@ const EMPTY_FILTERS: Filters = {
 function splitGrapes(raw: string | null): string[] {
   if (!raw) return [];
   return raw.split(/[,;/]/).map(s => s.trim()).filter(Boolean);
+}
+
+// Helpers to compute aggregated wine properties from vintages
+function totalQuantity(wine: Wine): number {
+  return wine.vintages.reduce((s, v) => s + v.quantity, 0);
+}
+
+function isRacked(wine: Wine): boolean {
+  return wine.vintages.some(v => v.slots?.length > 0);
+}
+
+function bestMarketPrice(wine: Wine): number | null {
+  const prices = wine.vintages.map(v => v.marketPrice).filter((p): p is number => p != null);
+  return prices.length > 0 ? Math.max(...prices) : null;
 }
 
 // ─── Main content ─────────────────────────────────────────────────────────────
@@ -127,17 +149,32 @@ function WinesContent() {
       const q = filters.grape.toLowerCase();
       if (!w.grapeVarieties?.toLowerCase().includes(q)) return false;
     }
-    if (filters.priceMin !== "" && (w.marketPrice ?? 0) < parseFloat(filters.priceMin)) return false;
-    if (filters.priceMax !== "" && (w.marketPrice ?? 0) > parseFloat(filters.priceMax)) return false;
-    if (filters.stock === "in"  && w.quantity <= 0) return false;
-    if (filters.stock === "out" && w.quantity > 0)  return false;
-    if (filters.racked === "yes" && !w.rackId)  return false;
-    if (filters.racked === "no"  &&  w.rackId)  return false;
+    const mktPrice = bestMarketPrice(w);
+    if (filters.priceMin !== "" && (mktPrice ?? 0) < parseFloat(filters.priceMin)) return false;
+    if (filters.priceMax !== "" && (mktPrice ?? 0) > parseFloat(filters.priceMax)) return false;
+
+    const qty = totalQuantity(w);
+    if (filters.stock === "in"  && qty <= 0) return false;
+    if (filters.stock === "out" && qty > 0)  return false;
+
+    if (filters.racked === "yes" && !isRacked(w))  return false;
+    if (filters.racked === "no"  &&  isRacked(w))  return false;
+
     if (filters.maturity) {
-      const hasManual = !!(w.drinkFrom && w.drinkUntil);
-      const est = !hasManual ? estimateMaturity({ region: w.region, appellation: w.appellation, color: w.color, vintage: w.vintage }) : null;
-      const from  = w.drinkFrom  ?? est?.drinkFrom  ?? null;
-      const until = w.drinkUntil ?? est?.drinkUntil ?? null;
+      // Use the first vintage with a drink window for maturity check
+      const vintageWithWindow = w.vintages.find(v => {
+        const hasManual = !!(v.drinkFrom && v.drinkUntil);
+        const est = !hasManual ? estimateMaturity({ region: w.region, appellation: w.appellation, color: w.color, vintage: v.vintage }) : null;
+        const from  = v.drinkFrom  ?? est?.drinkFrom  ?? null;
+        const until = v.drinkUntil ?? est?.drinkUntil ?? null;
+        return from && until;
+      });
+      if (!vintageWithWindow) return false;
+
+      const hasManual = !!(vintageWithWindow.drinkFrom && vintageWithWindow.drinkUntil);
+      const est = !hasManual ? estimateMaturity({ region: w.region, appellation: w.appellation, color: w.color, vintage: vintageWithWindow.vintage }) : null;
+      const from  = vintageWithWindow.drinkFrom  ?? est?.drinkFrom  ?? null;
+      const until = vintageWithWindow.drinkUntil ?? est?.drinkUntil ?? null;
       if (!from || !until) return false;
       const status =
         currentYear > until   ? "dépassé" :
@@ -165,26 +202,7 @@ function WinesContent() {
     filters.stock, filters.racked, filters.maturity,
   ].filter(Boolean).length;
 
-  const totalBottles = wines.reduce((s, w) => s + w.quantity, 0);
-
-  // Merge records with same producer+vintage into one card, summing quantities
-  const mergedWines = useMemo(() => {
-    const seen = new Map<string, Wine>();
-    for (const w of wines) {
-      const key = `${w.producer ?? ""}__${w.vintage ?? ""}`;
-      if (seen.has(key)) {
-        const existing = seen.get(key)!;
-        seen.set(key, {
-          ...existing,
-          quantity: existing.quantity + w.quantity,
-          rackId: existing.rackId || w.rackId,
-        });
-      } else {
-        seen.set(key, { ...w });
-      }
-    }
-    return [...seen.values()];
-  }, [wines]);
+  const totalBottles = wines.reduce((s, w) => s + totalQuantity(w), 0);
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
@@ -419,7 +437,7 @@ function WinesContent() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mergedWines.map((wine, i) => <WineCard key={wine.id} wine={wine} index={i} />)}
+            {wines.map((wine, i) => <WineCard key={wine.id} wine={wine} index={i} />)}
           </div>
         )}
       </div>
@@ -431,6 +449,11 @@ function WinesContent() {
 
 function WineCard({ wine, index }: { wine: Wine; index: number }) {
   const colorInfo = COLORS[wine.color ?? ""] ?? { label: wine.color ?? "", color: "#666" };
+  const qty = totalQuantity(wine);
+  const allEpuise = qty === 0;
+  const hasMultipleVintages = wine.vintages.length > 1;
+  const mktPrice = bestMarketPrice(wine);
+  const racked = isRacked(wine);
 
   return (
     <Link
@@ -463,16 +486,15 @@ function WineCard({ wine, index }: { wine: Wine; index: number }) {
           <h3 className="font-semibold leading-snug line-clamp-2 flex-1" style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem", color: "var(--foreground)" }}>
             {wine.name}
           </h3>
-          {wine.quantity > 1 && (
-            <span className="shrink-0 text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}>
-              ×{wine.quantity}
-            </span>
-          )}
-          {wine.quantity === 0 && (
+          {allEpuise ? (
             <span className="shrink-0 text-xs px-2.5 py-1 rounded-full" style={{ background: "rgba(26,10,14,0.06)", color: "var(--text-faint)", fontFamily: "var(--font-inter)", border: "1px solid var(--border)" }}>
               Épuisé
             </span>
-          )}
+          ) : qty > 1 ? (
+            <span className="shrink-0 text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}>
+              ×{qty}
+            </span>
+          ) : null}
         </div>
 
         {wine.producer && (
@@ -480,22 +502,33 @@ function WineCard({ wine, index }: { wine: Wine; index: number }) {
         )}
 
         <div className="flex items-center gap-2 flex-wrap">
-          {wine.vintage && <Tag>{wine.vintage}</Tag>}
-          {wine.appellation && <Tag>{wine.appellation}</Tag>}
+          {/* Vintages display */}
+          {hasMultipleVintages ? (
+            <div className="flex flex-wrap gap-1">
+              {wine.vintages.map(v => (
+                <Tag key={v.id}>
+                  {v.vintage ?? "N/A"}{v.quantity > 0 ? ` ×${v.quantity}` : " ×0"}
+                </Tag>
+              ))}
+            </div>
+          ) : wine.vintages[0]?.vintage ? (
+            <Tag>{wine.vintages[0].vintage}</Tag>
+          ) : null}
+          {wine.appellation && !hasMultipleVintages && <Tag>{wine.appellation}</Tag>}
           <div className="ml-auto flex items-center gap-1.5">
-            {wine.rackId
+            {racked
               ? <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>📦</span>
-              : wine.quantity > 0 && <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>—</span>
+              : qty > 0 && <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>—</span>
             }
             <div className="w-2 h-2 rounded-full shrink-0" style={{ background: colorInfo.color, boxShadow: `0 0 5px ${colorInfo.color}80` }} />
             <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>{colorInfo.label}</span>
           </div>
         </div>
 
-        {(wine.marketPrice ?? 0) > 0 && (
+        {(mktPrice ?? 0) > 0 && (
           <div className="mt-3 pt-3 flex items-baseline gap-1" style={{ borderTop: "1px solid var(--border)" }}>
             <span className="text-base font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-playfair)" }}>
-              {wine.marketPrice?.toFixed(2)} €
+              {mktPrice?.toFixed(2)} €
             </span>
             <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>/ bouteille</span>
           </div>

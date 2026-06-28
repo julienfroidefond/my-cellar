@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 export async function GET() {
   const racks = await prisma.rack.findMany({
     include: {
-      wines: { orderBy: { name: "asc" } },
+      slots: { orderBy: [{ rackRow: "asc" }, { rackCol: "asc" }] },
     },
   });
   return NextResponse.json(racks);

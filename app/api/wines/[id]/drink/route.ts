@@ -1,39 +1,60 @@
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
 
-// POST /api/wines/[id]/drink → décrémente quantity de 1 et log l'historique
+// POST /api/wines/[id]/drink — [id] = WineVintage.id
+// body: { slotId? } — when called from cave, slotId is the WineVintageSlot.id to decrement
+// Decrements vintage.quantity by 1.
+// If slotId is provided: decrements slot.quantity by 1 (deletes slot if it reaches 0).
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  const wine = await prisma.wine.findUnique({ where: { id } });
-  if (!wine) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const body = await req.json().catch(() => ({}));
+  const slotId = (body as Record<string, unknown>).slotId as string | undefined;
 
-  await prisma.$transaction([
-    wine.quantity <= 1
-      ? prisma.wine.update({
-          where: { id },
-          data: { quantity: 0, rackId: null, rackRow: null, rackCol: null },
-        })
-      : prisma.wine.update({
-          where: { id },
-          data: { quantity: { decrement: 1 } },
-        }),
-    prisma.wineHistory.create({
+  const vintage = await prisma.wineVintage.findUnique({
+    where: { id },
+    include: { wine: true },
+  });
+
+  if (!vintage) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  const newQuantity = Math.max(0, vintage.quantity - 1);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.wineVintage.update({ where: { id }, data: { quantity: newQuantity } });
+
+    if (slotId) {
+      const slot = await tx.wineVintageSlot.findUnique({ where: { id: slotId } });
+      if (slot) {
+        if (slot.quantity <= 1) {
+          await tx.wineVintageSlot.delete({ where: { id: slotId } });
+        } else {
+          await tx.wineVintageSlot.update({
+            where: { id: slotId },
+            data: { quantity: { decrement: 1 } },
+          });
+        }
+      }
+    }
+
+    await tx.wineHistory.create({
       data: {
         action: "bu",
-        wineName: wine.name,
-        producer: wine.producer,
-        vintage: wine.vintage,
-        color: wine.color,
-        appellation: wine.appellation,
-        region: wine.region,
+        wineName: vintage.wine.name,
+        producer: vintage.wine.producer,
+        vintage: vintage.vintage,
+        color: vintage.wine.color,
+        appellation: vintage.wine.appellation,
+        region: vintage.wine.region,
         quantity: 1,
-        imageUrl: wine.imageUrl,
+        imageUrl: vintage.wine.imageUrl,
       },
-    }),
-  ]);
+    });
+  });
 
   return NextResponse.json({ ok: true });
 }

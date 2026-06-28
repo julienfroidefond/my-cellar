@@ -8,6 +8,7 @@ import { WineDetailModal } from "./WineDetailModal";
 import { SlotPickerModal } from "./SlotPickerModal";
 import { BOTTLE } from "./constants";
 
+
 // Re-export types so page.tsx can keep its current import path
 export type { WineRef, LevelConfig, RackConfig, RackData } from "./types";
 import type { WineRef, RackData } from "./types";
@@ -19,11 +20,8 @@ function buildSlotMap(wines: WineRef[], config: RackData["config"], numCols: num
   const map: (WineRef | null)[] = new Array(totalSlots).fill(null);
   for (const wine of wines) {
     if (wine.rackRow == null || wine.rackCol == null) continue;
-    const startSlot = wine.rackRow * numCols + wine.rackCol;
-    for (let j = 0; j < wine.quantity; j++) {
-      const s = startSlot + j;
-      if (s < totalSlots) map[s] = wine;
-    }
+    const slotIndex = wine.rackRow * numCols + wine.rackCol;
+    if (slotIndex < totalSlots) map[slotIndex] = wine;
   }
   return map;
 }
@@ -57,7 +55,11 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
   async function confirmDrink() {
     if (!selected) return;
     setPending("drink");
-    await fetch(`/api/wines/${selected.id}/drink`, { method: "POST" });
+    await fetch(`/api/wines/${selected.vintageId}/drink`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slotId: selected.id }),
+    });
     setSelected(null); setPending(null); refresh();
   }
 
@@ -71,7 +73,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
   async function confirmDelete() {
     if (!selected) return;
     setPending("delete");
-    await fetch(`/api/wines/${selected.id}`, { method: "DELETE" });
+    await fetch(`/api/vintages/${selected.vintageId}`, { method: "DELETE" });
     setSelected(null); setPending(null); refresh();
   }
 
@@ -81,9 +83,11 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
     await fetch(`/api/wines/${wine.id}/rack`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ rackId, rackRow, rackCol }),
+      body: JSON.stringify({ rackId, rackRow, rackCol, quantity: 1 }),
     });
-    setPlacing(null); setTargetSlot(null); refresh();
+    setPlacing(null);
+    setTargetSlot(null);
+    refresh();
   }
 
   return (
@@ -234,12 +238,12 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-semibold truncate" style={{ fontFamily: "var(--font-playfair)" }}>{wine.name}</p>
                     <p className="text-xs mt-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                      {wine.vintage ? `${wine.vintage} · ` : ""}{wine.quantity} bouteille{wine.quantity > 1 ? "s" : ""}
+                      {wine.vintage ? `${wine.vintage} · ` : ""}{wine.quantity} à ranger
                     </p>
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <Link
-                      href={`/wines/${wine.id}`}
+                      href={`/wines/${wine.wineId}`}
                       className="text-xs px-3 py-1.5 rounded-full transition-opacity hover:opacity-80"
                       style={{ fontFamily: "var(--font-inter)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
                     >
