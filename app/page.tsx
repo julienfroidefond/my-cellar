@@ -178,6 +178,92 @@ export default async function DashboardPage() {
           </div>
         </section>
 
+        {/* ── Maturité ──────────────────────────────────── */}
+        {(readyWines.length > 0 || soonWines.length > 0 || pastWines.length > 0) && (
+          <section>
+            <SectionTitle eyebrow="Maturité">Tableau de bord</SectionTitle>
+            <p className="text-sm mt-2 mb-8" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+              Basé sur les fenêtres de dégustation saisies ou estimées automatiquement
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-8">
+
+              {/* Prêtes + bientôt */}
+              {(readyWines.length > 0 || soonWines.length > 0) && (
+                <div>
+                  {readyWines.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-2 h-2 rounded-full" style={{ background: "#1a7a3c" }} />
+                        <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "#1a7a3c" }}>
+                          Prêtes à boire — {readyWines.length} vin{readyWines.length > 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <div className="space-y-2 mb-6">
+                        {readyWines.map((w) => (
+                          <MaturityCard
+                            key={w.id}
+                            wine={w}
+                            badge={`Boire avant ${w.effectiveDrinkUntil}`}
+                            badgeColor="#1a7a3c"
+                            badgeBg="rgba(26,122,60,0.09)"
+                            urgent={w.effectiveDrinkUntil !== null && w.effectiveDrinkUntil <= currentYear + 1}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  {soonWines.length > 0 && (
+                    <>
+                      <div className="flex items-center gap-2 mb-4">
+                        <div className="w-2 h-2 rounded-full" style={{ background: "#b87a2c" }} />
+                        <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "#b87a2c" }}>
+                          Bientôt prêtes — {soonWines.length} vin{soonWines.length > 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <div className="space-y-2">
+                        {soonWines.map((w) => (
+                          <MaturityCard
+                            key={w.id}
+                            wine={w}
+                            badge={`À partir de ${w.effectiveDrinkFrom}`}
+                            badgeColor="#b87a2c"
+                            badgeBg="rgba(184,122,44,0.09)"
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Passées */}
+              {pastWines.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-2 h-2 rounded-full" style={{ background: "rgba(26,10,14,0.30)" }} />
+                    <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+                      Passées leur apogée — {pastWines.length} vin{pastWines.length > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div className="space-y-2">
+                    {pastWines.map((w) => (
+                      <MaturityCard
+                        key={w.id}
+                        wine={w}
+                        badge={`Apogée jusqu'en ${w.effectiveDrinkUntil}`}
+                        badgeColor="rgba(26,10,14,0.35)"
+                        badgeBg="rgba(26,10,14,0.05)"
+                        faded
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
         {/* Quick actions */}
         <section className="flex gap-3 flex-wrap pb-8">
           <Link
@@ -214,6 +300,58 @@ export default async function DashboardPage() {
         </section>
       </div>
     </div>
+  );
+}
+
+const COLOR_DOT: Record<string, string> = {
+  rouge: "#c0193b",
+  blanc: "#b87a2c",
+  rosé:  "#d4647a",
+};
+
+function MaturityCard({
+  wine,
+  badge,
+  badgeColor,
+  badgeBg,
+  faded,
+  urgent,
+}: {
+  wine: { id: string; name: string; vintage: number | null; color: string | null; quantity: number; isEstimated: boolean };
+  badge: string;
+  badgeColor: string;
+  badgeBg: string;
+  faded?: boolean;
+  urgent?: boolean;
+}) {
+  return (
+    <Link
+      href={`/wines/${wine.id}`}
+      className="flex items-center gap-3 rounded-xl px-4 py-3 transition-transform duration-150 hover:-translate-y-0.5"
+      style={{
+        background: "var(--surface)",
+        border: urgent ? `1px solid rgba(26,122,60,0.25)` : "1px solid var(--border)",
+        boxShadow: "0 1px 6px rgba(26,10,14,0.05)",
+        opacity: faded ? 0.7 : 1,
+      }}
+    >
+      <div className="w-2 h-2 rounded-full shrink-0" style={{ background: COLOR_DOT[wine.color ?? ""] ?? "rgba(26,10,14,0.25)" }} />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate" style={{ fontFamily: "var(--font-inter)", color: faded ? "var(--text-muted)" : "var(--foreground)" }}>
+          {wine.name}
+        </p>
+        <p className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+          {wine.vintage ?? "—"} · {wine.quantity} bouteille{wine.quantity > 1 ? "s" : ""}
+          {wine.isEstimated && <span className="ml-1 opacity-60">~estimé</span>}
+        </p>
+      </div>
+      <span
+        className="text-xs px-2.5 py-1 rounded-full shrink-0 font-medium"
+        style={{ background: badgeBg, color: badgeColor, fontFamily: "var(--font-inter)", border: `1px solid ${badgeColor}30` }}
+      >
+        {badge}
+      </span>
+    </Link>
   );
 }
 
