@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { estimateMaturity } from "@/lib/maturity";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -21,6 +22,8 @@ interface Wine {
   purchasePrice: number | null;
   imageUrl: string | null;
   rackId: string | null;
+  drinkFrom: number | null;
+  drinkUntil: number | null;
 }
 
 interface Filters {
@@ -32,6 +35,7 @@ interface Filters {
   priceMax: string;
   stock: "" | "in" | "out";
   racked: "" | "yes" | "no";
+  maturity: "" | "optimal" | "bientôt" | "dépassé";
   search: string;
 }
 
@@ -45,7 +49,7 @@ const COLORS: Record<string, { label: string; color: string }> = {
 
 const EMPTY_FILTERS: Filters = {
   color: "", country: "", region: "", grape: "",
-  priceMin: "", priceMax: "", stock: "", racked: "", search: "",
+  priceMin: "", priceMax: "", stock: "", racked: "", maturity: "", search: "",
 };
 
 function splitGrapes(raw: string | null): string[] {
@@ -72,8 +76,9 @@ function WinesContent() {
       grape:    searchParams.get("grape")    ?? "",
       priceMin: searchParams.get("priceMin") ?? "",
       priceMax: searchParams.get("priceMax") ?? "",
-      stock:    (searchParams.get("stock")  as Filters["stock"])  ?? "",
-      racked:   (searchParams.get("racked") as Filters["racked"]) ?? "",
+      stock:    (searchParams.get("stock")    as Filters["stock"])    ?? "",
+      racked:   (searchParams.get("racked")  as Filters["racked"])   ?? "",
+      maturity: (searchParams.get("maturity") as Filters["maturity"]) ?? "",
       search:   searchParams.get("search")   ?? "",
     };
     if (Object.values(fromUrl).some(Boolean)) return fromUrl;
@@ -111,6 +116,8 @@ function WinesContent() {
     grapes:    [...new Set(allWines.flatMap(w => splitGrapes(w.grapeVarieties)))].sort(),
   }), [allWines]);
 
+  const currentYear = new Date().getFullYear();
+
   // Client-side filtering
   const wines = useMemo(() => allWines.filter(w => {
     if (filters.color   && w.color   !== filters.color)   return false;
@@ -126,12 +133,24 @@ function WinesContent() {
     if (filters.stock === "out" && w.quantity > 0)  return false;
     if (filters.racked === "yes" && !w.rackId)  return false;
     if (filters.racked === "no"  &&  w.rackId)  return false;
+    if (filters.maturity) {
+      const hasManual = !!(w.drinkFrom && w.drinkUntil);
+      const est = !hasManual ? estimateMaturity({ region: w.region, appellation: w.appellation, color: w.color, vintage: w.vintage }) : null;
+      const from  = w.drinkFrom  ?? est?.drinkFrom  ?? null;
+      const until = w.drinkUntil ?? est?.drinkUntil ?? null;
+      if (!from || !until) return false;
+      const status =
+        currentYear > until   ? "dépassé" :
+        currentYear >= from   ? "optimal" :
+        currentYear >= from - 2 ? "bientôt" : "trop-tôt";
+      if (status !== filters.maturity) return false;
+    }
     if (filters.search) {
       const q = filters.search.toLowerCase();
       if (!`${w.name} ${w.producer ?? ""} ${w.appellation ?? ""} ${w.region ?? ""} ${w.country ?? ""}`.toLowerCase().includes(q)) return false;
     }
     return true;
-  }), [allWines, filters]);
+  }), [allWines, filters, currentYear]);
 
   function set<K extends keyof Filters>(key: K, value: Filters[K]) {
     setFilters(f => ({ ...f, [key]: value }));
@@ -143,7 +162,7 @@ function WinesContent() {
   const activeCount = [
     filters.color, filters.country, filters.region, filters.grape,
     filters.priceMin || filters.priceMax ? "x" : "",
-    filters.stock, filters.racked,
+    filters.stock, filters.racked, filters.maturity,
   ].filter(Boolean).length;
 
   const totalBottles = wines.reduce((s, w) => s + w.quantity, 0);
@@ -218,6 +237,31 @@ function WinesContent() {
             <Chip active={!filters.color} onClick={() => set("color", "")} label="Tous" />
             {Object.entries(COLORS).map(([c, { label, color }]) => (
               <Chip key={c} active={filters.color === c} onClick={() => toggle("color", c)} label={label} dot={color} />
+            ))}
+
+            {/* Maturité */}
+            <div className="w-px h-5 mx-1" style={{ background: "var(--border)" }} />
+            {([
+              ["optimal",  "✓ Prêtes",  "#1a7a3c"],
+              ["bientôt",  "~ Bientôt", "#b87a2c"],
+              ["dépassé",  "✗ Passées", "rgba(26,10,14,0.4)"],
+            ] as [Filters["maturity"], string, string][]).map(([v, label, color]) => (
+              <button
+                key={v}
+                onClick={() => toggle("maturity", v)}
+                className="flex items-center rounded-full transition-all duration-200"
+                style={{
+                  padding: "6px 14px",
+                  fontSize: "0.875rem",
+                  fontFamily: "var(--font-inter)",
+                  background: filters.maturity === v ? `${color}18` : "var(--surface)",
+                  border: `1px solid ${filters.maturity === v ? color : "var(--border)"}`,
+                  color: filters.maturity === v ? color : "var(--text-muted)",
+                  fontWeight: filters.maturity === v ? 500 : 400,
+                }}
+              >
+                {label}
+              </button>
             ))}
 
             {/* Filter toggle */}

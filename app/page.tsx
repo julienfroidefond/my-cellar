@@ -190,11 +190,16 @@ export default async function DashboardPage() {
               {/* Prêtes à boire */}
               {readyWines.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-5">
-                    <div className="w-2 h-2 rounded-full" style={{ background: "#1a7a3c" }} />
-                    <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "#1a7a3c" }}>
-                      Prêtes à boire — {readyWines.length} vin{readyWines.length > 1 ? "s" : ""}
-                    </span>
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ background: "#1a7a3c" }} />
+                      <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "#1a7a3c" }}>
+                        Prêtes à boire — {readyWines.length} vin{readyWines.length > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <Link href="/wines?maturity=optimal" className="text-xs transition-opacity hover:opacity-70" style={{ fontFamily: "var(--font-inter)", color: "#1a7a3c" }}>
+                      Voir tous →
+                    </Link>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {readyWines.map((w) => (
@@ -214,11 +219,16 @@ export default async function DashboardPage() {
               {/* Bientôt prêtes */}
               {soonWines.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-5">
-                    <div className="w-2 h-2 rounded-full" style={{ background: "#b87a2c" }} />
-                    <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "#b87a2c" }}>
-                      Bientôt prêtes — {soonWines.length} vin{soonWines.length > 1 ? "s" : ""}
-                    </span>
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ background: "#b87a2c" }} />
+                      <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "#b87a2c" }}>
+                        Bientôt prêtes — {soonWines.length} vin{soonWines.length > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <Link href="/wines?maturity=bientôt" className="text-xs transition-opacity hover:opacity-70" style={{ fontFamily: "var(--font-inter)", color: "#b87a2c" }}>
+                      Voir tous →
+                    </Link>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {soonWines.map((w) => (
@@ -237,11 +247,16 @@ export default async function DashboardPage() {
               {/* Passées leur apogée */}
               {pastWines.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-5">
-                    <div className="w-2 h-2 rounded-full" style={{ background: "rgba(26,10,14,0.28)" }} />
-                    <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                      Passées leur apogée — {pastWines.length} vin{pastWines.length > 1 ? "s" : ""}
-                    </span>
+                  <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full" style={{ background: "rgba(26,10,14,0.28)" }} />
+                      <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+                        Passées leur apogée — {pastWines.length} vin{pastWines.length > 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    <Link href="/wines?maturity=dépassé" className="text-xs transition-opacity hover:opacity-70" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+                      Voir tous →
+                    </Link>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                     {pastWines.map((w) => (
