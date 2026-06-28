@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=file:/data/cellar.db
+      - DB_PATH=/data/cellar.db
+    volumes:
+      - cellar-db:/data
+      - cellar-images:/app/public/wines
+    restart: unless-stopped
+
+volumes:
+  cellar-db:
+  cellar-images:

@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+*.db
+*.db-shm
+*.db-wal
+*.db.backup*
+*.pdf
+.env*
+.DS_Store
+coverage
