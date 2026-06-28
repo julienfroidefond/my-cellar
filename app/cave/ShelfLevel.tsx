@@ -95,7 +95,7 @@ export function ShelfLevel({
       {backSlots.length > 0 && (
         <div className="px-4 pt-2 pb-1">
           <p style={subLabelStyle}>arrière (P2)</p>
-          <div className="flex gap-2">
+          <div className="flex justify-center gap-2">
             {backSlots.map(({ wine, slotIndex }) => (
               <Slot
                 key={slotIndex}
@@ -112,7 +112,7 @@ export function ShelfLevel({
       )}
       <div className="px-4 pt-1 pb-3">
         <p style={subLabelStyle}>avant (P1)</p>
-        <div className="flex gap-2">
+        <div className="flex justify-center gap-2">
           {frontSlots.map(({ wine, slotIndex }) => (
             <Slot
               key={slotIndex}
