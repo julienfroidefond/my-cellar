@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { downloadExternalImage } from "@/lib/images";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -66,7 +67,7 @@ export async function POST(req: NextRequest) {
       grapeVarieties,
       country,
       notes,
-      imageUrl,
+      imageUrl: null, // will be set after id is known
       vintages: {
         create: {
           vintage: vintage ?? null,
@@ -85,6 +86,17 @@ export async function POST(req: NextRequest) {
       },
     },
   });
+
+  if (imageUrl) {
+    const localUrl = await downloadExternalImage(imageUrl, wine.id);
+    if (localUrl !== imageUrl) {
+      await prisma.wine.update({ where: { id: wine.id }, data: { imageUrl: localUrl } });
+      wine.imageUrl = localUrl;
+    } else {
+      await prisma.wine.update({ where: { id: wine.id }, data: { imageUrl } });
+      wine.imageUrl = imageUrl;
+    }
+  }
 
   return NextResponse.json(wine, { status: 201 });
 }
