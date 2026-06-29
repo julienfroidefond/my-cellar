@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 import { prisma } from "@/lib/db";
 
 interface ExportData {
@@ -10,7 +8,6 @@ interface ExportData {
   wineVintageSlots: Record<string, unknown>[];
   racks: Record<string, unknown>[];
   wineHistory: Record<string, unknown>[];
-  images?: Record<string, string>;
 }
 
 export async function POST(req: NextRequest) {
@@ -51,19 +48,6 @@ export async function POST(req: NextRequest) {
     }
   });
 
-  // Write images to public/wines/
-  let imageCount = 0;
-  if (data.images && typeof data.images === "object") {
-    const dir = join(process.cwd(), "public", "wines");
-    await mkdir(dir, { recursive: true });
-    await Promise.all(
-      Object.entries(data.images).map(async ([filename, b64]) => {
-        await writeFile(join(dir, filename), Buffer.from(b64, "base64"));
-        imageCount++;
-      })
-    );
-  }
-
   return NextResponse.json({
     ok: true,
     imported: {
@@ -72,7 +56,6 @@ export async function POST(req: NextRequest) {
       slots: data.wineVintageSlots.length,
       racks: data.racks.length,
       history: data.wineHistory.length,
-      images: imageCount,
     },
   });
 }

@@ -2,11 +2,24 @@
 
 import { useRef, useState } from "react";
 
+type ImportResult = {
+  wines: number;
+  vintages: number;
+  slots: number;
+  racks: number;
+  history: number;
+  images: number;
+  imageErrors: string[];
+};
+
+type ImportState = "idle" | "confirm" | "loading-db" | "loading-images" | "done" | "error";
+
 export default function SettingsPage() {
   const fileRef = useRef<HTMLInputElement>(null);
-  const [importState, setImportState] = useState<"idle" | "confirm" | "loading" | "done" | "error">("idle");
+  const [importState, setImportState] = useState<ImportState>("idle");
   const [importFile, setImportFile] = useState<File | null>(null);
-  const [importResult, setImportResult] = useState<Record<string, number> | null>(null);
+  const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [parsedImageCount, setParsedImageCount] = useState(0);
   const [errorMsg, setErrorMsg] = useState("");
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -14,36 +27,98 @@ export default function SettingsPage() {
     setImportFile(file);
     setImportState(file ? "confirm" : "idle");
     setImportResult(null);
+    setParsedImageCount(0);
     setErrorMsg("");
   }
 
   async function handleImport() {
     if (!importFile) return;
-    setImportState("loading");
+
+    let parsed: Record<string, unknown>;
     try {
-      const text = await importFile.text();
-      const res = await fetch("/api/import", {
+      parsed = JSON.parse(await importFile.text());
+    } catch {
+      setErrorMsg("Fichier JSON invalide");
+      setImportState("error");
+      return;
+    }
+
+    const images = parsed.images as Record<string, string> | undefined;
+    const imageCount = images ? Object.keys(images).length : 0;
+    setParsedImageCount(imageCount);
+
+    // Step 1 — import DB data (small payload, no images)
+    setImportState("loading-db");
+    const dbPayload: Record<string, unknown> = { ...parsed };
+    delete dbPayload.images;
+
+    let dbRes: Response;
+    try {
+      dbRes = await fetch("/api/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: text,
+        body: JSON.stringify(dbPayload),
       });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error ?? "Erreur serveur");
-      setImportResult(json.imported);
-      setImportState("done");
-    } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : "Erreur inconnue");
+    } catch {
+      setErrorMsg("Erreur réseau lors de l'import des données");
       setImportState("error");
+      return;
     }
+
+    const dbJson = await dbRes.json();
+    if (!dbRes.ok) {
+      setErrorMsg(dbJson.error ?? "Erreur serveur");
+      setImportState("error");
+      return;
+    }
+
+    // Step 2 — import images separately (may be large)
+    let imagesImported = 0;
+    let imageErrors: string[] = [];
+
+    if (images && imageCount > 0) {
+      setImportState("loading-images");
+      try {
+        const imgRes = await fetch("/api/import/images", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ images }),
+        });
+        const imgJson = await imgRes.json();
+        if (imgRes.ok) {
+          imagesImported = imgJson.images ?? 0;
+          imageErrors = imgJson.errors ?? [];
+        } else {
+          imageErrors = [imgJson.error ?? "Erreur lors de l'import des images"];
+        }
+      } catch {
+        imageErrors = ["Erreur réseau lors de l'import des images"];
+      }
+    }
+
+    setImportResult({
+      ...dbJson.imported,
+      images: imagesImported,
+      imageErrors,
+    });
+    setImportState("done");
   }
 
   function reset() {
     setImportState("idle");
     setImportFile(null);
     setImportResult(null);
+    setParsedImageCount(0);
     setErrorMsg("");
     if (fileRef.current) fileRef.current.value = "";
   }
+
+  const loadingLabel =
+    importState === "loading-db"
+      ? "Import des données…"
+      : importState === "loading-images"
+        ? `Import des images (${parsedImageCount})…`
+        : null;
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
@@ -66,7 +141,7 @@ export default function SettingsPage() {
             Exporter la base
           </h2>
           <p className="text-sm mb-6" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-            Télécharge un fichier JSON contenant tous vos vins, millésimes, emplacements, casiers et historique.
+            Télécharge un fichier JSON contenant tous vos vins, millésimes, emplacements, casiers, historique et images.
           </p>
           <a
             href="/api/export"
@@ -87,7 +162,7 @@ export default function SettingsPage() {
             Restaure un export JSON. <strong>Toutes les données existantes seront remplacées.</strong>
           </p>
           <p className="text-xs mb-6" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
-            Seuls les fichiers générés par cet outil sont acceptés.
+            Les données et les images sont envoyées en deux requêtes séparées.
           </p>
 
           {importState === "idle" && (
@@ -129,9 +204,9 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {importState === "loading" && (
+          {(importState === "loading-db" || importState === "loading-images") && (
             <p className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-              Import en cours…
+              {loadingLabel}
             </p>
           )}
 
@@ -150,6 +225,16 @@ export default function SettingsPage() {
                   <li>{importResult.images} images</li>
                 </ul>
               </div>
+              {importResult.imageErrors.length > 0 && (
+                <div className="p-3 rounded-xl" style={{ background: "rgba(192,25,59,0.06)", border: "1px solid rgba(192,25,59,0.2)" }}>
+                  <p className="text-xs font-semibold mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>
+                    {importResult.imageErrors.length} image(s) non importée(s)
+                  </p>
+                  <ul className="text-xs space-y-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+                    {importResult.imageErrors.map((e, i) => <li key={i}>{e}</li>)}
+                  </ul>
+                </div>
+              )}
               <button
                 onClick={reset}
                 className="px-5 py-2.5 rounded-full text-sm transition-opacity hover:opacity-80"
