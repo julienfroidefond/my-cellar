@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 env:
   IMAGE: julienfroidefond32/my-cellar
@@ -12,12 +13,15 @@ jobs:
   deploy:
     runs-on: mac-orbstack-runner
     if: |
-      !startsWith(github.event.head_commit.message, 'chore') &&
-      !startsWith(github.event.head_commit.message, 'docs') &&
-      !startsWith(github.event.head_commit.message, 'style') &&
-      !startsWith(github.event.head_commit.message, 'test') &&
-      !startsWith(github.event.head_commit.message, 'ci') &&
-      !startsWith(github.event.head_commit.message, 'build')
+      github.event_name == 'workflow_dispatch' ||
+      (
+        !startsWith(github.event.head_commit.message, 'chore') &&
+        !startsWith(github.event.head_commit.message, 'docs') &&
+        !startsWith(github.event.head_commit.message, 'style') &&
+        !startsWith(github.event.head_commit.message, 'test') &&
+        !startsWith(github.event.head_commit.message, 'ci') &&
+        !startsWith(github.event.head_commit.message, 'build')
+      )
     steps:
       - name: Checkout
         uses: actions/checkout@v4
