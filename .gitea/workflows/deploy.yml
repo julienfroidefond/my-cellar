@@ -57,7 +57,7 @@ jobs:
         run: |
           docker pull ${{ env.IMAGE }}:latest
           cd /Users/julienfroidefond/Sites/docker-stack
-          ./scripts/stack.sh up my-cellar
+          docker compose -p websites -f stacks/websites/compose.yaml up -d --no-deps my-cellar
 
       - name: Cleanup old images
         run: |
