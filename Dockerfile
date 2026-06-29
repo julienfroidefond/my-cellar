@@ -5,11 +5,11 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm ci
+RUN npm_config_nodedir=/usr/local npm install
 
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
-RUN npx prisma generate
+RUN NODE_TLS_REJECT_UNAUTHORIZED=0 npx prisma generate
 
 COPY . .
 RUN npm run build
