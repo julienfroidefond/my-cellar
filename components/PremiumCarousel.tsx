@@ -111,6 +111,7 @@ export default function PremiumCarousel({ initialWines, total }: Props) {
                   <img
                     src={wine.imageUrl}
                     alt=""
+                    loading="lazy"
                     style={{ position: "absolute", bottom: 0, right: 8, height: "95%", objectFit: "contain", opacity: 0.90, filter: "drop-shadow(0 4px 16px rgba(26,10,14,0.18))" }}
                   />
                 </div>

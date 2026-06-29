@@ -347,6 +347,7 @@ function MaturityCard({
           <img
             src={wine.imageUrl}
             alt=""
+            loading="lazy"
             style={{
               position: "absolute", bottom: 0, right: 6,
               height: "92%", objectFit: "contain",
