@@ -147,6 +147,7 @@ export default function SettingsPage() {
                   <li>{importResult.slots} emplacements</li>
                   <li>{importResult.racks} casiers</li>
                   <li>{importResult.history} entrées d'historique</li>
+                  <li>{importResult.images} images</li>
                 </ul>
               </div>
               <button
