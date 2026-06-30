@@ -133,7 +133,7 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-14 md:py-24">
           <div className="max-w-xl">
             <p
               className="animate-fade-up text-xs tracking-[0.45em] uppercase mb-5"

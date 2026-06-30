@@ -58,7 +58,8 @@ export default function CellarCharts({ byColor, topRegions }: Props) {
           Par couleur
         </h3>
 
-        <div className="flex items-center gap-6">
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+          <div className="shrink-0">
           <ResponsiveContainer width={160} height={160}>
             <PieChart>
               <Pie
@@ -101,8 +102,9 @@ export default function CellarCharts({ byColor, topRegions }: Props) {
               />
             </PieChart>
           </ResponsiveContainer>
+          </div>
 
-          <div className="space-y-3 flex-1">
+          <div className="space-y-3 flex-1 w-full sm:w-auto">
             {colorData.map((d) => (
               <div key={d.name} className="flex items-center gap-3">
                 <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />

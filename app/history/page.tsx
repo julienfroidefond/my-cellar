@@ -160,7 +160,7 @@ export default async function HistoryPage() {
 
       {/* ── Hero ──────────────────────────────────────── */}
       <div className="diagonal-stripe relative overflow-hidden" style={{ minHeight: 480, background: "var(--background)" }}>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24">
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-14 md:py-24">
           <p className="animate-fade-up text-xs tracking-[0.45em] uppercase mb-5 font-semibold" style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}>
             Journal
           </p>

@@ -108,7 +108,7 @@ export default function AddWinePage() {
                 style={inputStyle}
               />
             </Field>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <Field label="Millésime">
                 <input
                   type="number"
@@ -172,7 +172,7 @@ export default function AddWinePage() {
                 ))}
               </div>
             </Field>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Région">
                 <select
                   value={form.region}
@@ -194,7 +194,7 @@ export default function AddWinePage() {
                 />
               </Field>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Pays">
                 <input
                   value={form.country}
@@ -216,7 +216,7 @@ export default function AddWinePage() {
 
           {/* Prix */}
           <Section title="Prix">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Prix d'achat (€)">
                 <input
                   type="number"
@@ -244,7 +244,7 @@ export default function AddWinePage() {
 
           {/* Dégustation */}
           <Section title="Dégustation">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="À boire à partir de">
                 <input
                   type="number"

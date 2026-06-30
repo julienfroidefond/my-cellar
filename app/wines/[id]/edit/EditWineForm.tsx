@@ -138,7 +138,7 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
                   ))}
                 </div>
               </Field>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="Région">
                   <select value={form.region} onChange={(e) => set("region", e.target.value)} style={inputStyle}>
                     <option value="">— Sélectionner —</option>
@@ -149,7 +149,7 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
                   <input value={form.appellation} onChange={(e) => set("appellation", e.target.value)} style={inputStyle} />
                 </Field>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="Pays">
                   <input value={form.country} onChange={(e) => set("country", e.target.value)} style={inputStyle} />
                 </Field>

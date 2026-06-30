@@ -246,7 +246,7 @@ function WinesContent() {
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2">
               {activeCount > 0 && (
                 <button
                   onClick={() => setFilters(EMPTY_FILTERS)}
@@ -272,8 +272,8 @@ function WinesContent() {
                 placeholder="Rechercher un vin…"
                 value={filters.search}
                 onChange={e => set("search", e.target.value)}
-                className="w-64 px-5 py-2.5 rounded-full text-sm outline-none transition-all"
-                style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
+                className="flex-1 px-5 py-2.5 rounded-full text-sm outline-none transition-all"
+                style={{ minWidth: "160px", background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
                 onFocus={e => (e.target.style.borderColor = "rgba(192,25,59,0.40)")}
                 onBlur={e  => (e.target.style.borderColor = "var(--border)")}
               />
@@ -281,53 +281,57 @@ function WinesContent() {
           </div>
 
           {/* ── Filter row ── */}
-          <div className="flex flex-wrap gap-2 mt-6 items-center">
-            {/* Color */}
-            <Chip active={!filters.color} onClick={() => set("color", "")} label="Tous" />
-            {Object.entries(COLORS).map(([c, { label, color }]) => (
-              <Chip key={c} active={filters.color === c} onClick={() => toggle("color", c)} label={label} dot={color} />
-            ))}
+          <div className="mt-6 flex flex-col gap-2">
+            <div className="flex flex-wrap gap-2 items-center">
+              {/* Color */}
+              <Chip active={!filters.color} onClick={() => set("color", "")} label="Tous" />
+              {Object.entries(COLORS).map(([c, { label, color }]) => (
+                <Chip key={c} active={filters.color === c} onClick={() => toggle("color", c)} label={label} dot={color} />
+              ))}
 
-            {/* Maturité */}
-            <div className="w-px h-5 mx-1" style={{ background: "var(--border)" }} />
-            {([
-              ["optimal",  "✓ Prêtes",  "#1a7a3c"],
-              ["bientôt",  "~ Bientôt", "#b87a2c"],
-              ["dépassé",  "✗ Passées", "rgba(26,10,14,0.4)"],
-            ] as [Filters["maturity"], string, string][]).map(([v, label, color]) => (
+              {/* Divider */}
+              <div className="w-px h-5 mx-1" style={{ background: "var(--border)" }} />
+
+              {/* Maturité */}
+              {([
+                ["optimal",  "✓ Prêtes",  "#1a7a3c"],
+                ["bientôt",  "~ Bientôt", "#b87a2c"],
+                ["dépassé",  "✗ Passées", "rgba(26,10,14,0.4)"],
+              ] as [Filters["maturity"], string, string][]).map(([v, label, color]) => (
+                <button
+                  key={v}
+                  onClick={() => toggle("maturity", v)}
+                  className="flex items-center rounded-full transition-all duration-200"
+                  style={{
+                    padding: "6px 14px",
+                    fontSize: "0.875rem",
+                    fontFamily: "var(--font-inter)",
+                    background: filters.maturity === v ? `${color}18` : "var(--surface)",
+                    border: `1px solid ${filters.maturity === v ? color : "var(--border)"}`,
+                    color: filters.maturity === v ? color : "var(--text-muted)",
+                    fontWeight: filters.maturity === v ? 500 : 400,
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+
+              {/* Filter toggle */}
               <button
-                key={v}
-                onClick={() => toggle("maturity", v)}
-                className="flex items-center rounded-full transition-all duration-200"
+                onClick={() => setShowFilters(v => !v)}
+                className="sm:ml-auto flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition-all"
                 style={{
-                  padding: "6px 14px",
-                  fontSize: "0.875rem",
                   fontFamily: "var(--font-inter)",
-                  background: filters.maturity === v ? `${color}18` : "var(--surface)",
-                  border: `1px solid ${filters.maturity === v ? color : "var(--border)"}`,
-                  color: filters.maturity === v ? color : "var(--text-muted)",
-                  fontWeight: filters.maturity === v ? 500 : 400,
+                  background: (showFilters || activeCount > 0) ? "rgba(192,25,59,0.08)" : "var(--surface-2)",
+                  border: (showFilters || activeCount > 0) ? "1px solid rgba(192,25,59,0.25)" : "1px solid var(--border)",
+                  color: (showFilters || activeCount > 0) ? "var(--wine-red)" : "var(--text-muted)",
                 }}
               >
-                {label}
+                <span style={{ fontSize: 13 }}>⚙</span>
+                Filtres {activeCount > 0 && <span className="px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ background: "var(--wine-red)", color: "white" }}>{activeCount}</span>}
+                <span style={{ fontSize: 10 }}>{showFilters ? "▲" : "▼"}</span>
               </button>
-            ))}
-
-            {/* Filter toggle */}
-            <button
-              onClick={() => setShowFilters(v => !v)}
-              className="ml-auto flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition-all"
-              style={{
-                fontFamily: "var(--font-inter)",
-                background: (showFilters || activeCount > 0) ? "rgba(192,25,59,0.08)" : "var(--surface-2)",
-                border: (showFilters || activeCount > 0) ? "1px solid rgba(192,25,59,0.25)" : "1px solid var(--border)",
-                color: (showFilters || activeCount > 0) ? "var(--wine-red)" : "var(--text-muted)",
-              }}
-            >
-              <span style={{ fontSize: 13 }}>⚙</span>
-              Filtres {activeCount > 0 && <span className="px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ background: "var(--wine-red)", color: "white" }}>{activeCount}</span>}
-              <span style={{ fontSize: 10 }}>{showFilters ? "▲" : "▼"}</span>
-            </button>
+            </div>
           </div>
 
           {/* ── Expanded filter panel ── */}
