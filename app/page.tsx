@@ -207,7 +207,7 @@ export default async function DashboardPage() {
                       Voir tous →
                     </Link>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {readyWines.map((w, i) => (
                       <MaturityCard
                         key={`${w.id}-${w.vintage ?? i}`}
@@ -235,7 +235,7 @@ export default async function DashboardPage() {
                       Voir tous →
                     </Link>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {soonWines.map((w, i) => (
                       <MaturityCard
                         key={`${w.id}-${w.vintage ?? i}`}
@@ -262,7 +262,7 @@ export default async function DashboardPage() {
                       Voir tous →
                     </Link>
                   </div>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {pastWines.map((w, i) => (
                       <MaturityCard
                         key={`${w.id}-${w.vintage ?? i}`}
