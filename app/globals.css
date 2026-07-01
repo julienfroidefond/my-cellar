@@ -124,6 +124,17 @@ body {
   z-index: 0;
 }
 
+/* Sur mobile, pas d'image de bouteille pour équilibrer la bande —
+   on la réduit à un accent de coin plutôt qu'un pan qui écrase le hero. */
+@media (max-width: 767px) {
+  .diagonal-stripe::after {
+    top: -30%;
+    right: -30%;
+    width: 20%;
+    height: 160%;
+  }
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);

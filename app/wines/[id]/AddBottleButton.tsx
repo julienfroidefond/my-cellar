@@ -32,10 +32,10 @@ export default function AddBottleButton({ id, vintage }: { id: string; vintage: 
   }
 
   return (
-    <div className="relative" ref={panelRef}>
+    <div className="relative sm:inline-block" ref={panelRef}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="px-5 py-2.5 rounded-full text-sm font-medium transition-opacity hover:opacity-90"
+        className="w-full sm:w-auto px-5 py-2.5 rounded-full text-sm font-medium transition-opacity hover:opacity-90"
         style={{
           background: "var(--surface)",
           border: "1px solid var(--border)",

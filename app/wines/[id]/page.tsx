@@ -202,20 +202,35 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             ← Collection
           </Link>
 
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: cfg.color }} />
-            <span className="text-xs tracking-[0.3em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: cfg.color }}>
-              {cfg.label}{wine.appellation ? ` · ${wine.appellation}` : ""}
-            </span>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: cfg.color }} />
+                <span className="text-xs tracking-[0.3em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: cfg.color }}>
+                  {cfg.label}{wine.appellation ? ` · ${wine.appellation}` : ""}
+                </span>
+              </div>
+
+              <h1 className="text-5xl md:text-7xl font-bold leading-none mb-4 max-w-xl" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
+                {wine.name}
+              </h1>
+
+              {wine.producer && (
+                <p className="text-base mb-6" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>{wine.producer}</p>
+              )}
+            </div>
+
+            {wine.imageUrl && (
+              <div className="md:hidden shrink-0 pt-1">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={wine.imageUrl}
+                  alt={wine.name}
+                  style={{ height: 200, width: "auto", objectFit: "contain", filter: "drop-shadow(0 10px 20px rgba(26,10,14,0.28))" }}
+                />
+              </div>
+            )}
           </div>
-
-          <h1 className="text-5xl md:text-7xl font-bold leading-none mb-4 max-w-xl" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
-            {wine.name}
-          </h1>
-
-          {wine.producer && (
-            <p className="text-base mb-6" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>{wine.producer}</p>
-          )}
 
           <div className="flex flex-wrap gap-3 mt-4">
             <div className="px-4 py-2.5 rounded-xl" style={{ background: "rgba(192,25,59,0.09)", border: "1px solid rgba(192,25,59,0.22)" }}>
@@ -234,11 +249,13 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             )}
           </div>
 
-          <div className="flex flex-wrap gap-3 mt-6">
-            <Link href={`/wines/${wine.id}/edit`} className="px-5 py-2.5 rounded-full text-sm font-medium transition-opacity hover:opacity-90" style={{ background: "var(--wine-red)", color: "#fff", fontFamily: "var(--font-inter)" }}>
+          <div className="flex flex-col sm:flex-row gap-3 mt-6">
+            <Link href={`/wines/${wine.id}/edit`} className="px-5 py-2.5 rounded-full text-sm font-medium text-center transition-opacity hover:opacity-90" style={{ background: "var(--wine-red)", color: "#fff", fontFamily: "var(--font-inter)" }}>
               Modifier
             </Link>
             <AddBottleButton id={wine.id} vintage={wine.vintages[0]?.vintage ?? null} />
+          </div>
+          <div className="mt-4">
             <DeleteWineButton id={wine.id} name={wine.name} />
           </div>
         </div>
@@ -250,6 +267,16 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
 
           {/* Millésimes — 2/3 */}
           <div className="md:col-span-2">
+            {wine.description && (
+              <div
+                className="rounded-2xl p-6 mb-8"
+                style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.06)" }}
+              >
+                <p className="text-xs tracking-[0.3em] uppercase font-semibold mb-2" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Description</p>
+                <p className="text-base leading-relaxed" style={{ fontFamily: "var(--font-inter)", color: "var(--foreground)" }}>{wine.description}</p>
+              </div>
+            )}
+
             <div className="mb-6">
               <p className="text-xs tracking-[0.3em] uppercase font-semibold mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Stock</p>
               <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>Millésimes</h2>
@@ -265,64 +292,6 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                 ))}
               </div>
             )}
-
-            {/* Historique */}
-            {wineHistory.length > 0 && (() => {
-              // Group by day + vintage + action
-              const groups = new Map<string, { action: string; vintage: number | null; date: Date; count: number }>();
-              for (const h of wineHistory) {
-                const day = new Date(h.consumedAt).toDateString();
-                const key = `${day}|${h.vintage ?? ""}|${h.action}`;
-                const existing = groups.get(key);
-                if (existing) { existing.count += h.quantity; }
-                else { groups.set(key, { action: h.action, vintage: h.vintage, date: new Date(h.consumedAt), count: h.quantity }); }
-              }
-              const rows = Array.from(groups.values());
-
-              return (
-                <div className="mt-10">
-                  <div className="mb-4">
-                    <p className="text-xs tracking-[0.3em] uppercase font-semibold mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Historique</p>
-                    <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>Consommation</h2>
-                  </div>
-                  <div className="space-y-2">
-                    {rows.map((h, i) => (
-                      <div
-                        key={i}
-                        className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl"
-                        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-                      >
-                        <div className="flex items-center gap-3">
-                          <span
-                            className="text-xs px-2.5 py-1 rounded-full font-medium shrink-0"
-                            style={{
-                              background: h.action === "bu" ? "rgba(192,25,59,0.09)" : "rgba(26,10,14,0.06)",
-                              color: h.action === "bu" ? "var(--wine-red)" : "var(--text-muted)",
-                              fontFamily: "var(--font-inter)",
-                            }}
-                          >
-                            {h.action === "bu" ? "Bu" : "Retiré"}
-                          </span>
-                          {h.vintage && (
-                            <span className="text-sm font-semibold" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
-                              {h.vintage}
-                            </span>
-                          )}
-                          {h.count > 1 && (
-                            <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(26,10,14,0.05)", color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}>
-                              ×{h.count}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
-                          {h.date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
           </div>
 
           {/* Sidebar — 1/3 */}
@@ -344,12 +313,6 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                   </div>
                 ))}
               </dl>
-              {wine.description && (
-                <div className="mt-5 pt-5" style={{ borderTop: "1px solid var(--border)" }}>
-                  <p className="text-xs mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Description</p>
-                  <p className="text-sm leading-relaxed" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>{wine.description}</p>
-                </div>
-              )}
               {wine.notes && (
                 <div className="mt-5 pt-5" style={{ borderTop: "1px solid var(--border)" }}>
                   <p className="text-xs mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Notes</p>
@@ -359,6 +322,64 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             </div>
           </div>
         </div>
+
+        {/* Historique — pleine largeur, en bas de page */}
+        {wineHistory.length > 0 && (() => {
+          // Group by day + vintage + action
+          const groups = new Map<string, { action: string; vintage: number | null; date: Date; count: number }>();
+          for (const h of wineHistory) {
+            const day = new Date(h.consumedAt).toDateString();
+            const key = `${day}|${h.vintage ?? ""}|${h.action}`;
+            const existing = groups.get(key);
+            if (existing) { existing.count += h.quantity; }
+            else { groups.set(key, { action: h.action, vintage: h.vintage, date: new Date(h.consumedAt), count: h.quantity }); }
+          }
+          const rows = Array.from(groups.values());
+
+          return (
+            <div className="mt-10">
+              <div className="mb-4">
+                <p className="text-xs tracking-[0.3em] uppercase font-semibold mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Historique</p>
+                <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>Consommation</h2>
+              </div>
+              <div className="space-y-2">
+                {rows.map((h, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl"
+                    style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="text-xs px-2.5 py-1 rounded-full font-medium shrink-0"
+                        style={{
+                          background: h.action === "bu" ? "rgba(192,25,59,0.09)" : "rgba(26,10,14,0.06)",
+                          color: h.action === "bu" ? "var(--wine-red)" : "var(--text-muted)",
+                          fontFamily: "var(--font-inter)",
+                        }}
+                      >
+                        {h.action === "bu" ? "Bu" : "Retiré"}
+                      </span>
+                      {h.vintage && (
+                        <span className="text-sm font-semibold" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
+                          {h.vintage}
+                        </span>
+                      )}
+                      {h.count > 1 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "rgba(26,10,14,0.05)", color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}>
+                          ×{h.count}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+                      {h.date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
