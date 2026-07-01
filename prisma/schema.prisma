@@ -18,6 +18,7 @@ model Wine {
   country        String?       @default("France")
   description    String?
   notes          String?
+  foodPairing    String?
   imageUrl       String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt

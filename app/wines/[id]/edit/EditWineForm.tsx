@@ -33,6 +33,7 @@ interface Wine {
   grapeVarieties: string | null;
   description: string | null;
   notes: string | null;
+  foodPairing: string | null;
   imageUrl: string | null;
   vintages: WineVintage[];
 }
@@ -51,6 +52,7 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
     grapeVarieties: wine.grapeVarieties ?? "",
     description: wine.description ?? "",
     notes: wine.notes ?? "",
+    foodPairing: wine.foodPairing ?? "",
   });
 
   function set(key: string, value: string) {
@@ -72,6 +74,7 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
       grapeVarieties: form.grapeVarieties || null,
       description: form.description || null,
       notes: form.notes || null,
+      foodPairing: form.foodPairing || null,
       imageUrl: imageUrl || null,
     };
 
@@ -168,6 +171,9 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
               </Field>
               <Field label="Notes de dégustation">
                 <textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={4} style={{ ...inputStyle, resize: "vertical" }} />
+              </Field>
+              <Field label="Accords mets/vin">
+                <input value={form.foodPairing} onChange={(e) => set("foodPairing", e.target.value)} placeholder="Magret de canard, fromages affinés, gibier…" style={inputStyle} />
               </Field>
             </Section>
           </div>

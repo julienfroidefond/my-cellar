@@ -5,6 +5,7 @@ import DeleteWineButton from "./DeleteWineButton";
 import AddBottleButton from "./AddBottleButton";
 import DrinkButton from "./DrinkButton";
 import RemoveStockButton from "./RemoveStockButton";
+import EditVintagePriceButton from "./EditVintagePriceButton";
 import { decodeSlot } from "@/lib/rack-configs";
 import { estimateMaturity } from "@/lib/maturity";
 import { Stars } from "@/components/StarRating";
@@ -116,12 +117,15 @@ function VintageRow({ v, wine }: {
           </div>
         )}
 
-        {v.purchasePrice != null && (
-          <div className="rounded-xl p-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-            <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Achat</p>
-            <p className="font-semibold" style={{ fontFamily: "var(--font-inter)" }}>{v.purchasePrice.toFixed(2)} €</p>
+        <div className="rounded-xl p-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+          <div className="flex items-center justify-between gap-2 mb-0.5">
+            <p className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Achat</p>
+            <EditVintagePriceButton vintageId={v.id} currentPrice={v.purchasePrice} />
           </div>
-        )}
+          <p className="font-semibold" style={{ fontFamily: "var(--font-inter)" }}>
+            {v.purchasePrice != null ? `${v.purchasePrice.toFixed(2)} €` : "—"}
+          </p>
+        </div>
 
         {firstSlot && decoded && (
           <div className="rounded-xl p-3" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
@@ -318,6 +322,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                   { label: "Région", value: wine.region },
                   { label: "Pays", value: wine.country },
                   { label: "Cépage(s)", value: wine.grapeVarieties },
+                  { label: "Accords mets/vin", value: wine.foodPairing },
                 ].filter((item) => item.value).map(({ label, value }) => (
                   <div key={label}>
                     <dt className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>{label}</dt>

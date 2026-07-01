@@ -11,7 +11,6 @@ npm run dev      # Start dev server (http://localhost:3000)
 npm run build    # Production build
 npm run lint     # ESLint
 npm run seed     # Seed database (prisma/seed.ts)
-npm run mcp      # Run MCP server (mcp-server/index.ts)
 ```
 
 Prisma migrations:
@@ -25,7 +24,7 @@ No test suite exists in this project.
 
 ## Architecture
 
-**Stack**: Next.js 16, React 19, Prisma 7, SQLite (better-sqlite3), Tailwind CSS v4, TypeScript, Zod.
+**Stack**: Next.js 16, React 19, Prisma 7, SQLite (better-sqlite3), Tailwind CSS v4, TypeScript.
 
 ### Database
 
@@ -69,7 +68,3 @@ app/
     racks/              # Rack CRUD
     stats/              # Cellar statistics
 ```
-
-### MCP server
-
-`mcp-server/index.ts` is a standalone MCP server (stdio transport) exposing `add_wine`, `list_wines`, `get_wine`, `update_wine`, `delete_wine`, `get_stats`. It connects directly to `cellar.db` with its own Prisma client instance. Configured in `.mcp.json` for Claude Code integration.

@@ -28,6 +28,7 @@ export default function AddWinePage() {
     marketPrice: "",
     description: "",
     notes: "",
+    foodPairing: "",
     drinkFrom: "",
     drinkUntil: "",
   });
@@ -57,6 +58,7 @@ export default function AddWinePage() {
       marketPrice: form.marketPrice ? parseFloat(form.marketPrice) : null,
       description: form.description || null,
       notes: form.notes || null,
+      foodPairing: form.foodPairing || null,
       drinkFrom: form.drinkFrom ? parseInt(form.drinkFrom) : null,
       drinkUntil: form.drinkUntil ? parseInt(form.drinkUntil) : null,
     };
@@ -286,6 +288,14 @@ export default function AddWinePage() {
                 placeholder="Notes de dégustation, occasion d'achat…"
                 rows={4}
                 style={{ ...inputStyle, resize: "vertical" }}
+              />
+            </Field>
+            <Field label="Accords mets/vin">
+              <input
+                value={form.foodPairing}
+                onChange={(e) => set("foodPairing", e.target.value)}
+                placeholder="Magret de canard, fromages affinés, gibier…"
+                style={inputStyle}
               />
             </Field>
           </Section>

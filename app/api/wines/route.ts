@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     country,
     description,
     notes,
+    foodPairing,
     imageUrl,
     vintage,
     quantity,
@@ -69,6 +70,7 @@ export async function POST(req: NextRequest) {
       country,
       description,
       notes,
+      foodPairing,
       imageUrl: null, // will be set after id is known
       vintages: {
         create: {
