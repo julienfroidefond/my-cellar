@@ -22,7 +22,7 @@ export function Plank() {
 // ─── ShelfLevel ───────────────────────────────────────────────────────────────
 
 export function ShelfLevel({
-  frontSlots, backSlots, label, onSelect, selectedId, onEmptyClick, labelMode,
+  frontSlots, backSlots, label, onSelect, selectedId, onEmptyClick, labelMode, showFront, showBack,
 }: {
   frontSlots: SlotEntry[];
   backSlots: SlotEntry[];
@@ -31,6 +31,8 @@ export function ShelfLevel({
   selectedId: string | null;
   onEmptyClick: ((slotIndex: number) => void) | null;
   labelMode: boolean;
+  showFront: boolean;
+  showBack: boolean;
 }) {
   const sharedStyle = {
     background: "rgba(26,10,14,0.04)",
@@ -53,7 +55,7 @@ export function ShelfLevel({
     return (
       <div className="rounded-xl overflow-hidden mb-0.5" style={sharedStyle}>
         <p className="text-center pt-1.5" style={labelStyle}>{label.toUpperCase()}</p>
-        {backSlots.length > 0 && (
+        {showBack && backSlots.length > 0 && (
           <div className="px-3 pt-2 pb-1">
             <p style={subLabelStyle}>arrière (P2)</p>
             <div className="grid grid-cols-2 gap-1">
@@ -70,21 +72,23 @@ export function ShelfLevel({
             </div>
           </div>
         )}
-        <div className="px-3 pt-1 pb-3">
-          <p style={subLabelStyle}>avant (P1)</p>
-          <div className="grid grid-cols-2 gap-1">
-            {frontSlots.map(({ wine, slotIndex }) => (
-              <LabelCard
-                key={slotIndex}
-                wine={wine}
-                dim={false}
-                onSelect={onSelect}
-                isSelected={wine?.id === selectedId}
-                onEmptyClick={!wine && onEmptyClick ? () => onEmptyClick(slotIndex) : null}
-              />
-            ))}
+        {showFront && (
+          <div className="px-3 pt-1 pb-3">
+            <p style={subLabelStyle}>avant (P1)</p>
+            <div className="grid grid-cols-2 gap-1">
+              {frontSlots.map(({ wine, slotIndex }) => (
+                <LabelCard
+                  key={slotIndex}
+                  wine={wine}
+                  dim={false}
+                  onSelect={onSelect}
+                  isSelected={wine?.id === selectedId}
+                  onEmptyClick={!wine && onEmptyClick ? () => onEmptyClick(slotIndex) : null}
+                />
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     );
   }
@@ -92,7 +96,7 @@ export function ShelfLevel({
   return (
     <div className="rounded-xl overflow-hidden mb-0.5" style={sharedStyle}>
       <p className="text-center pt-1.5" style={labelStyle}>{label.toUpperCase()}</p>
-      {backSlots.length > 0 && (
+      {showBack && backSlots.length > 0 && (
         <div className="px-4 pt-2 pb-1">
           <p style={subLabelStyle}>arrière (P2)</p>
           <div className="flex justify-center gap-2">
@@ -110,22 +114,24 @@ export function ShelfLevel({
           </div>
         </div>
       )}
-      <div className="px-4 pt-1 pb-3">
-        <p style={subLabelStyle}>avant (P1)</p>
-        <div className="flex justify-center gap-2">
-          {frontSlots.map(({ wine, slotIndex }) => (
-            <Slot
-              key={slotIndex}
-              wine={wine}
-              size={SLOT_FRONT}
-              dim={false}
-              onSelect={onSelect}
-              isSelected={wine?.id === selectedId}
-              onEmptyClick={!wine && onEmptyClick ? () => onEmptyClick(slotIndex) : null}
-            />
-          ))}
+      {showFront && (
+        <div className="px-4 pt-1 pb-3">
+          <p style={subLabelStyle}>avant (P1)</p>
+          <div className="flex justify-center gap-2">
+            {frontSlots.map(({ wine, slotIndex }) => (
+              <Slot
+                key={slotIndex}
+                wine={wine}
+                size={SLOT_FRONT}
+                dim={false}
+                onSelect={onSelect}
+                isSelected={wine?.id === selectedId}
+                onEmptyClick={!wine && onEmptyClick ? () => onEmptyClick(slotIndex) : null}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -48,6 +48,8 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
   const [selected, setSelected] = useState<WineRef | null>(null);
   const [pending, setPending] = useState<"drink" | "unrack" | "delete" | null>(null);
   const [showLabels, setShowLabels] = useState(false);
+  const [showFront, setShowFront] = useState(true);
+  const [showBack, setShowBack] = useState(true);
   const [targetSlot, setTargetSlot] = useState<TargetSlot | null>(null);
 
   function refresh() { startTransition(() => router.refresh()); }
@@ -116,8 +118,34 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
         </div>
       )}
 
-      {/* Toggle labels */}
-      <div className="flex justify-end mb-4">
+      {/* Toggles */}
+      <div className="flex flex-wrap justify-end gap-2 mb-4">
+        <button
+          onClick={() => setShowFront((v) => !v)}
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
+          style={{
+            fontFamily: "var(--font-inter)",
+            background: showFront ? "rgba(192,25,59,0.08)" : "rgba(26,10,14,0.04)",
+            border: showFront ? "1px solid rgba(192,25,59,0.30)" : "1px solid var(--border)",
+            color: showFront ? "var(--wine-red)" : "var(--text-muted)",
+          }}
+        >
+          <span style={{ fontSize: 11 }}>{showFront ? "◉" : "○"}</span>
+          Profondeur 1
+        </button>
+        <button
+          onClick={() => setShowBack((v) => !v)}
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
+          style={{
+            fontFamily: "var(--font-inter)",
+            background: showBack ? "rgba(192,25,59,0.08)" : "rgba(26,10,14,0.04)",
+            border: showBack ? "1px solid rgba(192,25,59,0.30)" : "1px solid var(--border)",
+            color: showBack ? "var(--wine-red)" : "var(--text-muted)",
+          }}
+        >
+          <span style={{ fontSize: 11 }}>{showBack ? "◉" : "○"}</span>
+          Profondeur 2
+        </button>
         <button
           onClick={() => setShowLabels((v) => !v)}
           className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
@@ -193,6 +221,8 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
                       selectedId={selected?.id ?? null}
                       onEmptyClick={handleEmpty}
                       labelMode={showLabels}
+                      showFront={showFront}
+                      showBack={showBack}
                     />
                     <Plank />
                   </div>
