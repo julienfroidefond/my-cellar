@@ -7,6 +7,7 @@ import DrinkButton from "./DrinkButton";
 import RemoveStockButton from "./RemoveStockButton";
 import { decodeSlot } from "@/lib/rack-configs";
 import { estimateMaturity } from "@/lib/maturity";
+import { Stars } from "@/components/StarRating";
 import type { WineVintage } from "@/app/generated/prisma/client";
 
 const COLOR_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -178,6 +179,11 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
   const totalBottles = wine.vintages.reduce((s, v) => s + v.quantity, 0);
   const inStockCount = wine.vintages.filter((v) => v.quantity > 0).length;
 
+  const ratedEntries = wineHistory.filter((h) => h.rating != null);
+  const avgRating = ratedEntries.length
+    ? ratedEntries.reduce((s, h) => s + (h.rating ?? 0), 0) / ratedEntries.length
+    : null;
+
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
 
@@ -245,6 +251,12 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
               <div className="px-4 py-2.5 rounded-xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
                 <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Région</p>
                 <p className="text-sm font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--foreground)" }}>{wine.region}</p>
+              </div>
+            )}
+            {avgRating != null && (
+              <div className="px-4 py-2.5 rounded-xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+                <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Note moyenne</p>
+                <Stars rating={avgRating} />
               </div>
             )}
           </div>
@@ -326,15 +338,22 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
         {/* Historique — pleine largeur, en bas de page */}
         {wineHistory.length > 0 && (() => {
           // Group by day + vintage + action
-          const groups = new Map<string, { action: string; vintage: number | null; date: Date; count: number }>();
+          const groups = new Map<string, { action: string; vintage: number | null; date: Date; count: number; ratings: number[] }>();
           for (const h of wineHistory) {
             const day = new Date(h.consumedAt).toDateString();
             const key = `${day}|${h.vintage ?? ""}|${h.action}`;
             const existing = groups.get(key);
-            if (existing) { existing.count += h.quantity; }
-            else { groups.set(key, { action: h.action, vintage: h.vintage, date: new Date(h.consumedAt), count: h.quantity }); }
+            if (existing) {
+              existing.count += h.quantity;
+              if (h.rating != null) existing.ratings.push(h.rating);
+            } else {
+              groups.set(key, { action: h.action, vintage: h.vintage, date: new Date(h.consumedAt), count: h.quantity, ratings: h.rating != null ? [h.rating] : [] });
+            }
           }
-          const rows = Array.from(groups.values());
+          const rows = Array.from(groups.values()).map((g) => ({
+            ...g,
+            avgRating: g.ratings.length ? g.ratings.reduce((s, r) => s + r, 0) / g.ratings.length : null,
+          }));
 
           return (
             <div className="mt-10">
@@ -370,6 +389,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                           ×{h.count}
                         </span>
                       )}
+                      {h.avgRating != null && <Stars rating={h.avgRating} />}
                     </div>
                     <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
                       {h.date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}

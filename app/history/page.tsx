@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/db";
 import HistoryCharts from "@/components/HistoryCharts";
+import { Stars } from "@/components/StarRating";
 
 const COLOR_DOT: Record<string, string> = {
   rouge: "#c02030",
@@ -28,32 +29,6 @@ function formatDateLabel(date: Date): string {
 
 function dateKey(date: Date): string {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
-}
-
-function Stars({ rating }: { rating: number }) {
-  return (
-    <span className="flex items-center gap-0.5">
-      {[1, 2, 3, 4, 5].map((n) => {
-        const filled = rating >= n;
-        const half = !filled && rating >= n - 0.5;
-        return (
-          <span
-            key={n}
-            style={{
-              fontSize: 11,
-              color: filled || half ? "#c4983c" : "rgba(26,10,14,0.18)",
-              opacity: half ? 0.65 : 1,
-            }}
-          >
-            ★
-          </span>
-        );
-      })}
-      <span className="ml-1 text-xs tabular-nums" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-        {rating.toFixed(1)}
-      </span>
-    </span>
-  );
 }
 
 export default async function HistoryPage() {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { StarRatingInput } from "@/components/StarRating";
 
 export default function DrinkButton({ vintageId, wineName }: { vintageId: string; wineName: string }) {
   const router = useRouter();
@@ -65,18 +66,8 @@ export default function DrinkButton({ vintageId, wineName }: { vintageId: string
           <p className="text-xs uppercase tracking-widest mb-3 font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>
             {wineName ? `Noter "${wineName}"` : "Note (optionnel)"}
           </p>
-          <div className="flex justify-center gap-1 mb-4">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button
-                key={n}
-                type="button"
-                onClick={() => setRating(n === rating ? null : n)}
-                aria-label={`${n} étoile${n > 1 ? "s" : ""}`}
-                style={{ fontSize: 26, lineHeight: 1, color: rating !== null && n <= rating ? "#c4983c" : "rgba(26,10,14,0.18)" }}
-              >
-                ★
-              </button>
-            ))}
+          <div className="mb-4">
+            <StarRatingInput value={rating} onChange={setRating} size={26} />
           </div>
           <div className="flex gap-2">
             <button
