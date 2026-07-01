@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/db";
 import HistoryCharts from "@/components/HistoryCharts";
-import { Stars } from "@/components/StarRating";
+import { RateEntry } from "./RateEntry";
 
 const COLOR_DOT: Record<string, string> = {
   rouge: "#c02030",
@@ -276,11 +276,7 @@ export default async function HistoryPage() {
                               </div>
                             </div>
 
-                            {entry.rating !== null && (
-                              <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
-                                <Stars rating={entry.rating!} />
-                              </div>
-                            )}
+                            <RateEntry id={entry.id} rating={entry.rating} />
                           </div>
                         </div>
                       );

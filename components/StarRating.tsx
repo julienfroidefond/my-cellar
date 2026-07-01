@@ -1,6 +1,6 @@
 "use client";
 
-// Sélecteur interactif — cliquer sur la moitié gauche/droite d'une étoile pose un demi-point.
+// Sélecteur interactif — la position du clic dans l'étoile (gauche/droite) détermine le demi-point.
 export function StarRatingInput({
   value,
   onChange,
@@ -11,34 +11,36 @@ export function StarRatingInput({
   size?: number;
 }) {
   const rating = value ?? 0;
+
+  function handleClick(e: React.MouseEvent<HTMLButtonElement>, n: number) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const isLeftHalf = e.clientX - rect.left < rect.width / 2;
+    const next = isLeftHalf ? n - 0.5 : n;
+    onChange(value === next ? null : next);
+  }
+
   return (
     <div className="flex justify-center gap-1">
       {[1, 2, 3, 4, 5].map((n) => {
         const filled = rating >= n;
         const half = !filled && rating >= n - 0.5;
         return (
-          <div key={n} className="relative" style={{ width: size, height: size }}>
-            <span
-              className="absolute inset-0 flex items-center justify-center pointer-events-none"
-              style={{ fontSize: size, lineHeight: 1, color: filled || half ? "#c4983c" : "rgba(26,10,14,0.18)", opacity: half ? 0.65 : 1 }}
-            >
-              ★
-            </span>
-            <button
-              type="button"
-              aria-label={`${n - 0.5} étoile${n - 0.5 > 1 ? "s" : ""}`}
-              className="absolute inset-y-0 left-0"
-              style={{ width: "50%" }}
-              onClick={() => onChange(value === n - 0.5 ? null : n - 0.5)}
-            />
-            <button
-              type="button"
-              aria-label={`${n} étoile${n > 1 ? "s" : ""}`}
-              className="absolute inset-y-0 right-0"
-              style={{ width: "50%" }}
-              onClick={() => onChange(value === n ? null : n)}
-            />
-          </div>
+          <button
+            key={n}
+            type="button"
+            onClick={(e) => handleClick(e, n)}
+            aria-label={`Noter ${n} étoile${n > 1 ? "s" : ""} (cliquer côté gauche pour ${n - 0.5})`}
+            style={{
+              fontSize: size,
+              lineHeight: 1,
+              width: size,
+              height: size,
+              color: filled || half ? "#c4983c" : "rgba(26,10,14,0.18)",
+              opacity: half ? 0.65 : 1,
+            }}
+          >
+            ★
+          </button>
         );
       })}
     </div>
