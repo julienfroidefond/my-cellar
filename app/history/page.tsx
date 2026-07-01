@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/db";
+import Link from "next/link";
 import HistoryCharts from "@/components/HistoryCharts";
 import { RateEntry } from "./RateEntry";
 
@@ -32,32 +33,33 @@ function dateKey(date: Date): string {
 }
 
 export default async function HistoryPage() {
-  const [entries, winesWithImages] = await Promise.all([
+  const [entries, wines] = await Promise.all([
     prisma.wineHistory.findMany({
       where: { action: "bu" },
       orderBy: { consumedAt: "desc" },
     }),
     prisma.wine.findMany({
-      where: { imageUrl: { not: null } },
-      select: { name: true, imageUrl: true },
+      select: { id: true, name: true, imageUrl: true },
     }),
   ]);
 
-  // Build list of [normalizedName, imageUrl] for substring matching
-  const imageIndex: Array<[string, string]> = winesWithImages
-    .filter((w) => w.imageUrl)
-    .map((w) => [normalize(w.name), w.imageUrl!]);
+  // Build list of [normalizedName, { id, imageUrl }] for substring matching —
+  // WineHistory ne garde qu'un snapshot du nom, pas de FK vers Wine.
+  const wineIndex: Array<[string, { id: string; imageUrl: string | null }]> = wines.map((w) => [
+    normalize(w.name),
+    { id: w.id, imageUrl: w.imageUrl },
+  ]);
 
-  function getImage(wineName: string): string | null {
+  function matchWine(wineName: string): { id: string; imageUrl: string | null } | null {
     const key = normalize(wineName);
     // 1. exact match
-    const exact = imageIndex.find(([n]) => n === key);
+    const exact = wineIndex.find(([n]) => n === key);
     if (exact) return exact[1];
     // 2. wine DB name contains history name (e.g. "chateaubatailleylionsdebatailley" ⊃ "lionsdebatailley")
-    const contains = imageIndex.find(([n]) => n.includes(key));
+    const contains = wineIndex.find(([n]) => n.includes(key));
     if (contains) return contains[1];
     // 3. history name contains wine DB name (reverse)
-    const reverse = imageIndex.find(([n]) => key.includes(n));
+    const reverse = wineIndex.find(([n]) => key.includes(n));
     if (reverse) return reverse[1];
     return null;
   }
@@ -216,7 +218,8 @@ export default async function HistoryPage() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {dayEntries.map((entry) => {
                       const dot = COLOR_DOT[entry.color ?? ""] ?? "#888";
-                      const imgUrl = getImage(entry.wineName);
+                      const match = matchWine(entry.wineName);
+                      const imgUrl = match?.imageUrl ?? null;
 
                       return (
                         <div
@@ -243,9 +246,19 @@ export default async function HistoryPage() {
                           {/* Content */}
                           <div className="p-5" style={{ paddingRight: imgUrl ? 80 : undefined }}>
                             <div className="flex items-start gap-3 mb-1">
-                              <h3 className="font-semibold leading-snug flex-1" style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem", color: "var(--foreground)" }}>
-                                {entry.wineName}
-                              </h3>
+                              {match ? (
+                                <Link
+                                  href={`/wines/${match.id}`}
+                                  className="font-semibold leading-snug flex-1 hover:underline"
+                                  style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem", color: "var(--foreground)" }}
+                                >
+                                  {entry.wineName}
+                                </Link>
+                              ) : (
+                                <h3 className="font-semibold leading-snug flex-1" style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem", color: "var(--foreground)" }}>
+                                  {entry.wineName}
+                                </h3>
+                              )}
                             </div>
 
                             {entry.producer && (
