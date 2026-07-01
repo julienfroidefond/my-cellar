@@ -64,6 +64,13 @@ model Rack {
   slots WineVintageSlot[]
 }
 
+model ApiToken {
+  id         String    @id @default(cuid())
+  tokenHash  String    @unique
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+}
+
 model WineHistory {
   id          String   @id @default(cuid())
   action      String   // "bu" | "retiré"

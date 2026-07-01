@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import ApiTokenSection from "./ApiTokenSection";
 
 type ImportResult = {
   wines: number;
@@ -135,6 +136,8 @@ export default function SettingsPage() {
       </div>
 
       <div className="max-w-2xl mx-auto px-6 py-12 space-y-8">
+        <ApiTokenSection />
+
         {/* Export */}
         <section className="rounded-2xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.07)" }}>
           <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
