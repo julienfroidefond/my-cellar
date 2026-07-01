@@ -20,7 +20,7 @@ export function StarRatingInput({
   }
 
   return (
-    <div className="flex justify-center gap-1">
+    <div className="flex items-center justify-center gap-1">
       {[1, 2, 3, 4, 5].map((n) => {
         const filled = rating >= n;
         const half = !filled && rating >= n - 0.5;
@@ -43,6 +43,11 @@ export function StarRatingInput({
           </button>
         );
       })}
+      {value !== null && (
+        <span className="ml-1 text-sm tabular-nums font-medium" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+          {value.toFixed(1)}
+        </span>
+      )}
     </div>
   );
 }
