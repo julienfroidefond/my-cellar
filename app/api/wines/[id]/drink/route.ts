@@ -12,6 +12,7 @@ export async function POST(
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
   const slotId = (body as Record<string, unknown>).slotId as string | undefined;
+  const rating = (body as Record<string, unknown>).rating as number | null | undefined;
 
   const vintage = await prisma.wineVintage.findUnique({
     where: { id },
@@ -51,6 +52,7 @@ export async function POST(
         appellation: vintage.wine.appellation,
         region: vintage.wine.region,
         quantity: 1,
+        rating: rating ?? null,
         imageUrl: vintage.wine.imageUrl,
       },
     });
