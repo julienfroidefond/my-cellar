@@ -18,6 +18,7 @@ export async function PUT(
   const body = await request.json();
 
   const allowedFields = [
+    "vintage",
     "quantity",
     "volume",
     "purchasePrice",
