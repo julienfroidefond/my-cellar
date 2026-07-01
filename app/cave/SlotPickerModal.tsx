@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import { decodeSlot, slotLabel } from "@/lib/rack-configs";
 import { BOTTLE } from "./constants";
 import type { WineRef } from "./types";
@@ -32,7 +33,7 @@ export function SlotPickerModal({
       )
     : wines;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
       style={{ background: "rgba(26,10,14,0.45)", backdropFilter: "blur(12px)" }}
@@ -148,6 +149,7 @@ export function SlotPickerModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

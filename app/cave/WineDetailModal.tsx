@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { BOTTLE } from "./constants";
 import { StarRatingInput } from "@/components/StarRating";
@@ -30,7 +31,7 @@ export function WineDetailModal({
     setRating(null);
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
       style={{ background: "rgba(26,10,14,0.45)", backdropFilter: "blur(12px)" }}
@@ -208,6 +209,7 @@ export function WineDetailModal({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
