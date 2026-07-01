@@ -121,8 +121,9 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
       {/* Toggles */}
       <div className="flex flex-wrap justify-end gap-2 mb-4">
         <button
-          onClick={() => setShowFront((v) => !v)}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
+          onClick={() => { if (showFront && !showBack) return; setShowFront((v) => !v); }}
+          disabled={showFront && !showBack}
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
           style={{
             fontFamily: "var(--font-inter)",
             background: showFront ? "rgba(192,25,59,0.08)" : "rgba(26,10,14,0.04)",
@@ -134,8 +135,9 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
           Profondeur 1
         </button>
         <button
-          onClick={() => setShowBack((v) => !v)}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
+          onClick={() => { if (showBack && !showFront) return; setShowBack((v) => !v); }}
+          disabled={showBack && !showFront}
+          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
           style={{
             fontFamily: "var(--font-inter)",
             background: showBack ? "rgba(192,25,59,0.08)" : "rgba(26,10,14,0.04)",
