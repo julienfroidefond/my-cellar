@@ -18,6 +18,7 @@ const SEARCH_LINKS = [
 export default function ImagePicker({ wineId, wineName, currentImage, onSelect }: Props) {
   const [pasteUrl, setPasteUrl] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [removingBg, setRemovingBg] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImage);
   const [urlError, setUrlError] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -43,6 +44,25 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
       onSelect(data.url);
     }
     setUploading(false);
+  }
+
+  async function removeBackground() {
+    if (!preview) return;
+    setRemovingBg(true);
+    try {
+      const res = await fetch("/api/wines/remove-background", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: wineId, imageUrl: preview }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        setPreview(data.url);
+        onSelect(data.url);
+      }
+    } finally {
+      setRemovingBg(false);
+    }
   }
 
   return (
@@ -104,14 +124,25 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
           )}
 
           {preview && (
-            <button
-              type="button"
-              onClick={() => { setPreview(null); onSelect(""); }}
-              className="text-xs transition-opacity hover:opacity-80"
-              style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}
-            >
-              Supprimer l'image
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={removeBackground}
+                disabled={removingBg}
+                className="text-xs transition-opacity hover:opacity-80 disabled:opacity-40"
+                style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+              >
+                {removingBg ? "Détourage en cours…" : "✂️ Détourer automatiquement"}
+              </button>
+              <button
+                type="button"
+                onClick={() => { setPreview(null); onSelect(""); }}
+                className="text-xs transition-opacity hover:opacity-80"
+                style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}
+              >
+                Supprimer l'image
+              </button>
+            </div>
           )}
         </div>
       </div>

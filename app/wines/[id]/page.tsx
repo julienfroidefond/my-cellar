@@ -344,6 +344,12 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                   </div>
                 ))}
               </dl>
+              {wine.description && (
+                <div className="mt-5 pt-5" style={{ borderTop: "1px solid var(--border)" }}>
+                  <p className="text-xs mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Description</p>
+                  <p className="text-sm leading-relaxed" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>{wine.description}</p>
+                </div>
+              )}
               {wine.notes && (
                 <div className="mt-5 pt-5" style={{ borderTop: "1px solid var(--border)" }}>
                   <p className="text-xs mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Notes</p>

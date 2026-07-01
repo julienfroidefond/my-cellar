@@ -13,7 +13,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "file and id required" }, { status: 400 });
   }
 
-  const ext  = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const nameParts = file.name.split(".");
+  const ext = nameParts.length > 1 ? nameParts.pop()!.toLowerCase() : "jpg";
   const name = `${id}.${ext}`;
   const path = join(process.cwd(), "public", "wines", name);
 

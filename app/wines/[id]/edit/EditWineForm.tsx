@@ -31,6 +31,7 @@ interface Wine {
   appellation: string | null;
   country: string | null;
   grapeVarieties: string | null;
+  description: string | null;
   notes: string | null;
   imageUrl: string | null;
   vintages: WineVintage[];
@@ -48,6 +49,7 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
     appellation: wine.appellation ?? "",
     country: wine.country ?? "France",
     grapeVarieties: wine.grapeVarieties ?? "",
+    description: wine.description ?? "",
     notes: wine.notes ?? "",
   });
 
@@ -68,6 +70,7 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
       appellation: form.appellation || null,
       country: form.country || "France",
       grapeVarieties: form.grapeVarieties || null,
+      description: form.description || null,
       notes: form.notes || null,
       imageUrl: imageUrl || null,
     };
@@ -159,9 +162,12 @@ export default function EditWineForm({ wine }: { wine: Wine }) {
               </div>
             </Section>
 
-            <Section title="Notes">
+            <Section title="Description & Notes">
+              <Field label="Description">
+                <textarea value={form.description} onChange={(e) => set("description", e.target.value)} rows={4} placeholder="Description du vin (cépage, terroir, style…)" style={{ ...inputStyle, resize: "vertical" }} />
+              </Field>
               <Field label="Notes de dégustation">
-                <textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={6} style={{ ...inputStyle, resize: "vertical" }} />
+                <textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={4} style={{ ...inputStyle, resize: "vertical" }} />
               </Field>
             </Section>
           </div>

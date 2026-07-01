@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
     appellation,
     grapeVarieties,
     country,
+    description,
     notes,
     imageUrl,
     vintage,
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
       appellation,
       grapeVarieties,
       country,
+      description,
       notes,
       imageUrl: null, // will be set after id is known
       vintages: {

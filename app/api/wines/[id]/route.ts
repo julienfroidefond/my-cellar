@@ -19,14 +19,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const existing = await prisma.wine.findUnique({ where: { id } });
   if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
-  const { name, producer, color, region, appellation, grapeVarieties, country, notes, imageUrl } =
+  const { name, producer, color, region, appellation, grapeVarieties, country, description, notes, imageUrl } =
     body;
 
   const resolvedImageUrl = imageUrl ? await downloadExternalImage(imageUrl, id) : imageUrl;
 
   const wine = await prisma.wine.update({
     where: { id },
-    data: { name, producer, color, region, appellation, grapeVarieties, country, notes, imageUrl: resolvedImageUrl },
+    data: { name, producer, color, region, appellation, grapeVarieties, country, description, notes, imageUrl: resolvedImageUrl },
     include: { vintages: { orderBy: { vintage: "desc" } } },
   });
 

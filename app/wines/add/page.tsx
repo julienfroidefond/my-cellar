@@ -26,6 +26,7 @@ export default function AddWinePage() {
     grapeVarieties: "",
     purchasePrice: "",
     marketPrice: "",
+    description: "",
     notes: "",
     drinkFrom: "",
     drinkUntil: "",
@@ -54,6 +55,7 @@ export default function AddWinePage() {
       grapeVarieties: form.grapeVarieties || null,
       purchasePrice: form.purchasePrice ? parseFloat(form.purchasePrice) : null,
       marketPrice: form.marketPrice ? parseFloat(form.marketPrice) : null,
+      description: form.description || null,
       notes: form.notes || null,
       drinkFrom: form.drinkFrom ? parseInt(form.drinkFrom) : null,
       drinkUntil: form.drinkUntil ? parseInt(form.drinkUntil) : null,
@@ -268,6 +270,15 @@ export default function AddWinePage() {
                 />
               </Field>
             </div>
+            <Field label="Description">
+              <textarea
+                value={form.description}
+                onChange={(e) => set("description", e.target.value)}
+                placeholder="Description du vin (cépage, terroir, style…)"
+                rows={4}
+                style={{ ...inputStyle, resize: "vertical" }}
+              />
+            </Field>
             <Field label="Notes">
               <textarea
                 value={form.notes}
