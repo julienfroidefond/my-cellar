@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { BOTTLE } from "./constants";
 import type { WineRef } from "./types";
@@ -15,11 +16,18 @@ export function WineDetailModal({
   wine: WineRef;
   pending: "drink" | "unrack" | "delete" | null;
   onClose: () => void;
-  onDrink: () => void;
+  onDrink: (rating: number | null) => void;
   onUnrack: () => void;
   onDelete: () => void;
 }) {
   const c = BOTTLE[wine.color ?? ""] ?? { base: "#333", hi: "#555", label: wine.color ?? "" };
+  const [askingRating, setAskingRating] = useState(false);
+  const [rating, setRating] = useState<number | null>(null);
+
+  function cancelRating() {
+    setAskingRating(false);
+    setRating(null);
+  }
 
   return (
     <div
@@ -130,44 +138,85 @@ export function WineDetailModal({
 
         {/* Actions */}
         <div className="px-5 py-5 flex flex-col gap-2.5">
-          <button
-            onClick={onDrink}
-            disabled={!!pending}
-            className="flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-            style={{ fontFamily: "var(--font-inter)", background: "var(--wine-red)", color: "#fff", boxShadow: "0 4px 16px rgba(160,28,46,0.45)" }}
-          >
-            {pending === "drink" ? "En cours…" : <><span>🍷</span> Boire une bouteille</>}
-          </button>
-
-          <div className="flex gap-2">
-            <Link
-              href={`/wines/${wine.wineId}`}
-              className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity"
-              style={{ fontFamily: "var(--font-inter)", background: "rgba(26,10,14,0.05)", border: "1px solid rgba(26,10,14,0.10)", color: "var(--foreground)" }}
-              onClick={onClose}
-            >
-              Voir la fiche
-            </Link>
-            {wine.rackId && (
+          {askingRating ? (
+            <div className="flex flex-col gap-3">
+              <p className="text-xs uppercase tracking-widest font-semibold text-center" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>
+                Note (optionnel)
+              </p>
+              <div className="flex justify-center gap-1">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setRating(n === rating ? null : n)}
+                    aria-label={`${n} étoile${n > 1 ? "s" : ""}`}
+                    style={{ fontSize: 30, lineHeight: 1, color: rating !== null && n <= rating ? "#c4983c" : "rgba(26,10,14,0.18)" }}
+                  >
+                    ★
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onDrink(rating)}
+                  disabled={!!pending}
+                  className="flex-1 flex items-center justify-center py-3.5 rounded-2xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                  style={{ fontFamily: "var(--font-inter)", background: "var(--wine-red)", color: "#fff", boxShadow: "0 4px 16px rgba(160,28,46,0.45)" }}
+                >
+                  {pending === "drink" ? "En cours…" : "Confirmer"}
+                </button>
+                <button
+                  onClick={cancelRating}
+                  disabled={!!pending}
+                  className="flex-1 flex items-center justify-center py-3.5 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                  style={{ fontFamily: "var(--font-inter)", background: "rgba(26,10,14,0.05)", border: "1px solid rgba(26,10,14,0.10)", color: "var(--foreground)" }}
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
               <button
-                onClick={onUnrack}
+                onClick={() => setAskingRating(true)}
                 disabled={!!pending}
-                className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-                style={{ fontFamily: "var(--font-inter)", background: "rgba(184,122,44,0.10)", color: "var(--gold)", border: "1px solid rgba(184,122,44,0.25)" }}
+                className="flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                style={{ fontFamily: "var(--font-inter)", background: "var(--wine-red)", color: "#fff", boxShadow: "0 4px 16px rgba(160,28,46,0.45)" }}
               >
-                {pending === "unrack" ? "…" : "↩ Retirer 1 bouteille"}
+                {pending === "drink" ? "En cours…" : <><span>🍷</span> Boire une bouteille</>}
               </button>
-            )}
-          </div>
 
-          <button
-            onClick={onDelete}
-            disabled={!!pending}
-            className="flex items-center justify-center py-2.5 rounded-2xl text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-            style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", border: "1px solid rgba(192,25,59,0.20)" }}
-          >
-            {pending === "delete" ? "En cours…" : "🗑 Retirer définitivement du stock"}
-          </button>
+              <div className="flex gap-2">
+                <Link
+                  href={`/wines/${wine.wineId}`}
+                  className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity"
+                  style={{ fontFamily: "var(--font-inter)", background: "rgba(26,10,14,0.05)", border: "1px solid rgba(26,10,14,0.10)", color: "var(--foreground)" }}
+                  onClick={onClose}
+                >
+                  Voir la fiche
+                </Link>
+                {wine.rackId && (
+                  <button
+                    onClick={onUnrack}
+                    disabled={!!pending}
+                    className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                    style={{ fontFamily: "var(--font-inter)", background: "rgba(184,122,44,0.10)", color: "var(--gold)", border: "1px solid rgba(184,122,44,0.25)" }}
+                  >
+                    {pending === "unrack" ? "…" : "↩ Retirer 1 bouteille"}
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={onDelete}
+                disabled={!!pending}
+                className="flex items-center justify-center py-2.5 rounded-2xl text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", border: "1px solid rgba(192,25,59,0.20)" }}
+              >
+                {pending === "delete" ? "En cours…" : "🗑 Retirer définitivement du stock"}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

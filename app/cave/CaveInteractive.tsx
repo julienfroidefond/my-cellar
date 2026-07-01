@@ -52,13 +52,13 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
 
   function refresh() { startTransition(() => router.refresh()); }
 
-  async function confirmDrink() {
+  async function confirmDrink(rating: number | null) {
     if (!selected) return;
     setPending("drink");
     await fetch(`/api/wines/${selected.vintageId}/drink`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ slotId: selected.id }),
+      body: JSON.stringify({ slotId: selected.id, rating }),
     });
     setSelected(null); setPending(null); refresh();
   }
