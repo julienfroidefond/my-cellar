@@ -4,7 +4,9 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import CellarCharts from "@/components/CellarCharts";
 import PremiumCarousel from "@/components/PremiumCarousel";
+import FranceWineMap from "@/components/FranceWineMap";
 import { estimateMaturity } from "@/lib/maturity";
+import { APPELLATION_COORDS } from "@/lib/appellation-coords";
 
 export default async function DashboardPage() {
   const wines = await prisma.wine.findMany({
@@ -56,6 +58,43 @@ export default async function DashboardPage() {
 
   const premiumWines = premiumItems.slice(0, 6);
   const premiumTotal = Math.min(premiumItems.length, 18);
+
+  // ── Carte géographique ────────────────────────────────────────────────────
+  type AppEntry = { bottles: number; region: string | null; lat: number; lng: number; wines: { id: string; name: string; bottles: number }[] };
+  const appellationBottles = new Map<string, AppEntry>();
+  for (const v of allVintages) {
+    if (v.quantity === 0 || !v.wine.appellation || v.wine.country !== "France") continue;
+    const coords = APPELLATION_COORDS[v.wine.appellation];
+    if (!coords) continue;
+    if (!appellationBottles.has(v.wine.appellation)) {
+      appellationBottles.set(v.wine.appellation, { bottles: 0, region: v.wine.region, lat: coords.lat, lng: coords.lng, wines: [] });
+    }
+    const entry = appellationBottles.get(v.wine.appellation)!;
+    entry.bottles += v.quantity;
+    const wineEntry = entry.wines.find((w) => w.id === v.wine.id);
+    if (wineEntry) {
+      wineEntry.bottles += v.quantity;
+    } else {
+      entry.wines.push({ id: v.wine.id, name: v.wine.name, bottles: v.quantity });
+    }
+  }
+  const frenchMarkers = [...appellationBottles.entries()]
+    .map(([name, data]) => ({ name, ...data }))
+    .filter((m) => m.bottles > 0)
+    .sort((a, b) => b.bottles - a.bottles);
+
+  const foreignMap = new Map<string, { appellation: string; country: string; bottles: number }>();
+  for (const v of allVintages) {
+    if (v.quantity === 0 || !v.wine.country || v.wine.country === "France") continue;
+    const key = `${v.wine.appellation ?? v.wine.country}|${v.wine.country}`;
+    const existing = foreignMap.get(key);
+    if (existing) {
+      existing.bottles += v.quantity;
+    } else {
+      foreignMap.set(key, { appellation: v.wine.appellation ?? v.wine.country, country: v.wine.country, bottles: v.quantity });
+    }
+  }
+  const foreignWines = [...foreignMap.values()].sort((a, b) => b.bottles - a.bottles);
 
   // Maturity — per vintage
   const currentYear = new Date().getFullYear();
@@ -185,6 +224,15 @@ export default async function DashboardPage() {
             <CellarCharts byColor={byColor} topRegions={topRegions} />
           </div>
         </section>
+
+        {(frenchMarkers.length > 0 || foreignWines.length > 0) && (
+          <section>
+            <SectionTitle eyebrow="Origine">Carte des appellations</SectionTitle>
+            <div className="mt-8">
+              <FranceWineMap markers={frenchMarkers} foreignWines={foreignWines} />
+            </div>
+          </section>
+        )}
 
         {(readyWines.length > 0 || soonWines.length > 0 || pastWines.length > 0) && (
           <section>
