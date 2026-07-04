@@ -18,12 +18,15 @@ process.stdin.on("end", async () => {
     const blob = await removeBackground(new Blob([bytes], { type: mimeType }));
     let outBuffer = Buffer.from(await blob.arrayBuffer());
 
-    // Resize back to original if the model reduced it
+    // Resize back to original dimensions preserving aspect ratio
     if (width && height) {
       const { width: outW, height: outH } = await sharp(outBuffer).metadata();
       if (outW !== width || outH !== height) {
         outBuffer = await sharp(outBuffer)
-          .resize(width, height, { fit: "fill" })
+          .resize(width, height, {
+            fit: "contain",
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
+          })
           .png()
           .toBuffer();
       }
