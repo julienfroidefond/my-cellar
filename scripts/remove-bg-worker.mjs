@@ -16,13 +16,7 @@ process.stdin.on("end", async () => {
     const { width, height } = await sharp(bytes).metadata();
 
     const blob = await removeBackground(new Blob([bytes], { type: mimeType }));
-    let outBuffer = Buffer.from(await blob.arrayBuffer());
-
-    // Trim transparent borders so the bottle fills its container
-    outBuffer = await sharp(outBuffer)
-      .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 10 })
-      .png()
-      .toBuffer();
+    const outBuffer = Buffer.from(await blob.arrayBuffer());
 
     process.stdout.write(JSON.stringify({ ok: true, base64: outBuffer.toString("base64") }));
   } catch (err) {
