@@ -105,7 +105,7 @@ export default function SettingsPage() {
     }
 
     setImportResult({
-      ...dbJson.imported,
+      ...(dbJson.imported as ImportResult),
       images: imagesImported,
       imageErrors,
     });
