@@ -12,10 +12,15 @@ process.stdin.on("end", async () => {
     const { imageBase64, mimeType } = JSON.parse(raw);
     const bytes = Buffer.from(imageBase64, "base64");
 
-    // Capture original dimensions before processing
+    // Add white padding around the image so the model can detect the full bottle,
+    // including the base which often touches the edge and gets cut off.
     const { width, height } = await sharp(bytes).metadata();
+    const pad = Math.round(Math.max(width, height) * 0.08);
+    const padded = await sharp(bytes)
+      .extend({ top: pad, bottom: pad, left: pad, right: pad, background: { r: 255, g: 255, b: 255 } })
+      .toBuffer();
 
-    const blob = await removeBackground(new Blob([bytes], { type: mimeType }));
+    const blob = await removeBackground(new Blob([padded], { type: "image/png" }));
     const outBuffer = Buffer.from(await blob.arrayBuffer());
 
     process.stdout.write(JSON.stringify({ ok: true, base64: outBuffer.toString("base64") }));

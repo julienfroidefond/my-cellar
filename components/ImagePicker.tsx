@@ -44,7 +44,7 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
       const res = await fetch("/api/wines/upload-image", { method: "POST", body: form });
       const data = await res.json();
       if (data.url) {
-        setPreview(data.url);
+        setPreview(data.url + "?v=" + Date.now());
         onSelect(data.url);
       } else {
         setUploadError(data.error ?? "Échec de l'upload");
@@ -67,7 +67,7 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
       });
       const data = await res.json();
       if (data.url) {
-        setPreview(data.url);
+        setPreview(data.url + "?v=" + Date.now());
         onSelect(data.url);
       } else {
         setRemoveBgError(data.error ?? "Échec du détourage");

@@ -86,7 +86,9 @@ export async function POST(req: NextRequest) {
 
   let base64Result: string;
   try {
+    const t0 = Date.now();
     base64Result = await runWorker(imageBase64, mimeType);
+    console.log(`remove-background worker OK in ${Date.now() - t0}ms, output size=${base64Result.length}`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("remove-background worker failed:", msg);
