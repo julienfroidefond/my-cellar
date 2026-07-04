@@ -66,9 +66,16 @@ export default function SettingsPage() {
       return;
     }
 
-    const dbJson = await dbRes.json();
+    let dbJson: Record<string, unknown>;
+    try {
+      dbJson = await dbRes.json();
+    } catch {
+      setErrorMsg("Réponse serveur invalide (erreur interne)");
+      setImportState("error");
+      return;
+    }
     if (!dbRes.ok) {
-      setErrorMsg(dbJson.error ?? "Erreur serveur");
+      setErrorMsg((dbJson.error as string) ?? "Erreur serveur");
       setImportState("error");
       return;
     }

@@ -22,40 +22,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Format d'export invalide" }, { status: 400 });
   }
 
-  await prisma.$transaction(async (tx) => {
-    // Delete in reverse dependency order
-    await tx.wineVintageSlot.deleteMany();
-    await tx.wineVintage.deleteMany();
-    await tx.wine.deleteMany();
-    await tx.rack.deleteMany();
-    await tx.wineHistory.deleteMany();
+  try {
+    await prisma.$transaction(async (tx) => {
+      // Delete in reverse dependency order
+      await tx.wineVintageSlot.deleteMany();
+      await tx.wineVintage.deleteMany();
+      await tx.wine.deleteMany();
+      await tx.rack.deleteMany();
+      await tx.wineHistory.deleteMany();
 
-    // Re-insert in dependency order
-    for (const rack of data.racks) {
-      await tx.rack.create({ data: rack as Parameters<typeof tx.rack.create>[0]["data"] });
-    }
-    for (const wine of data.wines) {
-      await tx.wine.create({ data: wine as Parameters<typeof tx.wine.create>[0]["data"] });
-    }
-    for (const vintage of data.wineVintages) {
-      await tx.wineVintage.create({ data: vintage as Parameters<typeof tx.wineVintage.create>[0]["data"] });
-    }
-    for (const slot of data.wineVintageSlots) {
-      await tx.wineVintageSlot.create({ data: slot as Parameters<typeof tx.wineVintageSlot.create>[0]["data"] });
-    }
-    for (const entry of data.wineHistory) {
-      await tx.wineHistory.create({ data: entry as Parameters<typeof tx.wineHistory.create>[0]["data"] });
-    }
-  });
+      // Re-insert in dependency order
+      for (const rack of data.racks ?? []) {
+        await tx.rack.create({ data: rack as Parameters<typeof tx.rack.create>[0]["data"] });
+      }
+      for (const wine of data.wines ?? []) {
+        await tx.wine.create({ data: wine as Parameters<typeof tx.wine.create>[0]["data"] });
+      }
+      for (const vintage of data.wineVintages ?? []) {
+        await tx.wineVintage.create({ data: vintage as Parameters<typeof tx.wineVintage.create>[0]["data"] });
+      }
+      for (const slot of data.wineVintageSlots ?? []) {
+        await tx.wineVintageSlot.create({ data: slot as Parameters<typeof tx.wineVintageSlot.create>[0]["data"] });
+      }
+      for (const entry of (data.wineHistory ?? [])) {
+        await tx.wineHistory.create({ data: entry as Parameters<typeof tx.wineHistory.create>[0]["data"] });
+      }
+    });
+  } catch (err) {
+    console.error("Import transaction failed:", err);
+    return NextResponse.json({ error: "Erreur lors de la transaction : " + (err instanceof Error ? err.message : String(err)) }, { status: 500 });
+  }
 
   return NextResponse.json({
     ok: true,
     imported: {
-      wines: data.wines.length,
-      vintages: data.wineVintages.length,
-      slots: data.wineVintageSlots.length,
-      racks: data.racks.length,
-      history: data.wineHistory.length,
+      wines: (data.wines ?? []).length,
+      vintages: (data.wineVintages ?? []).length,
+      slots: (data.wineVintageSlots ?? []).length,
+      racks: (data.racks ?? []).length,
+      history: (data.wineHistory ?? []).length,
     },
   });
 }
