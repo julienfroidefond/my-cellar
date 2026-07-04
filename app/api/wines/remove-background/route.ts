@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile, writeFile } from "fs/promises";
 import { join, extname } from "path";
-import { removeBackground } from "@imgly/background-removal-node";
+import { spawn } from "child_process";
 
 const MIME_BY_EXT: Record<string, string> = {
   ".png": "image/png",
@@ -10,6 +10,43 @@ const MIME_BY_EXT: Record<string, string> = {
   ".webp": "image/webp",
   ".gif": "image/gif",
 };
+
+const WORKER = join(process.cwd(), "scripts/remove-bg-worker.mjs");
+const TIMEOUT_MS = 120_000;
+
+function runWorker(imageBase64: string, mimeType: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, [WORKER], { stdio: ["pipe", "pipe", "pipe"] });
+    let stdout = "";
+    let stderr = "";
+
+    const timer = setTimeout(() => {
+      child.kill("SIGKILL");
+      reject(new Error("Timeout — détourage trop long (>2min)"));
+    }, TIMEOUT_MS);
+
+    child.stdout.on("data", (d: Buffer) => { stdout += d.toString(); });
+    child.stderr.on("data", (d: Buffer) => { stderr += d.toString(); });
+
+    child.on("close", (code) => {
+      clearTimeout(timer);
+      if (!stdout) {
+        reject(new Error(`Worker crash (exit ${code})${stderr ? " — " + stderr.slice(0, 200) : ""}`));
+        return;
+      }
+      try {
+        const result = JSON.parse(stdout);
+        if (result.ok) resolve(result.base64);
+        else reject(new Error(result.error));
+      } catch {
+        reject(new Error(`Réponse worker invalide (exit ${code})`));
+      }
+    });
+
+    child.stdin.write(JSON.stringify({ imageBase64, mimeType }));
+    child.stdin.end();
+  });
+}
 
 // POST /api/wines/remove-background — détoure automatiquement l'image d'un vin
 // body JSON: { id: string, imageUrl: string }
@@ -25,21 +62,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "id and imageUrl required" }, { status: 400 });
   }
 
-  let bytes: ArrayBuffer;
+  let imageBase64: string;
   let mimeType: string;
 
   try {
     if (imageUrl.startsWith("/")) {
       const filePath = join(process.cwd(), "public", imageUrl);
       const buffer = await readFile(filePath);
-      bytes = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
+      imageBase64 = buffer.toString("base64");
       mimeType = MIME_BY_EXT[extname(filePath).toLowerCase()] ?? "image/jpeg";
     } else {
       const res = await fetch(imageUrl, { signal: AbortSignal.timeout(15_000) });
       if (!res.ok) {
         return NextResponse.json({ error: `Impossible de récupérer l'image (${res.status})` }, { status: 400 });
       }
-      bytes = await res.arrayBuffer();
+      imageBase64 = Buffer.from(await res.arrayBuffer()).toString("base64");
       mimeType = res.headers.get("content-type")?.split(";")[0] ?? "image/jpeg";
     }
   } catch (err) {
@@ -47,17 +84,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: `Erreur lors du chargement de l'image : ${msg}` }, { status: 400 });
   }
 
-  let blob: Blob;
+  let base64Result: string;
   try {
-    blob = await removeBackground(new Blob([bytes], { type: mimeType }));
+    base64Result = await runWorker(imageBase64, mimeType);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("removeBackground failed:", err);
+    console.error("remove-background worker failed:", msg);
     return NextResponse.json({ error: `Détourage échoué : ${msg}` }, { status: 500 });
   }
 
   try {
-    const buffer = Buffer.from(await blob.arrayBuffer());
+    const buffer = Buffer.from(base64Result, "base64");
     const name = `${id}-cutout.png`;
     await writeFile(join(process.cwd(), "public", "wines", name), buffer);
     return NextResponse.json({ url: `/wines/${name}` });
