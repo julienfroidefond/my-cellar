@@ -5,7 +5,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 COPY package*.json ./
-RUN npm_config_nodedir=/usr/local npm install
+RUN npm_config_nodedir=/usr/local npm install --legacy-peer-deps
 
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
