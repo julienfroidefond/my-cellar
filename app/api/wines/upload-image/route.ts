@@ -13,8 +13,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "file and id required" }, { status: 400 });
   }
 
+  const EXT_BY_MIME: Record<string, string> = {
+    "image/jpeg": "jpg", "image/jpg": "jpg", "image/png": "png",
+    "image/webp": "webp", "image/gif": "gif", "image/avif": "avif",
+    "image/heic": "heic", "image/heif": "heif",
+  };
   const nameParts = file.name.split(".");
-  const ext = nameParts.length > 1 ? nameParts.pop()!.toLowerCase() : "jpg";
+  const extFromName = nameParts.length > 1 ? nameParts[nameParts.length - 1].toLowerCase() : null;
+  const extFromMime = EXT_BY_MIME[file.type.split(";")[0].toLowerCase()] ?? null;
+  const ext = extFromName && extFromName.length <= 5 ? extFromName : (extFromMime ?? "jpg");
   const name = `${id}.${ext}`;
   const path = join(process.cwd(), "public", "wines", name);
 

@@ -21,6 +21,8 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
   const [removingBg, setRemovingBg] = useState(false);
   const [preview, setPreview] = useState<string | null>(currentImage);
   const [urlError, setUrlError] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [removeBgError, setRemoveBgError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   function applyUrl() {
@@ -34,16 +36,24 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
 
   async function uploadFile(file: File) {
     setUploading(true);
-    const form = new FormData();
-    form.append("file", file);
-    form.append("id", wineId);
-    const res = await fetch("/api/wines/upload-image", { method: "POST", body: form });
-    const data = await res.json();
-    if (data.url) {
-      setPreview(data.url);
-      onSelect(data.url);
+    setUploadError("");
+    try {
+      const form = new FormData();
+      form.append("file", file);
+      form.append("id", wineId);
+      const res = await fetch("/api/wines/upload-image", { method: "POST", body: form });
+      const data = await res.json();
+      if (data.url) {
+        setPreview(data.url);
+        onSelect(data.url);
+      } else {
+        setUploadError(data.error ?? "Échec de l'upload");
+      }
+    } catch {
+      setUploadError("Erreur réseau lors de l'upload");
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   }
 
   async function removeBackground() {
@@ -59,7 +69,11 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
       if (data.url) {
         setPreview(data.url);
         onSelect(data.url);
+      } else {
+        setRemoveBgError(data.error ?? "Échec du détourage");
       }
+    } catch {
+      setRemoveBgError("Erreur réseau");
     } finally {
       setRemovingBg(false);
     }
@@ -84,12 +98,15 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
           {/* Upload */}
           <button
             type="button"
-            onClick={() => fileRef.current?.click()}
+            onClick={() => { setUploadError(""); fileRef.current?.click(); }}
             className="w-full text-sm px-4 py-2.5 rounded-xl text-left transition-opacity hover:opacity-80"
             style={{ background: "rgba(26,10,14,0.04)", border: "1px solid rgba(26,10,14,0.10)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
           >
             {uploading ? "Upload en cours…" : "📁 Uploader un fichier"}
           </button>
+          {uploadError && (
+            <p className="text-xs" style={{ color: "rgba(220,50,50,0.9)", fontFamily: "var(--font-inter)" }}>{uploadError}</p>
+          )}
 
           {/* Paste URL */}
           <div className="flex gap-2">
@@ -134,6 +151,9 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
               >
                 {removingBg ? "Détourage en cours…" : "✂️ Détourer automatiquement"}
               </button>
+              {removeBgError && (
+                <span className="text-xs" style={{ color: "rgba(220,50,50,0.9)", fontFamily: "var(--font-inter)" }}>{removeBgError}</span>
+              )}
               <button
                 type="button"
                 onClick={() => { setPreview(null); onSelect(""); }}
