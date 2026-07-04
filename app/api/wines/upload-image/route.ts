@@ -25,8 +25,8 @@ export async function POST(req: NextRequest) {
   const name = `${id}.${ext}`;
   const path = join(process.cwd(), "public", "wines", name);
 
-  const bytes  = await file.arrayBuffer();
-  await writeFile(path, Buffer.from(bytes));
+  const bytes = Buffer.from(await file.arrayBuffer());
+  await writeFile(path, bytes);
 
   return NextResponse.json({ url: `/wines/${name}` });
 }
