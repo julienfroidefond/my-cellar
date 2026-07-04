@@ -18,19 +18,11 @@ process.stdin.on("end", async () => {
     const blob = await removeBackground(new Blob([bytes], { type: mimeType }));
     let outBuffer = Buffer.from(await blob.arrayBuffer());
 
-    // Resize back to original dimensions preserving aspect ratio
-    if (width && height) {
-      const { width: outW, height: outH } = await sharp(outBuffer).metadata();
-      if (outW !== width || outH !== height) {
-        outBuffer = await sharp(outBuffer)
-          .resize(width, height, {
-            fit: "contain",
-            background: { r: 0, g: 0, b: 0, alpha: 0 },
-          })
-          .png()
-          .toBuffer();
-      }
-    }
+    // Trim transparent borders so the bottle fills its container
+    outBuffer = await sharp(outBuffer)
+      .trim({ background: { r: 0, g: 0, b: 0, alpha: 0 }, threshold: 10 })
+      .png()
+      .toBuffer();
 
     process.stdout.write(JSON.stringify({ ok: true, base64: outBuffer.toString("base64") }));
   } catch (err) {
