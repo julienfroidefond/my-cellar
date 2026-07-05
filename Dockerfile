@@ -33,6 +33,11 @@ COPY --from=builder /app/scripts ./scripts
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh && mkdir -p public/wines
 
+# Images uploaded at runtime must be persisted via a volume mount on the host.
+# Example: docker run -v /data/my-cellar/wines:/app/public/wines ...
+# Or in docker-compose: volumes: - ./wines:/app/public/wines
+VOLUME /app/public/wines
+
 EXPOSE 3000
 
 ENTRYPOINT ["/entrypoint.sh"]
