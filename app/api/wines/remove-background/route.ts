@@ -20,27 +20,41 @@ function runWorker(imageBase64: string, mimeType: string): Promise<string> {
     const child = spawn(process.execPath, [WORKER], { stdio: ["pipe", "pipe", "pipe"] });
     let stdout = "";
     let stderr = "";
+    let settled = false;
+
+    const finish = (fn: typeof resolve | typeof reject, value: string | Error) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      fn(value as never);
+    };
 
     const timer = setTimeout(() => {
       child.kill("SIGKILL");
-      reject(new Error("Timeout — détourage trop long (>2min)"));
+      finish(reject, new Error("Timeout — détourage trop long (>2min)"));
     }, TIMEOUT_MS);
 
     child.stdout.on("data", (d: Buffer) => { stdout += d.toString(); });
     child.stderr.on("data", (d: Buffer) => { stderr += d.toString(); });
+    child.on("error", (err) => {
+      finish(reject, new Error(`Impossible de lancer le worker: ${err.message}`));
+    });
 
-    child.on("close", (code) => {
-      clearTimeout(timer);
+    child.on("close", (code, signal) => {
       if (!stdout) {
-        reject(new Error(`Worker crash (exit ${code})${stderr ? " — " + stderr.slice(0, 200) : ""}`));
+        const suffix = stderr ? ` — ${stderr.slice(0, 300)}` : "";
+        const reason = signal ? `signal ${signal}` : `exit ${code}`;
+        finish(reject, new Error(`Worker crash (${reason})${suffix}`));
         return;
       }
       try {
         const result = JSON.parse(stdout);
-        if (result.ok) resolve(result.base64);
-        else reject(new Error(result.error));
-      } catch {
-        reject(new Error(`Réponse worker invalide (exit ${code})`));
+        if (result.ok) finish(resolve, result.base64);
+        else finish(reject, new Error(result.error));
+      } catch (err) {
+        const detail = err instanceof Error ? err.message : String(err);
+        const suffix = stderr ? ` — ${stderr.slice(0, 300)}` : "";
+        finish(reject, new Error(`Réponse worker invalide (${signal ? `signal ${signal}` : `exit ${code}`}) — ${detail}${suffix}`));
       }
     });
 
