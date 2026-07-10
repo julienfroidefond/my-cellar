@@ -47,3 +47,14 @@ export function getWineImageContentType(filename: string) {
   const ext = filename.split(".").pop()?.toLowerCase() ?? "";
   return MIME_BY_EXT[ext] ?? "application/octet-stream";
 }
+
+export function normalizeWineImageUrl(imageUrl: string | null | undefined) {
+  if (!imageUrl) return imageUrl ?? null;
+
+  const [pathname, search = ""] = imageUrl.split("?");
+  if (!pathname.startsWith("/wines/")) {
+    return imageUrl;
+  }
+
+  return `${WINE_IMAGES_URL_PREFIX}${pathname.slice("/wines".length)}${search ? `?${search}` : ""}`;
+}

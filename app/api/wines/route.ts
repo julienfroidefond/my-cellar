@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { downloadExternalImage } from "@/lib/images";
+import { normalizeWineImageUrl } from "@/lib/wine-images";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -97,8 +98,9 @@ export async function POST(req: NextRequest) {
       await prisma.wine.update({ where: { id: wine.id }, data: { imageUrl: localUrl } });
       wine.imageUrl = localUrl;
     } else {
-      await prisma.wine.update({ where: { id: wine.id }, data: { imageUrl } });
-      wine.imageUrl = imageUrl;
+      const normalizedImageUrl = normalizeWineImageUrl(imageUrl);
+      await prisma.wine.update({ where: { id: wine.id }, data: { imageUrl: normalizedImageUrl } });
+      wine.imageUrl = normalizedImageUrl;
     }
   }
 

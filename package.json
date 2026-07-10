@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx prisma/seed.ts",
-    "download-images": "tsx scripts/download-images.ts"
+    "download-images": "tsx scripts/download-images.ts",
+    "migrate-image-urls": "tsx scripts/migrate-image-urls.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

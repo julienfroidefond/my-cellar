@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { normalizeWineImageUrl } from "@/lib/wine-images";
 
 interface ExportData {
   version: number;
@@ -8,6 +9,17 @@ interface ExportData {
   wineVintageSlots: Record<string, unknown>[];
   racks: Record<string, unknown>[];
   wineHistory: Record<string, unknown>[];
+}
+
+function normalizeImportedRecord(record: Record<string, unknown>) {
+  if (typeof record.imageUrl !== "string") {
+    return record;
+  }
+
+  return {
+    ...record,
+    imageUrl: normalizeWineImageUrl(record.imageUrl),
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -36,7 +48,7 @@ export async function POST(req: NextRequest) {
         await tx.rack.create({ data: rack as Parameters<typeof tx.rack.create>[0]["data"] });
       }
       for (const wine of data.wines ?? []) {
-        await tx.wine.create({ data: wine as Parameters<typeof tx.wine.create>[0]["data"] });
+        await tx.wine.create({ data: normalizeImportedRecord(wine) as Parameters<typeof tx.wine.create>[0]["data"] });
       }
       for (const vintage of data.wineVintages ?? []) {
         await tx.wineVintage.create({ data: vintage as Parameters<typeof tx.wineVintage.create>[0]["data"] });
@@ -45,7 +57,7 @@ export async function POST(req: NextRequest) {
         await tx.wineVintageSlot.create({ data: slot as Parameters<typeof tx.wineVintageSlot.create>[0]["data"] });
       }
       for (const entry of (data.wineHistory ?? [])) {
-        await tx.wineHistory.create({ data: entry as Parameters<typeof tx.wineHistory.create>[0]["data"] });
+        await tx.wineHistory.create({ data: normalizeImportedRecord(entry) as Parameters<typeof tx.wineHistory.create>[0]["data"] });
       }
     });
   } catch (err) {

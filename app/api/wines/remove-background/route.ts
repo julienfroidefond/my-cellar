@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { mkdir, readFile, writeFile } from "fs/promises";
 import { extname, join } from "path";
 import { spawn } from "child_process";
-import { WINE_IMAGES_DIR, getWineImagePath, getWineImageUrl } from "@/lib/wine-images";
+import { WINE_IMAGES_DIR, getWineImagePath, getWineImageUrl, resolveServedWineImagePath } from "@/lib/wine-images";
 
 const MIME_BY_EXT: Record<string, string> = {
   ".png": "image/png",
@@ -68,8 +68,16 @@ export async function POST(req: NextRequest) {
 
   try {
     if (imageUrl.startsWith("/")) {
-      const relativePath = imageUrl.replace(/^\/+/, "");
-      const filePath = join(process.cwd(), "public", relativePath);
+      const filename = imageUrl.split("/").pop()?.split("?")[0];
+      if (!filename) {
+        return NextResponse.json({ error: "URL d'image locale invalide" }, { status: 400 });
+      }
+
+      const filePath = await resolveServedWineImagePath(filename);
+      if (!filePath) {
+        return NextResponse.json({ error: `Image introuvable sur le serveur: ${filename}` }, { status: 404 });
+      }
+
       const buffer = await readFile(filePath);
       imageBase64 = buffer.toString("base64");
       mimeType = MIME_BY_EXT[extname(filePath).toLowerCase()] ?? "image/jpeg";
