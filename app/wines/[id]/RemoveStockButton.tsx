@@ -1,24 +1,14 @@
-"use client";
-
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import { removeStockAction } from "./actions";
 
 export default function RemoveStockButton({ vintageId }: { vintageId: string }) {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-
-  async function handleRemove() {
-    if (!confirm("Retirer une bouteille du stock ?")) return;
-    setLoading(true);
-    await fetch(`/api/wines/${vintageId}/remove`, { method: "POST" });
-    setLoading(false);
-    router.refresh();
-  }
+  const action = removeStockAction.bind(null, vintageId);
 
   return (
-    <button
-      onClick={handleRemove}
-      disabled={loading}
+    <form action={action}>
+      <ConfirmSubmitButton
+        confirmMessage="Retirer une bouteille du stock ?"
+        pendingLabel="…"
       className="px-4 py-2 rounded-full text-sm font-medium transition-opacity hover:opacity-80 disabled:opacity-40 shrink-0"
       style={{
         background: "rgba(26,10,14,0.05)",
@@ -26,8 +16,9 @@ export default function RemoveStockButton({ vintageId }: { vintageId: string }) 
         color: "var(--text-muted)",
         fontFamily: "var(--font-inter)",
       }}
-    >
-      {loading ? "…" : "Retirer"}
-    </button>
+      >
+        Retirer
+      </ConfirmSubmitButton>
+    </form>
   );
 }

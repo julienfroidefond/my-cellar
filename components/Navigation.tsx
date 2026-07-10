@@ -1,5 +1,6 @@
 "use client";
 
+import { logoutAction } from "@/app/actions/auth";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -24,11 +25,6 @@ export default function Navigation() {
     document.body.style.overflow = isOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [isOpen]);
-
-  async function handleLogout() {
-    await fetch('/api/auth/logout', { method: 'POST' });
-    window.location.href = '/login';
-  }
 
   return (
     <>
@@ -89,18 +85,20 @@ export default function Navigation() {
             >
               + Ajouter
             </Link>
-            <button
-              onClick={handleLogout}
-              className="ml-1 px-3 py-2 rounded-full text-sm transition-all duration-150 hover:opacity-80"
-              style={{
-                fontFamily: "var(--font-inter)",
-                color: "var(--text-muted)",
-                border: "1px solid transparent",
-              }}
-              title="Se déconnecter"
-            >
-              ↪
-            </button>
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="ml-1 px-3 py-2 rounded-full text-sm transition-all duration-150 hover:opacity-80"
+                style={{
+                  fontFamily: "var(--font-inter)",
+                  color: "var(--text-muted)",
+                  border: "1px solid transparent",
+                }}
+                title="Se déconnecter"
+              >
+                ↪
+              </button>
+            </form>
           </div>
 
           {/* Mobile: bouton + et hamburger */}
@@ -208,17 +206,19 @@ export default function Navigation() {
           })}
 
           <div className="mt-2 pt-2" style={{ borderTop: "1px solid rgba(26,10,14,0.08)" }}>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 w-full px-4 py-3 rounded-xl text-sm transition-all duration-150"
-              style={{
-                fontFamily: "var(--font-inter)",
-                color: "var(--text-muted)",
-              }}
-            >
-              <span style={{ fontSize: 15 }}>↪</span>
-              Se déconnecter
-            </button>
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="flex items-center gap-2 w-full px-4 py-3 rounded-xl text-sm transition-all duration-150"
+                style={{
+                  fontFamily: "var(--font-inter)",
+                  color: "var(--text-muted)",
+                }}
+              >
+                <span style={{ fontSize: 15 }}>↪</span>
+                Se déconnecter
+              </button>
+            </form>
           </div>
         </div>
       </div>

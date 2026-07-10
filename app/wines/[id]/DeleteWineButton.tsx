@@ -1,24 +1,18 @@
-"use client";
-
-import { useRouter } from "next/navigation";
+import ConfirmSubmitButton from "@/components/ConfirmSubmitButton";
+import { deleteWineAction } from "./actions";
 
 export default function DeleteWineButton({ id, name }: { id: string; name: string }) {
-  const router = useRouter();
-
-  async function handleDelete() {
-    if (!confirm(`Supprimer "${name}" de la cave ?`)) return;
-    await fetch(`/api/wines/${id}`, { method: "DELETE" });
-    router.push("/wines");
-    router.refresh();
-  }
+  const action = deleteWineAction.bind(null, id);
 
   return (
-    <button
-      onClick={handleDelete}
-      className="text-sm transition-opacity opacity-60 hover:opacity-100 hover:underline"
-      style={{ color: "#c0374e", fontFamily: "var(--font-inter)" }}
-    >
-      Supprimer ce vin
-    </button>
+    <form action={action}>
+      <ConfirmSubmitButton
+        confirmMessage={`Supprimer "${name}" de la cave ?`}
+        className="text-sm transition-opacity opacity-60 hover:opacity-100 hover:underline disabled:opacity-40"
+        style={{ color: "#c0374e", fontFamily: "var(--font-inter)" }}
+      >
+        Supprimer ce vin
+      </ConfirmSubmitButton>
+    </form>
   );
 }
