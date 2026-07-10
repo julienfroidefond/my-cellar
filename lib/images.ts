@@ -1,5 +1,5 @@
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { mkdir, writeFile } from "fs/promises";
+import { WINE_IMAGES_DIR, getWineImagePath, getWineImageUrl } from "@/lib/wine-images";
 
 export async function downloadExternalImage(imageUrl: string, wineId: string): Promise<string> {
   if (!imageUrl || !imageUrl.startsWith("http")) return imageUrl;
@@ -13,11 +13,10 @@ export async function downloadExternalImage(imageUrl: string, wineId: string): P
     const contentType = res.headers.get("content-type") ?? "";
     const ext = contentType.includes("png") ? "png" : "jpg";
     const filename = `${wineId}.${ext}`;
-    const dir = join(process.cwd(), "public", "wines");
-    await mkdir(dir, { recursive: true });
-    await writeFile(join(dir, filename), Buffer.from(await res.arrayBuffer()));
+    await mkdir(WINE_IMAGES_DIR, { recursive: true });
+    await writeFile(getWineImagePath(filename), Buffer.from(await res.arrayBuffer()));
 
-    return `/wines/${filename}`;
+    return getWineImageUrl(filename);
   } catch {
     return imageUrl;
   }

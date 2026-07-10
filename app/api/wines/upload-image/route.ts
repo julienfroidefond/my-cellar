@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
-import { join } from "path";
+import { mkdir, writeFile } from "fs/promises";
+import { WINE_IMAGES_DIR, getWineImagePath, getWineImageUrl } from "@/lib/wine-images";
 
 // POST /api/wines/upload-image — reçoit un fichier image et le stocke dans /public/wines/
 // body: FormData avec un champ "file" et un champ "id" (wineId)
@@ -23,10 +23,10 @@ export async function POST(req: NextRequest) {
   const extFromMime = EXT_BY_MIME[file.type.split(";")[0].toLowerCase()] ?? null;
   const ext = extFromName && extFromName.length <= 5 ? extFromName : (extFromMime ?? "jpg");
   const name = `${id}.${ext}`;
-  const path = join(process.cwd(), "public", "wines", name);
+  await mkdir(WINE_IMAGES_DIR, { recursive: true });
 
   const bytes = Buffer.from(await file.arrayBuffer());
-  await writeFile(path, bytes);
+  await writeFile(getWineImagePath(name), bytes);
 
-  return NextResponse.json({ url: `/wines/${name}` });
+  return NextResponse.json({ url: getWineImageUrl(name) });
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { getWineImagePath, WINE_IMAGES_DIR } from "@/lib/wine-images";
 
 export async function POST(req: NextRequest) {
   let body: { images?: Record<string, string> };
@@ -15,8 +15,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Champ images manquant" }, { status: 400 });
   }
 
-  const dir = join(process.cwd(), "public", "wines");
-  await mkdir(dir, { recursive: true });
+  await mkdir(WINE_IMAGES_DIR, { recursive: true });
 
   const errors: string[] = [];
   let count = 0;
@@ -24,7 +23,7 @@ export async function POST(req: NextRequest) {
   await Promise.all(
     Object.entries(images).map(async ([filename, b64]) => {
       try {
-        await writeFile(join(dir, filename), Buffer.from(b64, "base64"));
+        await writeFile(getWineImagePath(filename), Buffer.from(b64, "base64"));
         count++;
       } catch (err) {
         errors.push(`${filename}: ${err instanceof Error ? err.message : String(err)}`);

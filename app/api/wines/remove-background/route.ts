@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readFile, writeFile } from "fs/promises";
-import { join, extname } from "path";
+import { mkdir, readFile, writeFile } from "fs/promises";
+import { extname, join } from "path";
 import { spawn } from "child_process";
+import { WINE_IMAGES_DIR, getWineImagePath, getWineImageUrl } from "@/lib/wine-images";
 
 const MIME_BY_EXT: Record<string, string> = {
   ".png": "image/png",
@@ -67,7 +68,8 @@ export async function POST(req: NextRequest) {
 
   try {
     if (imageUrl.startsWith("/")) {
-      const filePath = join(process.cwd(), "public", imageUrl);
+      const relativePath = imageUrl.replace(/^\/+/, "");
+      const filePath = join(process.cwd(), "public", relativePath);
       const buffer = await readFile(filePath);
       imageBase64 = buffer.toString("base64");
       mimeType = MIME_BY_EXT[extname(filePath).toLowerCase()] ?? "image/jpeg";
@@ -98,8 +100,9 @@ export async function POST(req: NextRequest) {
   try {
     const buffer = Buffer.from(base64Result, "base64");
     const name = `${id}-cutout.png`;
-    await writeFile(join(process.cwd(), "public", "wines", name), buffer);
-    return NextResponse.json({ url: `/wines/${name}` });
+    await mkdir(WINE_IMAGES_DIR, { recursive: true });
+    await writeFile(getWineImagePath(name), buffer);
+    return NextResponse.json({ url: getWineImageUrl(name) });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ error: `Erreur lors de la sauvegarde : ${msg}` }, { status: 500 });
