@@ -9,6 +9,7 @@ import EditVintagePriceButton from "./EditVintagePriceButton";
 import { decodeSlot } from "@/lib/rack-configs";
 import { estimateMaturity } from "@/lib/maturity";
 import { Stars } from "@/components/StarRating";
+import { MaturityTimeline } from "@/components/MaturityTimeline";
 import type { WineVintage } from "@/app/generated/prisma/client";
 
 const COLOR_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -279,6 +280,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
 
       {/* ── Body ─────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-6 py-12">
+        <MaturityTimeline vintages={wine.vintages} wine={wine} />
         <div className="grid md:grid-cols-3 gap-8">
 
           {/* Millésimes — 2/3 */}

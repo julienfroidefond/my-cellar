@@ -8,6 +8,9 @@ export const inputStyle: React.CSSProperties = {
   border: "1px solid var(--border)",
   color: "var(--foreground)",
   fontSize: "0.875rem",
+  lineHeight: "20px",
+  height: "42px",
+  boxSizing: "border-box",
   fontFamily: "var(--font-inter)",
   outline: "none",
 };

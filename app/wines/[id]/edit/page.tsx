@@ -26,7 +26,7 @@ export default async function EditWinePage({ params }: { params: Promise<{ id: s
           </p>
           {wine.vintages.length > 0 && (
             <p className="text-sm mt-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-              Les millésimes sont modifiables depuis la fiche du vin.
+              Les périodes d’apogée se règlent ci-dessous, pour chaque millésime.
             </p>
           )}
         </div>
@@ -94,6 +94,31 @@ export default async function EditWinePage({ params }: { params: Promise<{ id: s
               </Field>
             </Section>
           </div>
+
+          {wine.vintages.length > 0 && (
+            <Section title="Périodes d’apogée">
+              <p className="-mt-2 text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+                Ces périodes sont propres à chaque millésime et remplacent l’estimation automatique affichée sur la fiche.
+              </p>
+              <div className="space-y-4">
+                {wine.vintages.map((vintage) => (
+                  <div key={vintage.id} className="rounded-xl p-4" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
+                    <p className="text-sm font-semibold mb-3" style={{ fontFamily: "var(--font-playfair)" }}>
+                      {vintage.vintage ?? "Millésime inconnu"}
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Field label="À boire à partir de">
+                        <input type="number" name={`drinkFrom:${vintage.id}`} min="1900" max="2100" defaultValue={vintage.drinkFrom ?? ""} placeholder="2024" style={inputStyle} />
+                      </Field>
+                      <Field label="Jusqu’à">
+                        <input type="number" name={`drinkUntil:${vintage.id}`} min="1900" max="2100" defaultValue={vintage.drinkUntil ?? ""} placeholder="2035" style={inputStyle} />
+                      </Field>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          )}
 
           <div className="flex gap-4 pt-2">
             <button

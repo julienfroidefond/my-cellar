@@ -78,22 +78,40 @@ export async function updateWineAction(wineId: string, formData: FormData) {
   const resolvedImageUrl = payload.imageUrl ? await downloadExternalImage(payload.imageUrl, wineId) : payload.imageUrl;
   const normalizedImageUrl = normalizeWineImageUrl(resolvedImageUrl);
 
-  await prisma.wine.update({
-    where: { id: wineId },
-    data: {
-      name: payload.name,
-      producer: payload.producer,
-      color: payload.color,
-      region: payload.region,
-      appellation: payload.appellation,
-      country: payload.country,
-      grapeVarieties: payload.grapeVarieties,
-      description: payload.description,
-      notes: payload.notes,
-      foodPairing: payload.foodPairing,
-      imageUrl: normalizedImageUrl,
-    },
-  });
+  const maturityUpdates = Array.from(formData.keys())
+    .filter((key) => key.startsWith("drinkFrom:") || key.startsWith("drinkUntil:"))
+    .reduce<Map<string, { drinkFrom?: number | null; drinkUntil?: number | null }>>((updates, key) => {
+      const [field, vintageId] = key.split(":");
+      if (!vintageId) return updates;
+      const value = formData.get(key);
+      const parsed = typeof value === "string" && value.trim() ? Number.parseInt(value, 10) : null;
+      const update = updates.get(vintageId) ?? {};
+      update[field as "drinkFrom" | "drinkUntil"] = Number.isFinite(parsed) ? parsed : null;
+      updates.set(vintageId, update);
+      return updates;
+    }, new Map());
+
+  await prisma.$transaction([
+    prisma.wine.update({
+      where: { id: wineId },
+      data: {
+        name: payload.name,
+        producer: payload.producer,
+        color: payload.color,
+        region: payload.region,
+        appellation: payload.appellation,
+        country: payload.country,
+        grapeVarieties: payload.grapeVarieties,
+        description: payload.description,
+        notes: payload.notes,
+        foodPairing: payload.foodPairing,
+        imageUrl: normalizedImageUrl,
+      },
+    }),
+    ...Array.from(maturityUpdates, ([vintageId, data]) =>
+      prisma.wineVintage.updateMany({ where: { id: vintageId, wineId }, data }),
+    ),
+  ]);
 
   revalidateWinePages(wineId);
   redirect(`/wines/${wineId}`);
