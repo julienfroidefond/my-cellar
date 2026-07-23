@@ -11,6 +11,7 @@ import { parseCreateWineForm, parseUpdateWineForm } from "@/lib/wine-form";
 function revalidateWinePages(wineId?: string) {
   revalidatePath("/");
   revalidatePath("/wines");
+  revalidatePath("/missing-data");
   revalidatePath("/history");
   revalidatePath("/cave");
   if (wineId) {
