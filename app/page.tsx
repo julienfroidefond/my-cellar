@@ -4,7 +4,8 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import CellarCharts from "@/components/CellarCharts";
 import PremiumCarousel from "@/components/PremiumCarousel";
-import FranceWineMap from "@/components/FranceWineMap";
+import FranceWineMap from "@/components/FranceWineMapClient";
+import { MaturityAvailabilityChart } from "@/components/MaturityAvailabilityChart";
 import { estimateMaturity } from "@/lib/maturity";
 import { APPELLATION_COORDS } from "@/lib/appellation-coords";
 
@@ -108,16 +109,6 @@ export default async function DashboardPage() {
         : null;
       const from = v.drinkFrom ?? est?.drinkFrom ?? null;
       const until = v.drinkUntil ?? est?.drinkUntil ?? null;
-      const status =
-        from && until
-          ? currentYear > until
-            ? "dépassé"
-            : currentYear >= from
-            ? "optimal"
-            : currentYear >= from - 2
-            ? "bientôt"
-            : "trop-tôt"
-          : null;
       return {
         id: v.wine.id,
         name: v.wine.name,
@@ -127,25 +118,8 @@ export default async function DashboardPage() {
         imageUrl: v.wine.imageUrl,
         effectiveDrinkFrom: from,
         effectiveDrinkUntil: until,
-        status,
-        isEstimated: !hasManual,
       };
     });
-
-  const allReadyWines = winesWithMaturity
-    .filter((w) => w.status === "optimal")
-    .sort((a, b) => (a.effectiveDrinkUntil ?? 9999) - (b.effectiveDrinkUntil ?? 9999));
-  const readyWines = allReadyWines.slice(0, 8);
-
-  const allSoonWines = winesWithMaturity
-    .filter((w) => w.status === "bientôt")
-    .sort((a, b) => (a.effectiveDrinkFrom ?? 9999) - (b.effectiveDrinkFrom ?? 9999));
-  const soonWines = allSoonWines.slice(0, 4);
-
-  const allPastWines = winesWithMaturity
-    .filter((w) => w.status === "dépassé")
-    .sort((a, b) => (b.effectiveDrinkUntil ?? 0) - (a.effectiveDrinkUntil ?? 0));
-  const pastWines = allPastWines.slice(0, 6);
 
   const winesWithImage = wines.filter((w) => w.imageUrl && w.vintages.some((v) => v.quantity > 0));
   const heroWine = winesWithImage.length > 0
@@ -234,97 +208,20 @@ export default async function DashboardPage() {
           </section>
         )}
 
-        {(readyWines.length > 0 || soonWines.length > 0 || pastWines.length > 0) && (
+        {winesWithMaturity.some((wine) => wine.effectiveDrinkFrom && wine.effectiveDrinkUntil) && (
           <section>
-            <SectionTitle eyebrow="Maturité">Tableau de bord</SectionTitle>
+            <SectionTitle eyebrow="Maturité">Potentiel de dégustation</SectionTitle>
             <p className="text-sm mt-2 mb-8" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-              Basé sur les fenêtres de dégustation saisies ou estimées automatiquement
+              Bouteilles en stock dont la période d’apogée couvre chaque année
             </p>
-
-            <div className="space-y-8">
-              {readyWines.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ background: "#1a7a3c" }} />
-                      <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "#1a7a3c" }}>
-                        Prêtes à boire — {allReadyWines.length} vin{allReadyWines.length > 1 ? "s" : ""}
-                      </span>
-                    </div>
-                    <Link href="/wines?maturity=optimal" className="text-xs transition-opacity hover:opacity-70" style={{ fontFamily: "var(--font-inter)", color: "#1a7a3c" }}>
-                      Voir tous →
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {readyWines.map((w, i) => (
-                      <MaturityCard
-                        key={`${w.id}-${w.vintage ?? i}`}
-                        wine={w}
-                        badge={`avant ${w.effectiveDrinkUntil}`}
-                        badgeColor="#1a7a3c"
-                        badgeBg="rgba(26,122,60,0.09)"
-                        urgent={w.effectiveDrinkUntil !== null && w.effectiveDrinkUntil <= currentYear + 1}
-                      />
-                    ))}
-                  </div>
-                </div>
+            <MaturityAvailabilityChart
+              currentYear={currentYear}
+              periods={winesWithMaturity.flatMap((wine) =>
+                wine.effectiveDrinkFrom && wine.effectiveDrinkUntil
+                  ? [{ wineId: wine.id, name: wine.name, vintage: wine.vintage, imageUrl: wine.imageUrl, color: wine.color, from: wine.effectiveDrinkFrom, until: wine.effectiveDrinkUntil, quantity: wine.quantity }]
+                  : [],
               )}
-
-              {soonWines.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ background: "#b87a2c" }} />
-                      <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "#b87a2c" }}>
-                        Bientôt prêtes — {allSoonWines.length} vin{allSoonWines.length > 1 ? "s" : ""}
-                      </span>
-                    </div>
-                    <Link href="/wines?maturity=bientôt" className="text-xs transition-opacity hover:opacity-70" style={{ fontFamily: "var(--font-inter)", color: "#b87a2c" }}>
-                      Voir tous →
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {soonWines.map((w, i) => (
-                      <MaturityCard
-                        key={`${w.id}-${w.vintage ?? i}`}
-                        wine={w}
-                        badge={`dès ${w.effectiveDrinkFrom}`}
-                        badgeColor="#b87a2c"
-                        badgeBg="rgba(184,122,44,0.09)"
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {pastWines.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full" style={{ background: "rgba(26,10,14,0.28)" }} />
-                      <span className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                        Passées leur apogée — {allPastWines.length} vin{allPastWines.length > 1 ? "s" : ""}
-                      </span>
-                    </div>
-                    <Link href="/wines?maturity=dépassé" className="text-xs transition-opacity hover:opacity-70" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                      Voir tous →
-                    </Link>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {pastWines.map((w, i) => (
-                      <MaturityCard
-                        key={`${w.id}-${w.vintage ?? i}`}
-                        wine={w}
-                        badge={`apogée ${w.effectiveDrinkUntil}`}
-                        badgeColor="rgba(26,10,14,0.40)"
-                        badgeBg="rgba(26,10,14,0.05)"
-                        faded
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+            />
           </section>
         )}
 
@@ -353,83 +250,6 @@ export default async function DashboardPage() {
         </section>
       </div>
     </div>
-  );
-}
-
-const COLOR_DOT: Record<string, string> = {
-  rouge: "#c0193b",
-  blanc: "#b87a2c",
-  rosé:  "#d4647a",
-};
-
-function MaturityCard({
-  wine,
-  badge,
-  badgeColor,
-  badgeBg,
-  faded,
-  urgent,
-}: {
-  wine: { id: string; name: string; vintage: number | null; color: string | null; quantity: number; imageUrl: string | null; isEstimated: boolean };
-  badge: string;
-  badgeColor: string;
-  badgeBg: string;
-  faded?: boolean;
-  urgent?: boolean;
-}) {
-  return (
-    <Link
-      href={`/wines/${wine.id}`}
-      className="rounded-2xl p-5 block relative overflow-hidden transition-transform duration-200 hover:-translate-y-0.5"
-      style={{
-        background: "var(--surface)",
-        border: urgent ? `1px solid ${badgeColor}40` : "1px solid var(--border)",
-        boxShadow: urgent ? `0 2px 16px ${badgeColor}18` : "0 2px 8px rgba(26,10,14,0.06)",
-        opacity: faded ? 0.72 : 1,
-      }}
-    >
-      {wine.imageUrl && (
-        <div className="absolute right-0 top-0 bottom-0 pointer-events-none" style={{ width: 72 }}>
-          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, var(--surface) 0%, transparent 55%)" }} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={wine.imageUrl}
-            alt=""
-            loading="lazy"
-            style={{
-              position: "absolute", bottom: 0, right: 6,
-              height: "92%", objectFit: "contain",
-              opacity: faded ? 0.5 : 0.88,
-              filter: "drop-shadow(0 3px 10px rgba(26,10,14,0.15))",
-            }}
-          />
-        </div>
-      )}
-
-      <div style={{ paddingRight: wine.imageUrl ? 64 : undefined }}>
-        <span
-          className="inline-block text-xs px-2.5 py-1 rounded-full font-medium mb-3"
-          style={{ background: badgeBg, color: badgeColor, fontFamily: "var(--font-inter)", border: `1px solid ${badgeColor}35` }}
-        >
-          {badge}
-        </span>
-
-        <div className="flex items-start gap-2 mb-1">
-          <div className="w-2 h-2 rounded-full shrink-0 mt-1.5" style={{ background: COLOR_DOT[wine.color ?? ""] ?? "rgba(26,10,14,0.25)" }} />
-          <p
-            className="text-sm font-semibold leading-snug line-clamp-2"
-            style={{ fontFamily: "var(--font-inter)", color: faded ? "var(--text-muted)" : "var(--foreground)" }}
-          >
-            {wine.name}
-          </p>
-        </div>
-
-        <p className="text-xs ml-4" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
-          {wine.vintage ?? "—"} · {wine.quantity} bt{wine.quantity > 1 ? "s" : ""}
-          {wine.isEstimated && <span className="ml-1">~</span>}
-        </p>
-      </div>
-    </Link>
   );
 }
 
