@@ -5,8 +5,9 @@ import Link from "next/link";
 import CellarCharts from "@/components/CellarCharts";
 import PremiumCarousel from "@/components/PremiumCarousel";
 import FranceWineMap from "@/components/FranceWineMapClient";
-import { MaturityAvailabilityChart } from "@/components/MaturityAvailabilityChart";
+import { MaturityPhaseCarousels } from "@/components/MaturityPhaseCarousels";
 import { estimateMaturity } from "@/lib/maturity";
+import { getMaturityPhase } from "@/lib/maturity-phase";
 import { APPELLATION_COORDS } from "@/lib/appellation-coords";
 
 export default async function DashboardPage() {
@@ -110,7 +111,7 @@ export default async function DashboardPage() {
       const from = v.drinkFrom ?? est?.drinkFrom ?? null;
       const until = v.drinkUntil ?? est?.drinkUntil ?? null;
       return {
-        id: v.wine.id,
+        wineId: v.wine.id,
         name: v.wine.name,
         vintage: v.vintage,
         color: v.wine.color,
@@ -118,6 +119,7 @@ export default async function DashboardPage() {
         imageUrl: v.wine.imageUrl,
         effectiveDrinkFrom: from,
         effectiveDrinkUntil: until,
+        phase: from && until ? getMaturityPhase(from, until, currentYear) : null,
       };
     });
 
@@ -208,20 +210,20 @@ export default async function DashboardPage() {
           </section>
         )}
 
-        {winesWithMaturity.some((wine) => wine.effectiveDrinkFrom && wine.effectiveDrinkUntil) && (
+        {winesWithMaturity.some((wine) => wine.phase) && (
           <section>
-            <SectionTitle eyebrow="Maturité">Potentiel de dégustation</SectionTitle>
-            <p className="text-sm mt-2 mb-8" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-              Bouteilles en stock dont la période d’apogée couvre chaque année
-            </p>
-            <MaturityAvailabilityChart
-              currentYear={currentYear}
-              periods={winesWithMaturity.flatMap((wine) =>
-                wine.effectiveDrinkFrom && wine.effectiveDrinkUntil
-                  ? [{ wineId: wine.id, name: wine.name, vintage: wine.vintage, imageUrl: wine.imageUrl, color: wine.color, from: wine.effectiveDrinkFrom, until: wine.effectiveDrinkUntil, quantity: wine.quantity }]
-                  : [],
-              )}
-            />
+            <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+              <div>
+                <SectionTitle eyebrow="Maturité">Les moments de la cave</SectionTitle>
+                <p className="text-sm mt-2" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+                  Les bouteilles classées selon leur fenêtre de dégustation.
+                </p>
+              </div>
+              <Link href="/maturity" className="px-4 py-2 rounded-full text-sm transition-opacity hover:opacity-80" style={{ border: "1px solid var(--border)", color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}>
+                Voir la maturité en détail →
+              </Link>
+            </div>
+            <MaturityPhaseCarousels wines={winesWithMaturity.flatMap((wine) => wine.phase && wine.effectiveDrinkFrom && wine.effectiveDrinkUntil ? [{ wineId: wine.wineId, name: wine.name, vintage: wine.vintage, imageUrl: wine.imageUrl, color: wine.color, from: wine.effectiveDrinkFrom, until: wine.effectiveDrinkUntil, quantity: wine.quantity, phase: wine.phase }] : [])} />
           </section>
         )}
 

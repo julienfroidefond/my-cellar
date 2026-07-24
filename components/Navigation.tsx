@@ -9,6 +9,7 @@ const links = [
   { href: "/", label: "Accueil" },
   { href: "/cave", label: "Cave" },
   { href: "/wines", label: "Vins" },
+  { href: "/maturity", label: "Maturité" },
   { href: "/missing-data", label: "À compléter" },
   { href: "/history", label: "Historique" },
   { href: "/settings", label: "Données" },
