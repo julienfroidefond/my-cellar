@@ -7,6 +7,7 @@ import { ShelfLevel, Plank } from "./ShelfLevel";
 import { WineDetailModal } from "./WineDetailModal";
 import { SlotPickerModal } from "./SlotPickerModal";
 import { BOTTLE } from "./constants";
+import { Cave3D } from "./Cave3D";
 
 
 // Re-export types so page.tsx can keep its current import path
@@ -50,6 +51,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
   const [showLabels, setShowLabels] = useState(false);
   const [showFront, setShowFront] = useState(true);
   const [showBack, setShowBack] = useState(true);
+  const [view, setView] = useState<"plan" | "3d">("plan");
   const [targetSlot, setTargetSlot] = useState<TargetSlot | null>(null);
 
   function refresh() { startTransition(() => router.refresh()); }
@@ -120,6 +122,19 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
 
       {/* Toggles */}
       <div className="flex flex-wrap justify-end gap-2 mb-4">
+        <div className="flex overflow-hidden rounded-full mr-auto" style={{ border: "1px solid var(--border)", fontFamily: "var(--font-inter)" }}>
+          {(["plan", "3d"] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setView(value)}
+              className="px-3.5 py-1.5 text-xs font-medium transition-all"
+              style={{ background: view === value ? "var(--wine-red)" : "var(--surface)", color: view === value ? "#fff" : "var(--text-muted)" }}
+            >
+              {value === "plan" ? "Plan" : "Vue 3D"}
+            </button>
+          ))}
+        </div>
         <button
           onClick={() => { if (showFront && !showBack) return; setShowFront((v) => !v); }}
           disabled={showFront && !showBack}
@@ -164,7 +179,19 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
       </div>
 
       {/* Racks */}
-      <div className="space-y-5">
+      {view === "3d" ? (
+        <Cave3D
+          racks={racks}
+          selectedId={selected?.id ?? null}
+          showFront={showFront}
+          showBack={showBack}
+          onSelect={(wine) => { setSelected(wine); setPending(null); }}
+          onEmptyClick={(placing || unracked.length > 0) ? (rack, slotIndex) => {
+            if (placing) placeWine(placing, rack.id, slotIndex, rack.numCols);
+            else setTargetSlot({ rackId: rack.id, rackName: rack.name, slotIndex, numCols: rack.numCols });
+          } : null}
+        />
+      ) : <div className="space-y-5">
         {racks.map((rack) => {
           const slotMap = buildSlotMap(rack.wines, rack.config, rack.numCols);
           const levels = buildLevels(slotMap, rack.config);
@@ -233,7 +260,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
             </div>
           );
         })}
-      </div>
+      </div>}
 
       {/* À ranger */}
       {unracked.length > 0 && (
