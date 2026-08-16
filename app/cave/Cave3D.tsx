@@ -48,6 +48,11 @@ function visualBounds(levels: ReturnType<typeof slotsForRack>) {
   return Number.isFinite(top) ? { top, bottom } : { top: 0, bottom: 0 };
 }
 
+function bottleImage(wine: WineRef | null, dim: boolean) {
+  if (wine?.color === "blanc") return dim ? "/cave/bottle-white-back.png" : "/cave/bottle-white-front.png";
+  return dim ? "/cave/bottle-back.png" : "/cave/bottle-front.png";
+}
+
 function IsometricBottle({ wine, x, y, dim, selected, onSelect, onEmptyClick }: {
   wine: WineRef | null;
   x: number;
@@ -61,6 +66,7 @@ function IsometricBottle({ wine, x, y, dim, selected, onSelect, onEmptyClick }: 
   const imageHeight = dim ? 150 * BACK_IMAGE_SCALE : 150;
   const imageX = dim ? x - 88 : x - 48;
   const imageY = dim ? y - 100 : y - 72;
+  const imageSrc = bottleImage(wine, dim);
 
   if (!wine) {
     return (
@@ -73,7 +79,7 @@ function IsometricBottle({ wine, x, y, dim, selected, onSelect, onEmptyClick }: 
         style={{ cursor: onEmptyClick ? "pointer" : "default" }}
       >
         <image
-          href={dim ? "/cave/bottle-back.png" : "/cave/bottle-front.png"}
+          href={imageSrc}
           x={imageX}
           y={imageY}
           width={imageWidth}
@@ -100,7 +106,7 @@ function IsometricBottle({ wine, x, y, dim, selected, onSelect, onEmptyClick }: 
       <title>{label}</title>
       {selected && <rect x={imageX + 18} y={imageY + 18} width={imageWidth - 36} height={imageHeight - 36} rx="18" fill="none" stroke="var(--wine-red)" strokeWidth="3" />}
       <image
-        href={dim ? "/cave/bottle-back.png" : "/cave/bottle-front.png"}
+        href={imageSrc}
         x={imageX}
         y={imageY}
         width={imageWidth}
