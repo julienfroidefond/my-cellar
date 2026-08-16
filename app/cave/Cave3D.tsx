@@ -3,7 +3,7 @@
 import type { RackData, WineRef } from "./types";
 
 type Slot = { wine: WineRef | null; slotIndex: number };
-const SHELF_STEP = 75;
+const SHELF_STEP = 60;
 const RACK_GAP = 360;
 const RACK_HORIZONTAL_OFFSET = 26;
 const BACK_DEPTH_OFFSET = { x: 220, y: -205 };
@@ -105,7 +105,7 @@ function Shelf({ level, index, totalLevels, rack, offsetY, selectedId, showFront
 }) {
   const shelfX = 152;
   const shelfY = offsetY + 160 + index * SHELF_STEP;
-  const rowOffsetX = (totalLevels - 1 - index) % 2 === 0 ? 0 : -20;
+  const rowOffsetX = (totalLevels - 1 - index) % 2 === 0 ? 0 : -35;
   const slotX = (position: number) => shelfX + rowOffsetX + 54 + position * 72;
 
   return (
