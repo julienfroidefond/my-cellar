@@ -7,6 +7,7 @@ const SHELF_STEP = 75;
 const RACK_GAP = 360;
 const RACK_HORIZONTAL_OFFSET = 26;
 const BACK_DEPTH_OFFSET = { x: 220, y: -205 };
+const BACK_IMAGE_SCALE = 1.38;
 
 function slotsForRack(rack: RackData) {
   const total = rack.config.levels.reduce((sum, level) => sum + level.front + level.back, 0);
@@ -36,10 +37,10 @@ function IsometricBottle({ wine, x, y, dim, selected, onSelect, onEmptyClick }: 
   onSelect: (wine: WineRef) => void;
   onEmptyClick: (() => void) | null;
 }) {
-  const imageWidth = 210;
-  const imageHeight = 150;
-  const imageX = x - 48;
-  const imageY = y - 72;
+  const imageWidth = dim ? 210 * BACK_IMAGE_SCALE : 210;
+  const imageHeight = dim ? 150 * BACK_IMAGE_SCALE : 150;
+  const imageX = dim ? x - 88 : x - 48;
+  const imageY = dim ? y - 100 : y - 72;
 
   if (!wine) {
     return (
@@ -90,9 +91,10 @@ function IsometricBottle({ wine, x, y, dim, selected, onSelect, onEmptyClick }: 
   );
 }
 
-function Shelf({ level, index, rack, offsetY, selectedId, showFront, showBack, onSelect, onEmptyClick }: {
+function Shelf({ level, index, totalLevels, rack, offsetY, selectedId, showFront, showBack, onSelect, onEmptyClick }: {
   level: { front: Slot[]; back: Slot[] };
   index: number;
+  totalLevels: number;
   rack: RackData;
   offsetY: number;
   selectedId: string | null;
@@ -103,7 +105,8 @@ function Shelf({ level, index, rack, offsetY, selectedId, showFront, showBack, o
 }) {
   const shelfX = 152;
   const shelfY = offsetY + 160 + index * SHELF_STEP;
-  const slotX = (position: number) => shelfX + 54 + position * 72;
+  const rowOffsetX = (totalLevels - 1 - index) % 2 === 0 ? 0 : -20;
+  const slotX = (position: number) => shelfX + rowOffsetX + 54 + position * 72;
 
   return (
     <g>
@@ -144,7 +147,7 @@ export function Cave3D({ racks, selectedId, showFront, showBack, onSelect, onEmp
             <text x="57" y={offsetY + 130} textAnchor="middle" fill="#fff" fontSize="17" fontWeight="700" fontFamily="var(--font-inter)">{rack.name}</text>
             {[...levels].reverse().map((level, reverseIndex) => {
               const index = levels.length - 1 - reverseIndex;
-              return <Shelf key={index} level={level} index={index} rack={rack} offsetY={offsetY} selectedId={selectedId} showFront={showFront} showBack={showBack} onSelect={onSelect} onEmptyClick={onEmptyClick} />;
+              return <Shelf key={index} level={level} index={index} totalLevels={levels.length} rack={rack} offsetY={offsetY} selectedId={selectedId} showFront={showFront} showBack={showBack} onSelect={onSelect} onEmptyClick={onEmptyClick} />;
             })}
           </g>
         ))}
