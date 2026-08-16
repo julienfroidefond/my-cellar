@@ -4,9 +4,9 @@ import type { RackData, WineRef } from "./types";
 
 type Slot = { wine: WineRef | null; slotIndex: number };
 const SHELF_STEP = 60;
-const RACK_GAP = 360;
+const RACK_VERTICAL_GAP = 90;
 const RACK_HORIZONTAL_OFFSET = 26;
-const BACK_DEPTH_OFFSET = { x: 220, y: -205 };
+const BACK_DEPTH_OFFSET = { x: 245, y: -205 };
 const BACK_IMAGE_SCALE = 1.38;
 
 function slotsForRack(rack: RackData) {
@@ -26,6 +26,26 @@ function slotsForRack(rack: RackData) {
     return slots;
   };
   return rack.config.levels.map(({ front, back }) => ({ front: take(front), back: take(back) }));
+}
+
+function visualBounds(levels: ReturnType<typeof slotsForRack>) {
+  let top = Number.POSITIVE_INFINITY;
+  let bottom = Number.NEGATIVE_INFINITY;
+
+  levels.forEach((level, index) => {
+    const shelfY = 160 + index * SHELF_STEP;
+    if (level.front.length > 0) {
+      top = Math.min(top, shelfY - 4 - 72);
+      bottom = Math.max(bottom, shelfY - 4 - 72 + 150);
+    }
+    if (level.back.length > 0) {
+      const backY = shelfY + BACK_DEPTH_OFFSET.y;
+      top = Math.min(top, backY - 100);
+      bottom = Math.max(bottom, backY - 100 + 150 * BACK_IMAGE_SCALE);
+    }
+  });
+
+  return Number.isFinite(top) ? { top, bottom } : { top: 0, bottom: 0 };
 }
 
 function IsometricBottle({ wine, x, y, dim, selected, onSelect, onEmptyClick }: {
@@ -128,15 +148,20 @@ export function Cave3D({ racks, selectedId, showFront, showBack, onSelect, onEmp
   onSelect: (wine: WineRef) => void;
   onEmptyClick: ((rack: RackData, slotIndex: number) => void) | null;
 }) {
-  const scenes = racks.reduce<{ rack: RackData; levels: ReturnType<typeof slotsForRack>; offsetX: number; offsetY: number }[]>((items, rack) => {
+  const scenes = racks.reduce<{ rack: RackData; levels: ReturnType<typeof slotsForRack>; bounds: ReturnType<typeof visualBounds>; offsetX: number; offsetY: number }[]>((items, rack) => {
+    const levels = slotsForRack(rack);
+    const bounds = visualBounds(levels);
     const previous = items.at(-1);
-    const offsetY = previous ? previous.offsetY + previous.levels.length * SHELF_STEP + RACK_GAP : 0;
-    items.push({ rack, levels: slotsForRack(rack), offsetX: items.length * RACK_HORIZONTAL_OFFSET, offsetY });
+    const offsetY = previous
+      ? previous.offsetY + previous.bounds.bottom + RACK_VERTICAL_GAP - bounds.top
+      : 32 - bounds.top;
+    items.push({ rack, levels, bounds, offsetX: items.length * RACK_HORIZONTAL_OFFSET, offsetY });
     return items;
   }, []);
   const widestLevel = Math.max(...scenes.flatMap(({ levels }) => levels.map((level) => Math.max(level.front.length, level.back.length))), 1);
   const width = Math.max(620, widestLevel * 104 + 300 + Math.max(0, racks.length - 1) * RACK_HORIZONTAL_OFFSET);
-  const height = (scenes.at(-1)?.offsetY ?? 0) + (scenes.at(-1)?.levels.length ?? 0) * SHELF_STEP + 105;
+  const lastScene = scenes.at(-1);
+  const height = lastScene ? lastScene.offsetY + lastScene.bounds.bottom + 32 : 0;
 
   return (
     <div className="overflow-x-auto rounded-2xl p-3 sm:p-5" aria-label="Vue isométrique de la cave" style={{ background: "linear-gradient(145deg, #fffaf2, #f3e7d7)", border: "1px solid var(--border)" }}>
