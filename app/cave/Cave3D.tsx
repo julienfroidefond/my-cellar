@@ -67,26 +67,28 @@ function IsometricBottle({ wine, x, y, dim, selected, onSelect, onEmptyClick }: 
   const imageX = dim ? x - 88 : x - 48;
   const imageY = dim ? y - 100 : y - 72;
   const imageSrc = bottleImage(wine, dim);
+  const hitCx = imageX + imageWidth * 0.52;
+  const hitCy = imageY + imageHeight * 0.52;
+  // The PNGs include generous transparent padding. Keep the interactive area
+  // narrowly inside the rendered bottle so neighbouring bottles remain
+  // independently clickable.
+  const hitRx = imageWidth * (dim ? 0.24 : 0.29);
+  const hitRy = imageHeight * (dim ? 0.23 : 0.27);
+  const hitTransform = `rotate(-42 ${hitCx} ${hitCy})`;
 
   if (!wine) {
     return (
-      <g
-        role={onEmptyClick ? "button" : undefined}
-        tabIndex={onEmptyClick ? 0 : undefined}
-        aria-label={onEmptyClick ? "Placer une bouteille ici" : "Emplacement vide"}
-        onClick={onEmptyClick ?? undefined}
-        onKeyDown={(event) => { if (onEmptyClick && (event.key === "Enter" || event.key === " ")) onEmptyClick(); }}
-        style={{ cursor: onEmptyClick ? "pointer" : "default" }}
-      >
-        <image
-          href={imageSrc}
-          x={imageX}
-          y={imageY}
-          width={imageWidth}
-          height={imageHeight}
-          opacity="0.16"
-          preserveAspectRatio="xMidYMid meet"
-        />
+      <g>
+        <image href={imageSrc} x={imageX} y={imageY} width={imageWidth} height={imageHeight} opacity="0.16" preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
+        {onEmptyClick && (
+          <ellipse
+            cx={hitCx} cy={hitCy} rx={hitRx} ry={hitRy} transform={hitTransform}
+            fill="rgba(0,0,0,0.001)" role="button" tabIndex={0} aria-label="Placer une bouteille ici"
+            onClick={(event) => { event.stopPropagation(); onEmptyClick(); }}
+            onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onEmptyClick(); }}
+            style={{ cursor: "pointer" }}
+          />
+        )}
       </g>
     );
   }
@@ -95,24 +97,18 @@ function IsometricBottle({ wine, x, y, dim, selected, onSelect, onEmptyClick }: 
   const activate = () => onSelect(wine);
 
   return (
-    <g
-      role="button"
-      tabIndex={0}
-      aria-label={`Voir ${label}`}
-      onClick={activate}
-      onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") activate(); }}
-      style={{ cursor: "pointer" }}
-    >
-      <title>{label}</title>
-      {selected && <rect x={imageX + 18} y={imageY + 18} width={imageWidth - 36} height={imageHeight - 36} rx="18" fill="none" stroke="var(--wine-red)" strokeWidth="3" />}
-      <image
-        href={imageSrc}
-        x={imageX}
-        y={imageY}
-        width={imageWidth}
-        height={imageHeight}
-        preserveAspectRatio="xMidYMid meet"
-      />
+    <g>
+      {selected && <rect x={imageX + 18} y={imageY + 18} width={imageWidth - 36} height={imageHeight - 36} rx="18" fill="none" stroke="var(--wine-red)" strokeWidth="3" pointerEvents="none" />}
+      <image href={imageSrc} x={imageX} y={imageY} width={imageWidth} height={imageHeight} preserveAspectRatio="xMidYMid meet" pointerEvents="none" />
+      <ellipse
+        cx={hitCx} cy={hitCy} rx={hitRx} ry={hitRy} transform={hitTransform}
+        fill="rgba(0,0,0,0.001)" role="button" tabIndex={0} aria-label={`Voir ${label}`}
+        onClick={(event) => { event.stopPropagation(); activate(); }}
+        onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") activate(); }}
+        style={{ cursor: "pointer" }}
+      >
+        <title>{label}</title>
+      </ellipse>
     </g>
   );
 }
