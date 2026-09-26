@@ -63,6 +63,7 @@ export async function DELETE(
   await prisma.wineHistory.create({
     data: {
       action: "retiré",
+      reason: "suppression",
       wineName: vintage.wine.name,
       producer: vintage.wine.producer ?? null,
       vintage: vintage.vintage ?? null,

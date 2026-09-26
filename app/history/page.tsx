@@ -3,6 +3,8 @@ export const dynamic = 'force-dynamic';
 import { prisma } from "@/lib/db";
 import Link from "next/link";
 import HistoryCharts from "@/components/HistoryCharts";
+import { removalReasonLabel } from "@/lib/history";
+import { HistoryFilters } from "./HistoryFilters";
 import { RateEntry } from "./RateEntry";
 
 const COLOR_DOT: Record<string, string> = {
@@ -32,16 +34,30 @@ function dateKey(date: Date): string {
   return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
 }
 
-export default async function HistoryPage() {
-  const [entries, wines] = await Promise.all([
+export default async function HistoryPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filter?: string }>;
+}) {
+  const { filter } = await searchParams;
+  const activeFilter = filter === "all" || filter === "retiré" ? filter : "bu";
+
+  const [allEntries, wines] = await Promise.all([
     prisma.wineHistory.findMany({
-      where: { action: "bu" },
+      where: { action: { in: ["bu", "retiré"] } },
       orderBy: { consumedAt: "desc" },
     }),
     prisma.wine.findMany({
       select: { id: true, name: true, imageUrl: true },
     }),
   ]);
+
+  const entries = activeFilter === "all" ? allEntries : allEntries.filter((e) => e.action === activeFilter);
+  const filterCounts = {
+    all: allEntries.length,
+    bu: allEntries.filter((e) => e.action === "bu").length,
+    retiré: allEntries.filter((e) => e.action === "retiré").length,
+  };
 
   // Build list of [normalizedName, { id, imageUrl }] for substring matching —
   // WineHistory ne garde qu'un snapshot du nom, pas de FK vers Wine.
@@ -188,10 +204,11 @@ export default async function HistoryPage() {
 
       {/* ── Timeline ────────────────────────────────── */}
       <div className="animate-fade-up-4 max-w-7xl mx-auto px-6 py-10">
+        <HistoryFilters active={activeFilter} counts={filterCounts} />
         {entries.length === 0 ? (
           <div className="text-center py-28">
             <p style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)", fontSize: "0.875rem" }}>
-              Aucune dégustation enregistrée.
+              Aucune entrée pour ce filtre.
             </p>
           </div>
         ) : (
@@ -220,6 +237,7 @@ export default async function HistoryPage() {
                       const dot = COLOR_DOT[entry.color ?? ""] ?? "#888";
                       const match = matchWine(entry.wineName);
                       const imgUrl = match?.imageUrl ?? null;
+                      const isRemoval = entry.action === "retiré";
 
                       return (
                         <div
@@ -268,6 +286,19 @@ export default async function HistoryPage() {
                             )}
 
                             <div className="flex items-center gap-2 flex-wrap">
+                              {isRemoval && (
+                                <span
+                                  className="text-xs px-2.5 py-1 rounded-full font-medium"
+                                  style={{
+                                    background: "rgba(192,25,59,0.09)",
+                                    border: "1px solid rgba(192,25,59,0.22)",
+                                    color: "var(--wine-red)",
+                                    fontFamily: "var(--font-inter)",
+                                  }}
+                                >
+                                  {removalReasonLabel(entry.reason)}
+                                </span>
+                              )}
                               {entry.vintage && (
                                 <span className="text-xs px-2.5 py-1 rounded-full tabular-nums" style={{ background: "rgba(26,10,14,0.06)", border: "1px solid var(--border)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
                                   {entry.vintage}
@@ -289,7 +320,19 @@ export default async function HistoryPage() {
                               </div>
                             </div>
 
-                            <RateEntry id={entry.id} rating={entry.rating} />
+                            {entry.note && (
+                              <p className="text-xs italic mt-2" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+                                {entry.note}
+                              </p>
+                            )}
+
+                            {isRemoval ? (
+                              <p className="text-xs mt-3" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+                                {entry.quantity} bouteille{entry.quantity > 1 ? "s" : ""} sortie{entry.quantity > 1 ? "s" : ""} du stock
+                              </p>
+                            ) : (
+                              <RateEntry id={entry.id} rating={entry.rating} />
+                            )}
                           </div>
                         </div>
                       );

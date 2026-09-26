@@ -49,6 +49,7 @@ export async function DELETE(_: NextRequest, { params }: { params: Promise<{ id:
       prisma.wineHistory.create({
         data: {
           action: "retiré",
+          reason: "suppression",
           wineName: wine.name,
           producer: wine.producer,
           vintage: v.vintage,

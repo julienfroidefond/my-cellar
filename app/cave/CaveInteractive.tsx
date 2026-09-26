@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ShelfLevel, Plank } from "./ShelfLevel";
-import { WineDetailModal } from "./WineDetailModal";
+import { WineDetailModal, type RemovalPayload } from "./WineDetailModal";
 import { SlotPickerModal } from "./SlotPickerModal";
 import { BOTTLE } from "./constants";
 import { Cave3D } from "./Cave3D";
@@ -47,7 +47,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
   const [, startTransition] = useTransition();
   const [placing, setPlacing] = useState<WineRef | null>(null);
   const [selected, setSelected] = useState<WineRef | null>(null);
-  const [pending, setPending] = useState<"drink" | "unrack" | "delete" | null>(null);
+  const [pending, setPending] = useState<"drink" | "unrack" | "remove" | null>(null);
   const [showLabels, setShowLabels] = useState(false);
   const [showFront, setShowFront] = useState(true);
   const [showBack, setShowBack] = useState(true);
@@ -74,10 +74,14 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
     setSelected(null); setPending(null); refresh();
   }
 
-  async function confirmDelete() {
+  async function confirmRemove(payload: RemovalPayload) {
     if (!selected) return;
-    setPending("delete");
-    await fetch(`/api/vintages/${selected.vintageId}`, { method: "DELETE" });
+    setPending("remove");
+    await fetch(`/api/wines/${selected.vintageId}/remove`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...payload, slotId: selected.rackId ? selected.id : null }),
+    });
     setSelected(null); setPending(null); refresh();
   }
 
@@ -337,7 +341,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
           onClose={() => setSelected(null)}
           onDrink={confirmDrink}
           onUnrack={confirmUnrack}
-          onDelete={confirmDelete}
+          onRemove={confirmRemove}
         />
       )}
 

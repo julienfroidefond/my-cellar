@@ -5,48 +5,6 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireSession } from "@/lib/auth";
 
-function revalidateWineSurfaces(wineId: string) {
-  revalidatePath("/");
-  revalidatePath("/cave");
-  revalidatePath("/history");
-  revalidatePath("/wines");
-  revalidatePath(`/wines/${wineId}`);
-}
-
-export async function removeStockAction(vintageId: string) {
-  await requireSession();
-
-  const vintage = await prisma.wineVintage.findUnique({
-    where: { id: vintageId },
-    include: { wine: true },
-  });
-
-  if (!vintage) {
-    throw new Error("Vintage not found");
-  }
-
-  const newQuantity = Math.max(0, vintage.quantity - 1);
-
-  await prisma.$transaction([
-    prisma.wineVintage.update({ where: { id: vintageId }, data: { quantity: newQuantity } }),
-    prisma.wineHistory.create({
-      data: {
-        action: "retiré",
-        wineName: vintage.wine.name,
-        producer: vintage.wine.producer,
-        vintage: vintage.vintage,
-        color: vintage.wine.color,
-        appellation: vintage.wine.appellation,
-        region: vintage.wine.region,
-        quantity: 1,
-        imageUrl: vintage.wine.imageUrl,
-      },
-    }),
-  ]);
-
-  revalidateWineSurfaces(vintage.wineId);
-}
-
 export async function deleteWineAction(wineId: string) {
   await requireSession();
 
@@ -65,6 +23,7 @@ export async function deleteWineAction(wineId: string) {
       prisma.wineHistory.create({
         data: {
           action: "retiré",
+          reason: "suppression",
           wineName: wine.name,
           producer: wine.producer,
           vintage: v.vintage,

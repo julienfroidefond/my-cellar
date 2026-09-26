@@ -10,6 +10,7 @@ import { decodeSlot } from "@/lib/rack-configs";
 import { estimateMaturity } from "@/lib/maturity";
 import { Stars } from "@/components/StarRating";
 import { MaturityTimeline } from "@/components/MaturityTimeline";
+import { removalReasonLabel } from "@/lib/history";
 import type { WineVintage } from "@/app/generated/prisma/client";
 
 const COLOR_CONFIG: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -81,7 +82,7 @@ function VintageRow({ v, wine }: {
         </div>
         {v.quantity > 0 && (
           <div className="flex items-center gap-2 shrink-0">
-            <RemoveStockButton vintageId={v.id} />
+            <RemoveStockButton vintageId={v.id} maxQuantity={v.quantity} />
             <DrinkButton vintageId={v.id} wineName="" />
           </div>
         )}
@@ -344,17 +345,17 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
 
         {/* Historique — pleine largeur, en bas de page */}
         {wineHistory.length > 0 && (() => {
-          // Group by day + vintage + action
-          const groups = new Map<string, { action: string; vintage: number | null; date: Date; count: number; ratings: number[] }>();
+          const groups = new Map<string, { action: string; reason: string | null; note: string | null; vintage: number | null; date: Date; count: number; ratings: number[] }>();
           for (const h of wineHistory) {
             const day = new Date(h.consumedAt).toDateString();
-            const key = `${day}|${h.vintage ?? ""}|${h.action}`;
+            const key = `${day}|${h.vintage ?? ""}|${h.action}|${h.reason ?? ""}`;
             const existing = groups.get(key);
             if (existing) {
               existing.count += h.quantity;
               if (h.rating != null) existing.ratings.push(h.rating);
+              if (h.note) existing.note = existing.note ? `${existing.note} · ${h.note}` : h.note;
             } else {
-              groups.set(key, { action: h.action, vintage: h.vintage, date: new Date(h.consumedAt), count: h.quantity, ratings: h.rating != null ? [h.rating] : [] });
+              groups.set(key, { action: h.action, reason: h.reason, note: h.note, vintage: h.vintage, date: new Date(h.consumedAt), count: h.quantity, ratings: h.rating != null ? [h.rating] : [] });
             }
           }
           const rows = Array.from(groups.values()).map((g) => ({
@@ -379,12 +380,22 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                       <span
                         className="text-xs px-2.5 py-1 rounded-full font-medium shrink-0"
                         style={{
-                          background: h.action === "bu" ? "rgba(192,25,59,0.09)" : "rgba(26,10,14,0.06)",
-                          color: h.action === "bu" ? "var(--wine-red)" : "var(--text-muted)",
+                          background:
+                            h.action === "bu"
+                              ? "rgba(192,25,59,0.09)"
+                              : h.reason === "offert"
+                                ? "rgba(184,122,44,0.12)"
+                                : "rgba(26,10,14,0.06)",
+                          color:
+                            h.action === "bu"
+                              ? "var(--wine-red)"
+                              : h.reason === "offert"
+                                ? "var(--gold)"
+                                : "var(--text-muted)",
                           fontFamily: "var(--font-inter)",
                         }}
                       >
-                        {h.action === "bu" ? "Bu" : "Retiré"}
+                        {h.action === "bu" ? "Bu" : removalReasonLabel(h.reason)}
                       </span>
                       {h.vintage && (
                         <span className="text-sm font-semibold" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
@@ -397,6 +408,15 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                         </span>
                       )}
                       {h.avgRating != null && <Stars rating={h.avgRating} />}
+                      {h.note && (
+                        <span
+                          className="hidden sm:block text-xs italic truncate"
+                          style={{ maxWidth: 220, fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}
+                          title={h.note}
+                        >
+                          {h.note}
+                        </span>
+                      )}
                     </div>
                     <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
                       {h.date.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}

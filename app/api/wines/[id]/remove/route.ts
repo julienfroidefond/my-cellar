@@ -1,39 +1,25 @@
-import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { removeBottlesFromStock } from "@/lib/removals";
 
 // POST /api/wines/[id]/remove — [id] = WineVintage.id
-// Decrements vintage.quantity by 1 and logs action "retiré" in history.
-export async function POST(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+// body: { quantity?, reason?, note?, slotId? }
+// reason: "offert" | "regul" | "suppression" (défaut "regul" pour compat API)
+// slotId: WineVintageSlot.id à décrémenter en priorité (appel depuis la cave)
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
 
-  const vintage = await prisma.wineVintage.findUnique({
-    where: { id },
-    include: { wine: true },
+  const result = await removeBottlesFromStock({
+    vintageId: id,
+    quantity: Number(body.quantity ?? 1),
+    reason: body.reason ?? "regul",
+    note: body.note,
+    slotId: typeof body.slotId === "string" ? body.slotId : null,
   });
 
-  if (!vintage) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: result.status });
+  }
 
-  const newQuantity = Math.max(0, vintage.quantity - 1);
-
-  await prisma.$transaction([
-    prisma.wineVintage.update({ where: { id }, data: { quantity: newQuantity } }),
-    prisma.wineHistory.create({
-      data: {
-        action: "retiré",
-        wineName: vintage.wine.name,
-        producer: vintage.wine.producer,
-        vintage: vintage.vintage,
-        color: vintage.wine.color,
-        appellation: vintage.wine.appellation,
-        region: vintage.wine.region,
-        quantity: 1,
-        imageUrl: vintage.wine.imageUrl,
-      },
-    }),
-  ]);
-
-  return NextResponse.json({ ok: true });
+  return NextResponse.json(result);
 }
