@@ -54,6 +54,9 @@ model WineVintageSlot {
 
   vintage WineVintage @relation(fields: [vintageId], references: [id], onDelete: Cascade)
   rack    Rack        @relation(fields: [rackId], references: [id])
+
+  // Un emplacement physique ne peut contenir qu'un seul slot.
+  @@unique([rackId, rackRow, rackCol])
 }
 
 model Rack {

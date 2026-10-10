@@ -28,14 +28,25 @@ export async function POST(
   await prisma.$transaction(async (tx) => {
     await tx.wineVintage.update({ where: { id }, data: { quantity: newQuantity } });
 
-    if (slotId) {
-      const slot = await tx.wineVintageSlot.findUnique({ where: { id: slotId } });
+    // Si aucun slot n'est fourni (ex. « Boire » depuis la fiche vin), on retire
+    // quand même un emplacement pour préserver l'invariant « rangé <= stock ».
+    let effectiveSlotId = slotId;
+    if (!effectiveSlotId) {
+      const firstSlot = await tx.wineVintageSlot.findFirst({
+        where: { vintageId: id },
+        select: { id: true },
+      });
+      effectiveSlotId = firstSlot?.id;
+    }
+
+    if (effectiveSlotId) {
+      const slot = await tx.wineVintageSlot.findUnique({ where: { id: effectiveSlotId } });
       if (slot) {
         if (slot.quantity <= 1) {
-          await tx.wineVintageSlot.delete({ where: { id: slotId } });
+          await tx.wineVintageSlot.delete({ where: { id: effectiveSlotId } });
         } else {
           await tx.wineVintageSlot.update({
-            where: { id: slotId },
+            where: { id: effectiveSlotId },
             data: { quantity: { decrement: 1 } },
           });
         }

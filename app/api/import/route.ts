@@ -53,7 +53,14 @@ export async function POST(req: NextRequest) {
       for (const vintage of data.wineVintages ?? []) {
         await tx.wineVintage.create({ data: vintage as Parameters<typeof tx.wineVintage.create>[0]["data"] });
       }
+      const seenPositions = new Set<string>();
       for (const slot of data.wineVintageSlots ?? []) {
+        const record = slot as { rackId?: unknown; rackRow?: unknown; rackCol?: unknown };
+        const positionKey = `${record.rackId}|${record.rackRow}|${record.rackCol}`;
+        // Un emplacement physique ne peut contenir qu'un seul slot : on ignore les
+        // doublons d'un ancien export (ils fausseraient la contrainte d'unicité).
+        if (seenPositions.has(positionKey)) continue;
+        seenPositions.add(positionKey);
         await tx.wineVintageSlot.create({ data: slot as Parameters<typeof tx.wineVintageSlot.create>[0]["data"] });
       }
       for (const entry of (data.wineHistory ?? [])) {
