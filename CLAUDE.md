@@ -24,7 +24,9 @@ npx prisma generate      # Regenerate client after schema changes
 Vitest runs two layers of tests (`npm run test`, `npm run test:watch`,
 `npm run test:coverage`); config lives in `vitest.config.mts`.
 
-- **Unit tests** (`lib/*.test.ts`) cover the pure business logic in `lib/`.
+- **Unit tests** (`lib/*.test.ts`) cover the business logic in `lib/`. Most are
+  pure (fs/fetch mocked where needed); `lib/removals.test.ts` uses the database
+  harness below.
 - **Integration tests** (`test/**/*.test.ts`) call route handlers and server
   actions directly against a real SQLite database. The DB is created from the
   Prisma schema by `test/global-setup.ts` in a temp directory
