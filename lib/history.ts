@@ -9,7 +9,7 @@ export type RemovalReason = keyof typeof REMOVAL_REASON_LABELS;
 export const SELECTABLE_REMOVAL_REASONS = ["offert", "regul"] as const satisfies readonly RemovalReason[];
 
 export function isRemovalReason(value: unknown): value is RemovalReason {
-  return typeof value === "string" && value in REMOVAL_REASON_LABELS;
+  return typeof value === "string" && Object.hasOwn(REMOVAL_REASON_LABELS, value);
 }
 
 /** Libellé affichable d'une raison de retrait ("Retiré" pour les entrées legacy). */

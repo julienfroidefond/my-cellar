@@ -10,6 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 npm run dev      # Start dev server (http://localhost:3000)
 npm run build    # Production build
 npm run lint     # ESLint
+npm run test     # Run the Vitest suite once
 npm run seed     # Seed database (prisma/seed.ts)
 ```
 
@@ -20,7 +21,18 @@ npx prisma migrate dev   # Create and apply migration
 npx prisma generate      # Regenerate client after schema changes
 ```
 
-No test suite exists in this project.
+Vitest runs two layers of tests (`npm run test`, `npm run test:watch`,
+`npm run test:coverage`); config lives in `vitest.config.mts`.
+
+- **Unit tests** (`lib/*.test.ts`) cover the pure business logic in `lib/`.
+- **Integration tests** (`test/**/*.test.ts`) call route handlers and server
+  actions directly against a real SQLite database. The DB is created from the
+  Prisma schema by `test/global-setup.ts` in a temp directory
+  (`$TMPDIR/my-cellar-vitest/cellar.db`, exposed as `DB_PATH`), and
+  `test/reset-db.ts` wipes tables between tests. `test/setup.ts` mocks the
+  Next.js server APIs (`next/headers` cookies, `next/cache`, `next/navigation`),
+  and `test/factories.ts` provides request/record builders. Tests run serially
+  (`fileParallelism: false`) because they share the database file.
 
 ## Architecture
 
