@@ -51,7 +51,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
   const [showLabels, setShowLabels] = useState(false);
   const [showFront, setShowFront] = useState(true);
   const [showBack, setShowBack] = useState(true);
-  const [view, setView] = useState<"plan" | "3d">("plan");
+  const [view, setView] = useState<"plan" | "3d">("3d");
   const [targetSlot, setTargetSlot] = useState<TargetSlot | null>(null);
 
   function refresh() { startTransition(() => router.refresh()); }
@@ -167,19 +167,21 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
           <span style={{ fontSize: 11 }}>{showBack ? "◉" : "○"}</span>
           Profondeur 2
         </button>
-        <button
-          onClick={() => setShowLabels((v) => !v)}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
-          style={{
-            fontFamily: "var(--font-inter)",
-            background: showLabels ? "rgba(192,25,59,0.08)" : "rgba(26,10,14,0.04)",
-            border: showLabels ? "1px solid rgba(192,25,59,0.30)" : "1px solid var(--border)",
-            color: showLabels ? "var(--wine-red)" : "var(--text-muted)",
-          }}
-        >
-          <span style={{ fontSize: 11 }}>{showLabels ? "◉" : "○"}</span>
-          {showLabels ? "Masquer les étiquettes" : "Afficher les étiquettes"}
-        </button>
+        {view === "plan" && (
+          <button
+            onClick={() => setShowLabels((v) => !v)}
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
+            style={{
+              fontFamily: "var(--font-inter)",
+              background: showLabels ? "rgba(192,25,59,0.08)" : "rgba(26,10,14,0.04)",
+              border: showLabels ? "1px solid rgba(192,25,59,0.30)" : "1px solid var(--border)",
+              color: showLabels ? "var(--wine-red)" : "var(--text-muted)",
+            }}
+          >
+            <span style={{ fontSize: 11 }}>{showLabels ? "◉" : "○"}</span>
+            {showLabels ? "Masquer les étiquettes" : "Afficher les étiquettes"}
+          </button>
+        )}
       </div>
 
       {/* Racks */}
