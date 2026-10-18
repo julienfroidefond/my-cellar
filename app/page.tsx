@@ -10,6 +10,13 @@ import { estimateMaturity } from "@/lib/maturity";
 import { getMaturityPhase } from "@/lib/maturity-phase";
 import { APPELLATION_COORDS } from "@/lib/appellation-coords";
 
+// The dashboard is rendered per request (`force-dynamic`), so picking a random
+// hero wine on every render is intentional. Kept out of the component body so it
+// does not look like an impure call during render.
+function pickRandom<T>(items: T[]): T {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
 export default async function DashboardPage() {
   const wines = await prisma.wine.findMany({
     orderBy: { name: "asc" },
@@ -124,9 +131,7 @@ export default async function DashboardPage() {
     });
 
   const winesWithImage = wines.filter((w) => w.imageUrl && w.vintages.some((v) => v.quantity > 0));
-  const heroWine = winesWithImage.length > 0
-    ? winesWithImage[Math.floor(Math.random() * winesWithImage.length)]
-    : null;
+  const heroWine = winesWithImage.length > 0 ? pickRandom(winesWithImage) : null;
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>

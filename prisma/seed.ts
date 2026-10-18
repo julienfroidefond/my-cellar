@@ -4,7 +4,7 @@ import path from "path";
 
 const dbPath = path.resolve(process.cwd(), "cellar.db");
 const adapter = new PrismaBetterSqlite3({ url: `file:${dbPath}` });
-const prisma = new PrismaClient({ adapter } as any);
+const prisma = new PrismaClient({ adapter });
 
 // Each entry: wine-level fields + vintages array
 const wines = [

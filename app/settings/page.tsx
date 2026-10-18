@@ -159,7 +159,7 @@ export default function SettingsPage() {
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-opacity hover:opacity-90"
             style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)", textDecoration: "none" }}
           >
-            Télécharger l'export
+            Télécharger l&apos;export
           </a>
         </section>
 
@@ -201,7 +201,7 @@ export default function SettingsPage() {
                   className="px-5 py-2.5 rounded-full text-sm font-semibold transition-opacity hover:opacity-90"
                   style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}
                 >
-                  Confirmer l'import
+                  Confirmer l&apos;import
                 </button>
                 <button
                   onClick={reset}
@@ -231,7 +231,7 @@ export default function SettingsPage() {
                   <li>{importResult.vintages} millésimes</li>
                   <li>{importResult.slots} emplacements</li>
                   <li>{importResult.racks} casiers</li>
-                  <li>{importResult.history} entrées d'historique</li>
+                  <li>{importResult.history} entrées d&apos;historique</li>
                   <li>{importResult.images} images</li>
                 </ul>
               </div>
@@ -259,7 +259,7 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div className="p-4 rounded-xl" style={{ background: "rgba(192,25,59,0.06)", border: "1px solid rgba(192,25,59,0.25)" }}>
                 <p className="text-sm font-semibold mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>
-                  Erreur lors de l'import
+                  Erreur lors de l&apos;import
                 </p>
                 <p className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
                   {errorMsg}

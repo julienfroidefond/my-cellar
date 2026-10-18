@@ -156,3 +156,14 @@ body {
 .input-base:focus {
   border-color: rgba(192,25,59,0.4);
 }
+
+/* react-simple-maps v5 styles geographies through CSS classes instead of the
+   old `style={{ default, hover, pressed }}` prop. */
+.map-region {
+  outline: none;
+  cursor: pointer;
+  transition: fill 150ms ease;
+}
+.map-region:hover {
+  fill: rgba(192,25,59,0.10);
+}

@@ -88,6 +88,7 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
           style={{ width: 72, height: 140, background: "rgba(26,10,14,0.04)", border: "1px solid rgba(26,10,14,0.09)" }}
         >
           {preview ? (
+            // eslint-disable-next-line @next/next/no-img-element -- local blob/URL preview, not a remote asset
             <img src={preview} alt="Bouteille" className="w-full h-full object-contain" onError={() => { setPreview(null); setUrlError(true); }} />
           ) : (
             <span style={{ fontSize: 28, opacity: 0.3 }}>🍷</span>
@@ -160,7 +161,7 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
                 className="text-xs transition-opacity hover:opacity-80"
                 style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}
               >
-                Supprimer l'image
+                Supprimer l&apos;image
               </button>
             </div>
           )}
@@ -170,7 +171,7 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
       {/* Liens de recherche */}
       <div className="rounded-xl p-3" style={{ background: "rgba(26,10,14,0.04)", border: "1px solid rgba(26,10,14,0.08)" }}>
         <p className="text-xs mb-2.5" style={{ fontFamily: "var(--font-inter)", color: "rgba(26,10,14,0.40)" }}>
-          Chercher l'image sur…
+          Chercher l&apos;image sur…
         </p>
         <div className="flex gap-2 flex-wrap">
           {SEARCH_LINKS.map(({ label, url }) => (
@@ -187,7 +188,7 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
           ))}
         </div>
         <p className="text-xs mt-2" style={{ fontFamily: "var(--font-inter)", color: "rgba(26,10,14,0.30)" }}>
-          Clic droit sur l'image → "Copier l'adresse de l'image" → coller ci-dessus
+          Clic droit sur l&apos;image → &quot;Copier l&apos;adresse de l&apos;image&quot; → coller ci-dessus
         </p>
       </div>
 

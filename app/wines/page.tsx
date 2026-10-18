@@ -132,7 +132,9 @@ function WinesContent() {
 
   // Persist to localStorage + sync URL
   useEffect(() => {
-    const { search: _, ...toSave } = filters;
+    // `search` is intentionally not persisted (it is not part of saved filters)
+    const toSave: Partial<Filters> = { ...filters };
+    delete toSave.search;
     try { localStorage.setItem("wine-filters", JSON.stringify(toSave)); } catch {}
 
     const p = new URLSearchParams();

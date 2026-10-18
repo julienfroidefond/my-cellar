@@ -18,10 +18,14 @@ const links = [
 export default function Navigation() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const [renderedPathname, setRenderedPathname] = useState(pathname);
 
-  useEffect(() => {
+  // Close the mobile menu when the route changes. Adjusting the state during
+  // render (instead of in an effect) avoids a cascading re-render.
+  if (pathname !== renderedPathname) {
+    setRenderedPathname(pathname);
     setIsOpen(false);
-  }, [pathname]);
+  }
 
   useEffect(() => {
     document.body.style.overflow = isOpen ? "hidden" : "";

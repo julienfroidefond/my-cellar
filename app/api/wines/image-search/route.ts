@@ -5,7 +5,21 @@ export type VivinoResult = {
   name: string;
   image: string; // URL de l'image de la bouteille
   winery: string;
-  vintage?: number;
+  vintage?: number | null;
+};
+
+// Sous-ensemble non documenté de la réponse de l'API Vivino que l'on consomme.
+// Tous les champs sont optionnels : l'API peut les omettre selon le résultat.
+type VivinoMatch = {
+  vintage?: {
+    year?: number;
+    wine?: {
+      id?: number;
+      name?: string;
+      image?: { variations?: { bottle_medium_url?: string } };
+      winery?: { name?: string } | null;
+    };
+  };
 };
 
 // GET /api/wines/image-search?q=Château+Margaux
@@ -28,19 +42,23 @@ export async function GET(req: NextRequest) {
 
     if (!res.ok) return NextResponse.json({ results: [] });
 
-    const data = await res.json();
-    const matches = data?.matches ?? [];
+    const data: { matches?: VivinoMatch[] } = await res.json();
+    const matches = data.matches ?? [];
 
     const results: VivinoResult[] = matches
-      .filter((m: any) => m?.vintage?.wine?.image?.variations?.bottle_medium_url)
-      .slice(0, 6)
-      .map((m: any) => ({
-        id: m.vintage?.wine?.id,
-        name: m.vintage?.wine?.name,
-        image: m.vintage?.wine?.image?.variations?.bottle_medium_url,
-        winery: m.vintage?.wine?.winery?.name ?? "",
-        vintage: m.vintage?.year ?? null,
-      }));
+      .flatMap((m): VivinoResult[] => {
+        const wine = m.vintage?.wine;
+        const image = wine?.image?.variations?.bottle_medium_url;
+        if (!image || wine?.id == null || !wine.name) return [];
+        return [{
+          id: wine.id,
+          name: wine.name,
+          image,
+          winery: wine.winery?.name ?? "",
+          vintage: m.vintage?.year ?? null,
+        }];
+      })
+      .slice(0, 6);
 
     return NextResponse.json({ results });
   } catch {

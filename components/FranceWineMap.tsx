@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import Link from "next/link";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
+
+// react-simple-maps v5 ships its own types, but its `Geography` *interface* is not
+// reachable from the package root (the explicit `Geography` component export shadows
+// the type-only re-export). Derive it from the component props instead.
+type GeoFeature = ComponentProps<typeof Geography>["geography"];
 
 const GEO_URL = "/france-regions.json";
 const DEFAULT_CENTER: [number, number] = [2.5, 46.5];
@@ -37,6 +42,12 @@ interface RegionGeo {
     type: "Polygon" | "MultiPolygon";
     coordinates: number[][][] | number[][][][];
   };
+}
+
+// The GeoJSON we ship carries `nom`/`code` properties, which the generic
+// GeoJSON types from react-simple-maps do not know about.
+function asRegion(geo: GeoFeature): RegionGeo {
+  return geo as unknown as RegionGeo;
 }
 
 interface Props {
@@ -137,21 +148,18 @@ export default function FranceWineMap({ markers, foreignWines }: Props) {
         >
           <Geographies geography={GEO_URL}>
             {({ geographies }) =>
-              (geographies as RegionGeo[]).map((geo) => {
-                const isSelected = selectedRegion === geo.properties.nom;
+              geographies.map((geo) => {
+                const region = asRegion(geo);
+                const isSelected = selectedRegion === region.properties.nom;
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    onClick={() => handleRegionClick(geo)}
+                    onClick={() => handleRegionClick(region)}
+                    className="map-region"
                     fill={isSelected ? "rgba(192,25,59,0.14)" : "rgba(192,25,59,0.04)"}
                     stroke="rgba(192,25,59,0.18)"
                     strokeWidth={0.5}
-                    style={{
-                      default: { outline: "none", cursor: "pointer" },
-                      hover: { fill: "rgba(192,25,59,0.10)", outline: "none", cursor: "pointer" },
-                      pressed: { outline: "none" },
-                    }}
                   />
                 );
               })

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
 const PAGE_SIZE = 6;
@@ -32,7 +32,6 @@ export default function PremiumCarousel({ initialWines, total }: Props) {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [direction, setDirection] = useState<"left" | "right">("left");
-  const animKey = useRef(0);
   const [tick, setTick] = useState(0);
 
   if (total === 0) return null;
@@ -58,9 +57,8 @@ export default function PremiumCarousel({ initialWines, total }: Props) {
     }
 
     setDirection(dir === "next" ? "left" : "right");
-    animKey.current += 1;
     setPage(nextPage);
-    setTick(t => t + 1); // force re-render to replay animation
+    setTick(t => t + 1); // bump the key below to replay the slide animation
   }
 
   const animClass = direction === "left" ? "animate-slide-left" : "animate-slide-right";
@@ -94,7 +92,7 @@ export default function PremiumCarousel({ initialWines, total }: Props) {
       </div>
 
       {/* Cards */}
-      <div key={`${animKey.current}-${tick}`} className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${animClass}`}>
+      <div key={`${page}-${tick}`} className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${animClass}`}>
         {visible.map((wine) => {
           const cfg = colorConfig[wine.color ?? ""] ?? { dot: "#888", border: "rgba(26,10,14,0.10)", label: wine.color ?? "" };
           return (
