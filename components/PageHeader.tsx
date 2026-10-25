@@ -16,6 +16,7 @@ export function PageHeader({
   eyebrow,
   title,
   lead,
+  back,
   actions,
   aside,
   asideSize = "default",
@@ -25,6 +26,7 @@ export function PageHeader({
   eyebrow: ReactNode;
   title: ReactNode;
   lead?: ReactNode;
+  back?: ReactNode;
   actions?: ReactNode;
   aside?: ReactNode;
   asideSize?: "default" | "narrow";
@@ -61,6 +63,8 @@ export function PageHeader({
               }
             >
               <div className="min-w-0 max-w-3xl">
+                {back && <div className="animate-fade-up-1 mb-5">{back}</div>}
+
                 <p
                   className="animate-fade-up-1 mb-3 text-[11px] font-semibold uppercase tracking-[0.35em]"
                   style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}

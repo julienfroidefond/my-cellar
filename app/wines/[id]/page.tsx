@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft, Pencil } from "lucide-react";
 import DeleteWineButton from "./DeleteWineButton";
 import AddBottleButton from "./AddBottleButton";
 import DrinkButton from "./DrinkButton";
@@ -219,7 +220,22 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             )}
           </span>
         }
-        lead={wine.producer ?? undefined}
+        lead={
+          wine.producer || wine.description ? (
+            <div className="space-y-2.5">
+              {wine.producer && (
+                <p className="text-sm font-medium" style={{ color: "var(--foreground)" }}>
+                  {wine.producer}
+                </p>
+              )}
+              {wine.description && (
+                <p className="max-w-2xl text-[15px] leading-relaxed" style={{ color: "var(--text-muted)" }}>
+                  {wine.description}
+                </p>
+              )}
+            </div>
+          ) : undefined
+        }
         asideSize="narrow"
         aside={
           wine.imageUrl ? (
@@ -247,29 +263,25 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             ? [{ value: `${avgRating.toFixed(1)} / 5`, label: "Note moyenne" }]
             : []),
         ]}
+        back={
+          <Link
+            href="/wines"
+            className="inline-flex items-center gap-1.5 text-[13px] font-semibold transition-opacity hover:opacity-60"
+            style={{ color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}
+          >
+            <ArrowLeft size={15} strokeWidth={2} aria-hidden="true" />
+            Collection
+          </Link>
+        }
         actions={
-          <>
-            <Link
-              href="/wines"
-              className="px-4 py-2 rounded-full text-sm"
-              style={{
-                border: "1px solid var(--border)",
-                color: "var(--text-muted)",
-                fontFamily: "var(--font-inter)",
-                fontWeight: 600,
-              }}
-            >
-              ← Collection
-            </Link>
-            <Link
-              href={`/wines/${wine.id}/edit`}
-              className="px-5 py-2.5 rounded-full text-sm font-medium text-center transition-opacity hover:opacity-90"
-              style={{ background: "var(--wine-red)", color: "#fff", fontFamily: "var(--font-inter)" }}
-            >
-              Modifier
-            </Link>
-            <AddBottleButton id={wine.id} vintage={wine.vintages[0]?.vintage ?? null} />
-          </>
+          <Link
+            href={`/wines/${wine.id}/edit`}
+            className="inline-flex h-10 items-center gap-2 rounded-full px-4 text-sm font-semibold transition-opacity hover:opacity-75"
+            style={{ border: "1px solid var(--border)", background: "var(--surface)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
+          >
+            <Pencil size={15} strokeWidth={1.9} aria-hidden="true" />
+            Modifier
+          </Link>
         }
       />
 
@@ -280,24 +292,16 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
 
           {/* Millésimes — 2/3 */}
           <div className="md:col-span-2">
-            {wine.description && (
-              <div
-                className="rounded-2xl p-6 mb-8"
-                data-reveal
-                style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.06)" }}
-              >
-                <p className="text-xs tracking-[0.3em] uppercase font-semibold mb-2" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Description</p>
-                <p className="text-base leading-relaxed" style={{ fontFamily: "var(--font-inter)", color: "var(--foreground)" }}>{wine.description}</p>
+            <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs tracking-[0.3em] uppercase font-semibold mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Stock</p>
+                <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>Millésimes</h2>
               </div>
-            )}
-
-            <div className="mb-6">
-              <p className="text-xs tracking-[0.3em] uppercase font-semibold mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Stock</p>
-              <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>Millésimes</h2>
+              <AddBottleButton id={wine.id} vintage={wine.vintages[0]?.vintage ?? null} />
             </div>
             {wine.vintages.length === 0 ? (
               <p className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
-                Aucun millésime — utilisez le bouton &quot;+ Ajouter&quot; ci-dessus.
+                Aucun millésime — utilisez le bouton « Ajouter une bouteille » ci-dessus.
               </p>
             ) : (
               <div className="space-y-3" data-reveal>
