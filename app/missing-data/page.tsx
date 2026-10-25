@@ -1,4 +1,5 @@
 import { connection } from "next/server";
+import { Check } from "lucide-react";
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/PageHeader";
 import { MissingDataList } from "@/components/MissingDataList";
@@ -66,7 +67,7 @@ export default async function MissingDataPage() {
       <div className="max-w-7xl mx-auto px-6 py-12">
         {incompleteWines.length === 0 ? (
           <div className="rounded-2xl p-8 text-center" style={{ background: "var(--surface)", border: "1px solid var(--border)" }} data-reveal>
-            <p className="text-3xl mb-3">✓</p>
+            <Check size={28} strokeWidth={1.5} aria-hidden="true" className="mx-auto mb-3" style={{ color: "var(--wine-red)" }} />
             <p className="font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>La cave est complète.</p>
           </div>
         ) : (

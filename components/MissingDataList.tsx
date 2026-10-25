@@ -2,6 +2,24 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import {
+  CalendarDays,
+  Circle,
+  Euro,
+  FileText,
+  Grape,
+  Hourglass,
+  Image as ImageIcon,
+  MapPin,
+  Palette,
+  PenLine,
+  Tag,
+  TrendingUp,
+  User,
+  UtensilsCrossed,
+  Wine,
+  type LucideIcon,
+} from "lucide-react";
 
 type MissingField = { label: string; scope: "wine" | "vintage" };
 type IncompleteWine = {
@@ -13,24 +31,25 @@ function fieldKind(label: string) {
   return label.replace(/^.+? · /, "");
 }
 
-const FIELD_ICONS: Record<string, string> = {
-  "Image": "🖼️",
-  "Producteur": "👤",
-  "Couleur": "🎨",
-  "Région": "📍",
-  "Appellation": "🏷️",
-  "Cépage(s)": "🌱",
-  "Description": "📝",
-  "Notes de dégustation": "✍️",
-  "Accords mets/vin": "🍽️",
-  "Année": "📅",
-  "Prix d’achat": "💶",
-  "Estimation marché": "📈",
-  "Période d’apogée": "⌛",
+const FIELD_ICONS: Record<string, LucideIcon> = {
+  "Image": ImageIcon,
+  "Producteur": User,
+  "Couleur": Palette,
+  "Région": MapPin,
+  "Appellation": Tag,
+  "Cépage(s)": Grape,
+  "Description": FileText,
+  "Notes de dégustation": PenLine,
+  "Accords mets/vin": UtensilsCrossed,
+  "Année": CalendarDays,
+  "Prix d’achat": Euro,
+  "Estimation marché": TrendingUp,
+  "Période d’apogée": Hourglass,
 };
 
-function FieldIcon({ label }: { label: string }) {
-  return <span aria-hidden="true">{FIELD_ICONS[fieldKind(label)] ?? "•"}</span>;
+function FieldIcon({ label, size = 14 }: { label: string; size?: number }) {
+  const Icon = FIELD_ICONS[fieldKind(label)] ?? Circle;
+  return <Icon size={size} strokeWidth={1.75} aria-hidden="true" className="shrink-0" />;
 }
 
 export function MissingDataList({ wines, fieldCounts }: { wines: IncompleteWine[]; fieldCounts: Array<[string, number]> }) {
@@ -59,7 +78,7 @@ export function MissingDataList({ wines, fieldCounts }: { wines: IncompleteWine[
                 type="button"
                 onClick={() => setActiveFilter(isActive ? null : label)}
                 aria-pressed={isActive}
-                className="px-3 py-1.5 rounded-full text-sm transition-opacity hover:opacity-80"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-opacity hover:opacity-80"
                 style={{ background: isActive ? "var(--wine-red)" : "var(--surface-2)", color: isActive ? "white" : "var(--text-muted)", fontFamily: "var(--font-inter)" }}
               >
                 <FieldIcon label={label} /> {label} <strong>· {count}</strong>
@@ -72,7 +91,7 @@ export function MissingDataList({ wines, fieldCounts }: { wines: IncompleteWine[
       <p className="text-sm mb-3" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
         {filteredWines.length} vin{filteredWines.length > 1 ? "s" : ""}{activeFilter ? ` sans « ${activeFilter} »` : " à compléter"}
       </p>
-      <div className="space-y-3" data-reveal-stagger>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3" data-reveal-stagger>
         {filteredWines.map(({ wine, missing }) => (
           <article key={wine.id} data-reveal className="rounded-2xl p-5 sm:p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.05)" }}>
             <div className="flex gap-4">
@@ -80,7 +99,9 @@ export function MissingDataList({ wines, fieldCounts }: { wines: IncompleteWine[
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={wine.imageUrl} alt="" className="w-16 h-24 sm:w-20 sm:h-28 shrink-0 object-contain" />
               ) : (
-                <div className="w-16 h-24 sm:w-20 sm:h-28 shrink-0 flex items-center justify-center text-3xl" aria-label="Image manquante">🍷</div>
+                <div className="w-16 h-24 sm:w-20 sm:h-28 shrink-0 flex items-center justify-center" aria-label="Image manquante">
+                  <Wine size={30} strokeWidth={1.25} aria-hidden="true" style={{ color: "var(--text-faint)", opacity: 0.6 }} />
+                </div>
               )}
               <div className="min-w-0 flex-1">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -97,8 +118,8 @@ export function MissingDataList({ wines, fieldCounts }: { wines: IncompleteWine[
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2">
                   {missing.map((field) => (
-                    <span key={field.label} className="px-2.5 py-1 rounded-lg text-xs" style={{ background: field.scope === "wine" ? "rgba(192,25,59,0.08)" : "var(--surface-2)", color: field.scope === "wine" ? "var(--wine-red)" : "var(--text-muted)", fontFamily: "var(--font-inter)" }}>
-                      <FieldIcon label={field.label} /> {field.label}
+                    <span key={field.label} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs" style={{ background: field.scope === "wine" ? "rgba(192,25,59,0.08)" : "var(--surface-2)", color: field.scope === "wine" ? "var(--wine-red)" : "var(--text-muted)", fontFamily: "var(--font-inter)" }}>
+                      <FieldIcon label={field.label} size={12} /> {field.label}
                     </span>
                   ))}
                 </div>
