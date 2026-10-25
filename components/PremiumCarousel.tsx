@@ -1,7 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
+import { motion, prefersReducedMotion } from "@/lib/motion";
 
 const PAGE_SIZE = 6;
 
@@ -33,6 +36,32 @@ export default function PremiumCarousel({ initialWines, total }: Props) {
   const [loading, setLoading] = useState(false);
   const [direction, setDirection] = useState<"left" | "right">("left");
   const [tick, setTick] = useState(0);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const hasMounted = useRef(false);
+
+  useGSAP(
+    () => {
+      if (!hasMounted.current) {
+        hasMounted.current = true;
+        return;
+      }
+      const grid = gridRef.current;
+      if (!grid || prefersReducedMotion()) return;
+
+      gsap.fromTo(
+        grid,
+        { autoAlpha: 0, x: direction === "left" ? 20 : -20 },
+        {
+          autoAlpha: 1,
+          x: 0,
+          duration: motion.duration.fast,
+          ease: motion.easeSoft,
+          clearProps: "transform,opacity,visibility",
+        },
+      );
+    },
+    { dependencies: [tick, direction] },
+  );
 
   if (total === 0) return null;
 
@@ -60,8 +89,6 @@ export default function PremiumCarousel({ initialWines, total }: Props) {
     setPage(nextPage);
     setTick(t => t + 1); // bump the key below to replay the slide animation
   }
-
-  const animClass = direction === "left" ? "animate-slide-left" : "animate-slide-right";
 
   return (
     <section data-reveal>
@@ -92,7 +119,11 @@ export default function PremiumCarousel({ initialWines, total }: Props) {
       </div>
 
       {/* Cards */}
-      <div key={`${page}-${tick}`} className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ${animClass}`}>
+      <div
+        key={`${page}-${tick}`}
+        ref={gridRef}
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+      >
         {visible.map((wine) => {
           const cfg = colorConfig[wine.color ?? ""] ?? { dot: "#888", border: "rgba(26,10,14,0.10)", label: wine.color ?? "" };
           return (

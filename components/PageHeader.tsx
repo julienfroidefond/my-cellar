@@ -63,17 +63,19 @@ export function PageHeader({
               }
             >
               <div className="min-w-0 max-w-3xl">
-                {back && <div className="animate-fade-up-1 mb-5">{back}</div>}
+                {back && <div data-enter className="mb-5">{back}</div>}
 
                 <p
-                  className="animate-fade-up-1 mb-3 text-[11px] font-semibold uppercase tracking-[0.35em]"
+                  data-enter
+                  className="mb-3 text-[11px] font-semibold uppercase tracking-[0.35em]"
                   style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}
                 >
                   {eyebrow}
                 </p>
 
                 <h1
-                  className="animate-fade-up-2 text-4xl md:text-5xl font-bold leading-[0.98]"
+                  data-enter
+                  className="text-4xl md:text-5xl font-bold leading-[0.98]"
                   style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
                 >
                   {title}
@@ -81,7 +83,8 @@ export function PageHeader({
 
                 {lead && (
                   <div
-                    className="animate-fade-up-3 mt-3 max-w-2xl text-sm leading-relaxed"
+                    data-enter
+                    className="mt-3 max-w-2xl text-sm leading-relaxed"
                     style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
                   >
                     {lead}
@@ -90,7 +93,7 @@ export function PageHeader({
               </div>
 
               {hasTitleActions && (
-                <div className="animate-fade-up-3 flex flex-wrap items-center gap-2 md:justify-end">
+                <div data-enter className="flex flex-wrap items-center gap-2 md:justify-end">
                   {actions}
                 </div>
               )}
@@ -98,7 +101,8 @@ export function PageHeader({
 
             {stats && stats.length > 0 && (
               <div
-                className={`animate-fade-up-4 mt-8 grid grid-cols-2 gap-y-6 border-t pt-6 ${
+                data-enter
+                className={`mt-8 grid grid-cols-2 gap-y-6 border-t pt-6 ${
                   stats.length === 3
                     ? "sm:grid-cols-3"
                     : stats.length === 2
@@ -131,15 +135,16 @@ export function PageHeader({
             )}
 
             {actions && hasAside && (
-              <div className="animate-fade-up-4 mt-6 flex flex-wrap items-center gap-2">{actions}</div>
+              <div data-enter className="mt-6 flex flex-wrap items-center gap-2">{actions}</div>
             )}
 
-            {bottom && <div className="animate-fade-up-4 mt-8">{bottom}</div>}
+            {bottom && <div data-enter className="mt-8">{bottom}</div>}
           </div>
 
           {aside && (
             <div
-              className={`animate-fade-up-3 mx-auto w-full lg:mx-0 lg:justify-self-end ${
+              data-enter
+              className={`mx-auto w-full lg:mx-0 lg:justify-self-end ${
                 asideSize === "narrow" ? "max-w-[260px]" : "max-w-[380px]"
               }`}
             >

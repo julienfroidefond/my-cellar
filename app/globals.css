@@ -60,108 +60,14 @@ body {
   color: #fff;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeSlideLeft {
-  from { opacity: 0; transform: translateX(18px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes fadeSlideRight {
-  from { opacity: 0; transform: translateX(-18px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes pageEnter {
-  from { opacity: 0; transform: translateY(22px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.4s ease forwards;
-}
-
-.animate-slide-left {
-  animation: fadeSlideLeft 0.28s ease forwards;
-}
-
-.animate-slide-right {
-  animation: fadeSlideRight 0.28s ease forwards;
-}
-
-/* Page entry animations with staggered delays */
-.animate-fade-up {
-  opacity: 0;
-  animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-}
-.animate-fade-up-1 { opacity: 0; animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.08s forwards; }
-.animate-fade-up-2 { opacity: 0; animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.16s forwards; }
-.animate-fade-up-3 { opacity: 0; animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.26s forwards; }
-.animate-fade-up-4 { opacity: 0; animation: fadeUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) 0.38s forwards; }
-
-.animate-fade-bottle { opacity: 0; animation: fadeIn 0.9s ease 0.3s forwards; }
-
-/* Page-level entrance. `backwards` (not `forwards`) is important: once the
-   animation ends the transform is removed, so fixed-position modals keep the
-   viewport as their containing block. */
-.page-enter {
-  animation: pageEnter 0.7s cubic-bezier(0.33, 1, 0.68, 1) backwards;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .page-enter,
-  .animate-fade-in,
-  .animate-slide-left,
-  .animate-slide-right,
-  .animate-fade-up,
-  .animate-fade-up-1,
-  .animate-fade-up-2,
-  .animate-fade-up-3,
-  .animate-fade-up-4,
-  .animate-fade-bottle {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-}
-
-/* Scroll reveal — the `reveal-ready` class is only added by JS to elements
-   that start below the fold. Without JS (or with reduced motion), content is
-   never hidden. */
+/* Entrées animées par GSAP (voir components/MotionEffects.tsx).
+   L'état initial est rendu côté serveur pour éviter que le contenu
+   n'apparaisse puis ne disparaisse au moment de l'hydratation.
+   Sans JS ou avec « réduire les animations », rien n'est masqué. */
 @media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
-  [data-reveal].reveal-ready {
+  [data-enter] {
     opacity: 0;
-    transform: translateY(40px);
-    transition:
-      opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1),
-      transform 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-    transition-delay: var(--reveal-delay, 0ms);
   }
-
-  [data-reveal].reveal-ready.is-revealed {
-    opacity: 1;
-    transform: translateY(0);
-  }
-
-  [data-reveal-stagger] > [data-reveal].reveal-ready:nth-child(1) { transition-delay: 0ms; }
-  [data-reveal-stagger] > [data-reveal].reveal-ready:nth-child(2) { transition-delay: 45ms; }
-  [data-reveal-stagger] > [data-reveal].reveal-ready:nth-child(3) { transition-delay: 90ms; }
-  [data-reveal-stagger] > [data-reveal].reveal-ready:nth-child(4) { transition-delay: 135ms; }
-  [data-reveal-stagger] > [data-reveal].reveal-ready:nth-child(5) { transition-delay: 180ms; }
-  [data-reveal-stagger] > [data-reveal].reveal-ready:nth-child(6) { transition-delay: 225ms; }
-  [data-reveal-stagger] > [data-reveal].reveal-ready:nth-child(7) { transition-delay: 270ms; }
-  [data-reveal-stagger] > [data-reveal].reveal-ready:nth-child(8) { transition-delay: 315ms; }
-  [data-reveal-stagger] > [data-reveal].reveal-ready:nth-child(9) { transition-delay: 360ms; }
-  [data-reveal-stagger] > [data-reveal].reveal-ready:nth-child(10) { transition-delay: 405ms; }
-  [data-reveal-stagger] > [data-reveal].reveal-ready:nth-child(n + 11) { transition-delay: 0ms; }
 }
 
 /* Diagonal accent — red stripe crossing hero sections */

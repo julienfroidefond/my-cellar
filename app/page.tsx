@@ -180,7 +180,8 @@ export default async function DashboardPage() {
       >
         {heroWine?.imageUrl && (
           <div
-            className="animate-fade-bottle pointer-events-none absolute bottom-[-6%] top-[-6%] z-20 hidden w-[200px] md:right-[5%] md:block lg:right-[12%] lg:w-[220px]"
+            data-enter="scale"
+            className="pointer-events-none absolute bottom-[-6%] top-[-6%] z-20 hidden w-[200px] md:right-[5%] md:block lg:right-[12%] lg:w-[220px]"
             aria-hidden="true"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -203,7 +204,8 @@ export default async function DashboardPage() {
             <div className="max-w-[640px] md:max-w-[480px] lg:max-w-[640px]">
               {heroWine.imageUrl && (
                 <div
-                  className="animate-fade-bottle float-right mb-3 ml-5 w-[84px] sm:w-[104px] md:hidden"
+                  data-enter="scale"
+                  className="float-right mb-3 ml-5 w-[84px] sm:w-[104px] md:hidden"
                   aria-hidden="true"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -220,7 +222,8 @@ export default async function DashboardPage() {
               )}
 
               <p
-                className="animate-fade-up text-[11px] font-semibold uppercase tracking-[0.35em]"
+                data-enter
+                className="text-[11px] font-semibold uppercase tracking-[0.35em]"
                 style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}
               >
                 La bouteille du moment
@@ -228,7 +231,8 @@ export default async function DashboardPage() {
 
               <h1
                 id="featured-wine-title"
-                className="animate-fade-up-1 mt-4 text-balance text-[2.5rem] font-bold leading-[0.95] sm:text-5xl lg:text-7xl"
+                data-enter
+                className="mt-4 text-balance text-[2.5rem] font-bold leading-[0.95] sm:text-5xl lg:text-7xl"
                 style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
               >
                 {heroWine.name}
@@ -236,7 +240,8 @@ export default async function DashboardPage() {
 
               {showProducer && (
                 <p
-                  className="animate-fade-up-1 mt-3 text-[11px] font-semibold uppercase tracking-[0.28em]"
+                  data-enter
+                  className="mt-3 text-[11px] font-semibold uppercase tracking-[0.28em]"
                   style={{ color: "var(--gold)", fontFamily: "var(--font-inter)" }}
                 >
                   {heroProducer}
@@ -245,7 +250,8 @@ export default async function DashboardPage() {
 
               {heroMeta.length > 0 && (
                 <p
-                  className="animate-fade-up-1 mt-3 text-xs"
+                  data-enter
+                  className="mt-3 text-xs"
                   style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
                 >
                   {heroMeta.join(" · ")}
@@ -254,14 +260,15 @@ export default async function DashboardPage() {
 
               {heroDescription && (
                 <p
-                  className="animate-fade-up-2 mt-6 line-clamp-4 max-w-[52ch] text-sm leading-relaxed"
+                  data-enter
+                  className="mt-6 line-clamp-4 max-w-[52ch] text-sm leading-relaxed"
                   style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
                 >
                   {heroDescription}
                 </p>
               )}
 
-              <div className="animate-fade-up-2 mt-7 flex flex-wrap items-center gap-3">
+              <div data-enter className="mt-7 flex flex-wrap items-center gap-3">
                 <Link
                   href={`/wines/${heroWine.id}`}
                   className="group inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium transition-opacity hover:opacity-90"
@@ -289,14 +296,16 @@ export default async function DashboardPage() {
           ) : (
             <div className="max-w-xl">
               <p
-                className="animate-fade-up text-xs tracking-[0.45em] uppercase mb-5"
+                data-enter
+                className="text-xs tracking-[0.45em] uppercase mb-5"
                 style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}
               >
                 Collection personnelle
               </p>
               <h1
                 id="featured-wine-title"
-                className="animate-fade-up-1 text-6xl md:text-8xl font-bold leading-none"
+                data-enter
+                className="text-6xl md:text-8xl font-bold leading-none"
                 style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
               >
                 Ma Cave<br />
