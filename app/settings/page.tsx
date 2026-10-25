@@ -139,7 +139,7 @@ export default function SettingsPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         <div className="grid gap-6 lg:grid-cols-2 items-start">
-          <div className="space-y-6">
+          <div className="space-y-6" data-reveal>
             <ApiTokenSection />
 
             {/* Export */}
@@ -162,7 +162,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Import */}
-          <section className="rounded-2xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.07)" }}>
+          <section className="rounded-2xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.07)" }} data-reveal>
           <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
             Importer une base
           </h2>

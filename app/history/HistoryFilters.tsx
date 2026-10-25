@@ -24,7 +24,7 @@ export function HistoryFilters({ active, counts }: { active: string; counts: Rec
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-6">
+    <div className="flex flex-wrap items-center gap-2 mb-6" data-reveal>
       {FILTERS.map((f) => {
         const isActive = active === f.value;
         return (

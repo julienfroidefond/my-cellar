@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
+import PageTransition from "@/components/PageTransition";
+import ScrollReveal from "@/components/ScrollReveal";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -39,7 +41,10 @@ export default function RootLayout({
     <html lang="fr" className={`${playfair.variable} ${inter.variable} h-full`}>
       <body className="min-h-full flex flex-col antialiased">
         <Navigation />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1">
+          <PageTransition>{children}</PageTransition>
+        </main>
+        <ScrollReveal />
       </body>
     </html>
   );

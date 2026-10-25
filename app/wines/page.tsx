@@ -462,8 +462,8 @@ function WinesContent() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {wines.map((wine, i) => <WineCard key={wine.id} wine={wine} index={i} />)}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-reveal-stagger>
+            {wines.map((wine) => <WineCard key={wine.id} wine={wine} />)}
           </div>
         )}
       </div>
@@ -473,7 +473,7 @@ function WinesContent() {
 
 // ─── Wine card ────────────────────────────────────────────────────────────────
 
-function WineCard({ wine, index }: { wine: Wine; index: number }) {
+function WineCard({ wine }: { wine: Wine }) {
   const colorInfo = COLORS[wine.color ?? ""] ?? { label: wine.color ?? "", color: "#666" };
   const qty = totalQuantity(wine);
   const allEpuise = qty === 0;
@@ -484,13 +484,12 @@ function WineCard({ wine, index }: { wine: Wine; index: number }) {
   return (
     <Link
       href={`/wines/${wine.id}`}
+      data-reveal
       className="group block rounded-2xl overflow-hidden transition-transform duration-200 hover:-translate-y-0.5 relative"
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border)",
         boxShadow: "0 2px 8px rgba(26,10,14,0.06)",
-        animation: `fadeIn 0.4s ease ${index * 30}ms forwards`,
-        opacity: 0,
       }}
     >
       <div style={{ height: 3, background: `linear-gradient(90deg, ${colorInfo.color}cc, ${colorInfo.color}44)` }} />

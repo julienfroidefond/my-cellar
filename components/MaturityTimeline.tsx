@@ -42,6 +42,7 @@ export function MaturityTimeline({ vintages, wine }: MaturityTimelineProps) {
   return (
     <section
       className="rounded-2xl p-6 mb-8"
+      data-reveal
       style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.06)" }}
     >
       <div className="flex flex-wrap items-end justify-between gap-3 mb-6">

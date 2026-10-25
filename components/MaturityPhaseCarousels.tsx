@@ -23,7 +23,7 @@ const PHASES: { key: MaturityPhase; eyebrow: string; title: string; description:
 
 export function MaturityPhaseCarousels({ wines }: { wines: MaturityWine[] }) {
   return (
-    <div className="space-y-10">
+    <div className="space-y-10" data-reveal-stagger>
       {PHASES.map((phase) => {
         const phaseWines = wines
           .filter((wine) => wine.phase === phase.key)
@@ -31,7 +31,7 @@ export function MaturityPhaseCarousels({ wines }: { wines: MaturityWine[] }) {
         const bottles = phaseWines.reduce((total, wine) => total + wine.quantity, 0);
 
         return (
-          <section key={phase.key}>
+          <section key={phase.key} data-reveal>
             <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
               <div>
                 <p className="text-xs tracking-[0.3em] uppercase mb-1.5" style={{ color: phase.color, fontFamily: "var(--font-inter)", fontWeight: 600 }}>

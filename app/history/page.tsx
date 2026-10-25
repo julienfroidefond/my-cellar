@@ -168,7 +168,7 @@ export default async function HistoryPage({
 
       {/* ── Charts ──────────────────────────────────── */}
       {entries.length > 0 && (
-        <div className="animate-fade-up-3 max-w-7xl mx-auto px-6 pb-4 pt-10">
+        <div className="max-w-7xl mx-auto px-6 pb-4 pt-10" data-reveal>
           <div className="mb-6">
             <p
               className="text-xs tracking-[0.3em] uppercase mb-2"
@@ -188,7 +188,7 @@ export default async function HistoryPage({
       )}
 
       {/* ── Timeline ────────────────────────────────── */}
-      <div className="animate-fade-up-4 max-w-7xl mx-auto px-6 py-10">
+      <div className="max-w-7xl mx-auto px-6 py-10">
         <HistoryFilters active={activeFilter} counts={filterCounts} />
         {entries.length === 0 ? (
           <div className="text-center py-28">
@@ -217,7 +217,7 @@ export default async function HistoryPage({
                   </div>
 
                   {/* Entries */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5" data-reveal-stagger>
                     {dayEntries.map((entry) => {
                       const dot = COLOR_DOT[entry.color ?? ""] ?? "#888";
                       const match = matchWine(entry.wineName);
@@ -227,6 +227,7 @@ export default async function HistoryPage({
                       return (
                         <div
                           key={entry.id}
+                          data-reveal
                           className="relative rounded-2xl overflow-hidden"
                           style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.06)" }}
                         >

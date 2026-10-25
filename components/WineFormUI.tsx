@@ -19,6 +19,7 @@ export function Section({ title, children }: { title: string; children: React.Re
   return (
     <div
       className="rounded-2xl p-6 space-y-5"
+      data-reveal
       style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.06)" }}
     >
       <h2 className="text-base font-semibold mb-5" style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}>

@@ -40,14 +40,14 @@ export default async function MaturityPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-12 space-y-14">
         {maturityWines.length === 0 ? (
-          <div className="rounded-2xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <div className="rounded-2xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)" }} data-reveal>
             <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>Pas encore de fenêtre de dégustation</h2>
             <p className="mt-2 text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>Ajoutez les périodes de dégustation de vos millésimes pour les suivre ici.</p>
           </div>
         ) : (
           <>
             <MaturityPhaseCarousels wines={maturityWines} />
-            <section>
+            <section data-reveal>
               <p className="text-xs tracking-[0.3em] uppercase mb-2" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", fontWeight: 600 }}>Projection</p>
               <h2 className="text-2xl font-semibold mb-2" style={{ fontFamily: "var(--font-playfair)" }}>Potentiel de dégustation</h2>
               <p className="text-sm mb-8" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>Bouteilles en stock dont la période d’apogée couvre chaque année.</p>

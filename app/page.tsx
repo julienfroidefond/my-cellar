@@ -307,7 +307,7 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 py-9 md:py-10" aria-label="La cave en chiffres">
+      <section className="max-w-7xl mx-auto px-6 py-9 md:py-10" aria-label="La cave en chiffres" data-reveal>
         <div
           className="grid grid-cols-2 gap-y-6 border-t pt-7 md:grid-cols-4 md:gap-y-0"
           style={{ borderColor: "var(--border)" }}
@@ -335,12 +335,12 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      <div className="animate-fade-up-3 max-w-7xl mx-auto px-6 py-14 space-y-14">
+      <div className="max-w-7xl mx-auto px-6 py-14 space-y-14" data-reveal-stagger>
         {premiumTotal > 0 && (
           <PremiumCarousel initialWines={premiumWines} total={premiumTotal} />
         )}
 
-        <section>
+        <section data-reveal>
           <SectionTitle eyebrow="Statistiques">Répartition de la cave</SectionTitle>
           <div className="mt-8">
             <CellarCharts byColor={byColor} topRegions={topRegions} />
@@ -348,7 +348,7 @@ export default async function DashboardPage() {
         </section>
 
         {(frenchMarkers.length > 0 || foreignWines.length > 0) && (
-          <section>
+          <section data-reveal>
             <SectionTitle eyebrow="Origine">Carte des appellations</SectionTitle>
             <div className="mt-8">
               <FranceWineMap markers={frenchMarkers} foreignWines={foreignWines} />
@@ -358,7 +358,7 @@ export default async function DashboardPage() {
 
         {winesWithMaturity.some((wine) => wine.phase) && (
           <section>
-            <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
+            <div className="flex flex-wrap items-end justify-between gap-4 mb-8" data-reveal>
               <div>
                 <SectionTitle eyebrow="Maturité">Les moments de la cave</SectionTitle>
                 <p className="text-sm mt-2" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
@@ -373,7 +373,7 @@ export default async function DashboardPage() {
           </section>
         )}
 
-        <section className="flex gap-3 flex-wrap pb-8">
+        <section className="flex gap-3 flex-wrap pb-8" data-reveal>
           <Link
             href="/wines"
             className="px-6 py-3 rounded-full text-sm font-medium transition-opacity hover:opacity-90"

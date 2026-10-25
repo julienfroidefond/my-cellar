@@ -14,7 +14,7 @@ export default async function LoginPage({
       style={{ minHeight: 'calc(100vh - 64px)' }}
     >
       <div
-        className="w-full max-w-sm mx-4 p-8 rounded-2xl"
+        className="animate-fade-up w-full max-w-sm mx-4 p-8 rounded-2xl"
         style={{
           background: 'var(--surface)',
           border: '1px solid var(--border)',

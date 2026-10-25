@@ -197,7 +197,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
             else setTargetSlot({ rackId: rack.id, rackName: rack.name, slotIndex, numCols: rack.numCols });
           } : null}
         />
-      ) : <div className="space-y-5">
+      ) : <div className="space-y-5" data-reveal-stagger>
         {racks.map((rack) => {
           const slotMap = buildSlotMap(rack.wines, rack.config, rack.numCols);
           const levels = buildLevels(slotMap, rack.config);
@@ -219,6 +219,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
           return (
             <div
               key={rack.id}
+              data-reveal
               className="rounded-2xl overflow-hidden transition-all"
               style={{
                 background: "var(--surface)",
@@ -270,7 +271,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
 
       {/* À ranger */}
       {unracked.length > 0 && (
-        <div className="mt-10">
+        <div className="mt-10" data-reveal>
           <div className="mb-5">
             <p className="text-xs tracking-[0.3em] uppercase mb-2" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", fontWeight: 500 }}>
               Non rangés

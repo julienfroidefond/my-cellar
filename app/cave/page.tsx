@@ -162,9 +162,9 @@ export default async function CavePage() {
         ]}
       />
 
-      <div className="animate-fade-up-3 max-w-3xl mx-auto px-6 pt-12 pb-12">
+      <div className="max-w-3xl mx-auto px-6 pt-12 pb-12">
         {/* Legend */}
-        <div className="flex items-center gap-6 mb-8 text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+        <div className="flex items-center gap-6 mb-8 text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }} data-reveal>
           {[
             { key: "rouge", color: "#c02030" },
             { key: "blanc", color: "#c4983c" },

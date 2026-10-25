@@ -283,6 +283,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             {wine.description && (
               <div
                 className="rounded-2xl p-6 mb-8"
+                data-reveal
                 style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.06)" }}
               >
                 <p className="text-xs tracking-[0.3em] uppercase font-semibold mb-2" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Description</p>
@@ -299,7 +300,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
                 Aucun millésime — utilisez le bouton &quot;+ Ajouter&quot; ci-dessus.
               </p>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3" data-reveal>
                 {(wine.vintages as VintageWithSlots[]).map((v) => (
                   <VintageRow key={v.id} v={v} wine={wine} />
                 ))}
@@ -309,7 +310,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
 
           {/* Sidebar — 1/3 */}
           <div>
-            <div className="rounded-2xl p-7" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.06)" }}>
+            <div className="rounded-2xl p-7" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.06)" }} data-reveal>
               <p className="text-xs tracking-[0.3em] uppercase font-semibold mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Fiche technique</p>
               <h2 className="text-xl font-semibold mb-5" style={{ fontFamily: "var(--font-playfair)" }}>Détails</h2>
               <dl className="space-y-4">
@@ -358,7 +359,7 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
           }));
 
           return (
-            <div className="mt-10">
+            <div className="mt-10" data-reveal>
               <div className="mb-4">
                 <p className="text-xs tracking-[0.3em] uppercase font-semibold mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Historique</p>
                 <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>Consommation</h2>

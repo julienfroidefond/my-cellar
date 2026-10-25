@@ -41,7 +41,7 @@ export function MissingDataList({ wines, fieldCounts }: { wines: IncompleteWine[
 
   return (
     <>
-      <section className="rounded-2xl p-6 mb-8" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.06)" }}>
+      <section className="rounded-2xl p-6 mb-8" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.06)" }} data-reveal>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <p className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Les plus fréquentes</p>
           {activeFilter && (
@@ -72,9 +72,9 @@ export function MissingDataList({ wines, fieldCounts }: { wines: IncompleteWine[
       <p className="text-sm mb-3" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
         {filteredWines.length} vin{filteredWines.length > 1 ? "s" : ""}{activeFilter ? ` sans « ${activeFilter} »` : " à compléter"}
       </p>
-      <div className="space-y-3">
+      <div className="space-y-3" data-reveal-stagger>
         {filteredWines.map(({ wine, missing }) => (
-          <article key={wine.id} className="rounded-2xl p-5 sm:p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.05)" }}>
+          <article key={wine.id} data-reveal className="rounded-2xl p-5 sm:p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.05)" }}>
             <div className="flex gap-4">
               {wine.imageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element

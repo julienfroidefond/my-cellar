@@ -64,7 +64,7 @@ export default function PremiumCarousel({ initialWines, total }: Props) {
   const animClass = direction === "left" ? "animate-slide-left" : "animate-slide-right";
 
   return (
-    <section>
+    <section data-reveal>
       {/* Section header */}
       <div className="flex items-start justify-between gap-4 mb-8">
         <div>

@@ -65,7 +65,7 @@ export default async function MissingDataPage() {
 
       <div className="max-w-7xl mx-auto px-6 py-12">
         {incompleteWines.length === 0 ? (
-          <div className="rounded-2xl p-8 text-center" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
+          <div className="rounded-2xl p-8 text-center" style={{ background: "var(--surface)", border: "1px solid var(--border)" }} data-reveal>
             <p className="text-3xl mb-3">✓</p>
             <p className="font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>La cave est complète.</p>
           </div>
