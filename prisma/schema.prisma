@@ -76,7 +76,7 @@ model ApiToken {
 
 model WineHistory {
   id          String   @id @default(cuid())
-  action      String   // "bu" | "retiré"
+  action      String   // "bu" | "retiré" | "ajout"
   reason      String?  // "offert" | "regul" | "suppression" (null = dégustation / legacy)
   note        String?  // note libre optionnelle (ex: offert à qui, motif d'ajustement)
   wineName    String

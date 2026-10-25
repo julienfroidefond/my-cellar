@@ -32,6 +32,22 @@ export type VintageWithWine = {
   };
 };
 
+/** Snapshot d'un millésime commun à tous les types d'entrée d'historique. */
+function buildSnapshot(source: VintageWithWine, quantity: number) {
+  return {
+    wineName: source.wine.name,
+    producer: source.wine.producer,
+    vintage: source.vintage,
+    color: source.wine.color,
+    appellation: source.wine.appellation,
+    region: source.wine.region,
+    country: source.wine.country,
+    volume: source.volume,
+    quantity,
+    imageUrl: source.wine.imageUrl,
+  };
+}
+
 /** Construit les données d'une entrée d'historique pour un retrait de bouteilles. */
 export function buildRemovalHistory(
   source: VintageWithWine,
@@ -43,15 +59,16 @@ export function buildRemovalHistory(
     action: "retiré",
     reason,
     note,
-    wineName: source.wine.name,
-    producer: source.wine.producer,
-    vintage: source.vintage,
-    color: source.wine.color,
-    appellation: source.wine.appellation,
-    region: source.wine.region,
-    country: source.wine.country,
-    volume: source.volume,
-    quantity,
-    imageUrl: source.wine.imageUrl,
+    ...buildSnapshot(source, quantity),
+  };
+}
+
+/** Construit les données d'une entrée d'historique pour un ajout de bouteilles. */
+export function buildAdditionHistory(source: VintageWithWine, quantity: number) {
+  return {
+    action: "ajout",
+    reason: null,
+    note: null,
+    ...buildSnapshot(source, quantity),
   };
 }

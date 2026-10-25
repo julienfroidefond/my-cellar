@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import { Gift, PackageMinus, PackagePlus, SlidersHorizontal, Trash2, Wine, type LucideIcon } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import HistoryCharts from "@/components/HistoryCharts";
 import { removalReasonLabel } from "@/lib/history";
@@ -13,6 +14,27 @@ const COLOR_DOT: Record<string, string> = {
   blanc: "#c4983c",
   rosé:  "#d4647a",
 };
+
+type HistoryKind = { icon: LucideIcon; color: string; tint: string; border: string; label: string };
+
+const KIND_DRINK: HistoryKind = { icon: Wine, color: "#c0193b", tint: "rgba(192,25,59,0.09)", border: "rgba(192,25,59,0.22)", label: "Dégustation" };
+const KIND_ADD: HistoryKind = { icon: PackagePlus, color: "#1a7a3c", tint: "rgba(26,122,60,0.09)", border: "rgba(26,122,60,0.24)", label: "Ajout" };
+const KIND_GIFT: HistoryKind = { icon: Gift, color: "#b87a2c", tint: "rgba(184,122,44,0.10)", border: "rgba(184,122,44,0.28)", label: "Don" };
+const KIND_ADJUST: HistoryKind = { icon: SlidersHorizontal, color: "#5c4b50", tint: "rgba(26,10,14,0.05)", border: "rgba(26,10,14,0.14)", label: "Régularisation" };
+const KIND_DELETE: HistoryKind = { icon: Trash2, color: "#8a6b71", tint: "rgba(26,10,14,0.05)", border: "rgba(26,10,14,0.14)", label: "Suppression" };
+const KIND_REMOVE: HistoryKind = { icon: PackageMinus, color: "#5c4b50", tint: "rgba(26,10,14,0.05)", border: "rgba(26,10,14,0.14)", label: "Retrait" };
+
+/** Icône et couleur associées au type d'une entrée d'historique. */
+function historyKind(entry: { action: string; reason: string | null }): HistoryKind {
+  if (entry.action === "ajout") return KIND_ADD;
+  if (entry.action === "retiré") {
+    if (entry.reason === "offert") return KIND_GIFT;
+    if (entry.reason === "regul") return KIND_ADJUST;
+    if (entry.reason === "suppression") return KIND_DELETE;
+    return KIND_REMOVE;
+  }
+  return KIND_DRINK;
+}
 
 function normalize(s: string): string {
   return s
@@ -41,11 +63,11 @@ export default async function HistoryPage({
   searchParams: Promise<{ filter?: string }>;
 }) {
   const { filter } = await searchParams;
-  const activeFilter = filter === "all" || filter === "retiré" ? filter : "bu";
+  const activeFilter = filter === "all" || filter === "retiré" || filter === "ajout" ? filter : "bu";
 
   const [allEntries, wines] = await Promise.all([
     prisma.wineHistory.findMany({
-      where: { action: { in: ["bu", "retiré"] } },
+      where: { action: { in: ["bu", "retiré", "ajout"] } },
       orderBy: { consumedAt: "desc" },
     }),
     prisma.wine.findMany({
@@ -57,8 +79,13 @@ export default async function HistoryPage({
   const filterCounts = {
     all: allEntries.length,
     bu: allEntries.filter((e) => e.action === "bu").length,
+    ajout: allEntries.filter((e) => e.action === "ajout").length,
     retiré: allEntries.filter((e) => e.action === "retiré").length,
   };
+
+  // Les statistiques ne portent que sur les dégustations, quel que soit le filtre
+  // de la timeline (un ajout n'est pas une bouteille bue).
+  const drinkEntries = allEntries.filter((e) => e.action === "bu");
 
   // Build list of [normalizedName, { id, imageUrl }] for substring matching —
   // WineHistory ne garde qu'un snapshot du nom, pas de FK vers Wine.
@@ -81,23 +108,23 @@ export default async function HistoryPage({
     return null;
   }
 
-  const total = entries.reduce((s, e) => s + e.quantity, 0);
-  const withRating = entries.filter((e) => e.rating !== null);
+  const total = drinkEntries.reduce((s, e) => s + e.quantity, 0);
+  const withRating = drinkEntries.filter((e) => e.rating !== null);
   const avgRating =
     withRating.length > 0
       ? withRating.reduce((s, e) => s + (e.rating ?? 0), 0) / withRating.length
       : null;
-  const uniqueNames = new Set(entries.map((e) => `${e.wineName}|${e.vintage ?? ""}`));
+  const uniqueNames = new Set(drinkEntries.map((e) => `${e.wineName}|${e.vintage ?? ""}`));
 
   // ── Charts data ────────────────────────────────────────────────────────────
-  const byColor = entries.reduce<Record<string, number>>((acc, e) => {
+  const byColor = drinkEntries.reduce<Record<string, number>>((acc, e) => {
     const c = e.color ?? "autre";
     acc[c] = (acc[c] ?? 0) + e.quantity;
     return acc;
   }, {});
 
   const monthMap = new Map<string, number>();
-  for (const e of entries) {
+  for (const e of drinkEntries) {
     const d = new Date(e.consumedAt);
     const mk = `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
     monthMap.set(mk, (monthMap.get(mk) ?? 0) + e.quantity);
@@ -127,11 +154,11 @@ export default async function HistoryPage({
 
   const ratingDist = [1, 2, 3, 4, 5].map((star) => ({
     label: `${star}★`,
-    value: entries.filter((e) => e.rating !== null && Math.round(e.rating!) === star).length,
+    value: drinkEntries.filter((e) => e.rating !== null && Math.round(e.rating!) === star).length,
   }));
   const hasRatings = withRating.length > 0;
 
-  const appellationMap = entries.reduce<Record<string, number>>((acc, e) => {
+  const appellationMap = drinkEntries.reduce<Record<string, number>>((acc, e) => {
     if (!e.appellation) return acc;
     acc[e.appellation] = (acc[e.appellation] ?? 0) + e.quantity;
     return acc;
@@ -167,7 +194,7 @@ export default async function HistoryPage({
       />
 
       {/* ── Charts ──────────────────────────────────── */}
-      {entries.length > 0 && (
+      {drinkEntries.length > 0 && (
         <div className="max-w-7xl mx-auto px-6 pb-4 pt-10" data-reveal>
           <div className="mb-6">
             <p
@@ -223,6 +250,9 @@ export default async function HistoryPage({
                       const match = matchWine(entry.wineName);
                       const imgUrl = match?.imageUrl ?? null;
                       const isRemoval = entry.action === "retiré";
+                      const isAddition = entry.action === "ajout";
+                      const kind = historyKind(entry);
+                      const KindIcon = kind.icon;
 
                       return (
                         <div
@@ -250,6 +280,14 @@ export default async function HistoryPage({
                           {/* Content */}
                           <div className="p-5" style={{ paddingRight: imgUrl ? 80 : undefined }}>
                             <div className="flex items-start gap-3 mb-1">
+                              <span
+                                className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full"
+                                style={{ background: kind.tint, border: `1px solid ${kind.border}`, color: kind.color }}
+                                aria-label={kind.label}
+                                title={kind.label}
+                              >
+                                <KindIcon size={13} strokeWidth={1.8} aria-hidden="true" />
+                              </span>
                               {match ? (
                                 <Link
                                   href={`/wines/${match.id}`}
@@ -272,17 +310,18 @@ export default async function HistoryPage({
                             )}
 
                             <div className="flex items-center gap-2 flex-wrap">
-                              {isRemoval && (
+                              {(isRemoval || isAddition) && (
                                 <span
-                                  className="text-xs px-2.5 py-1 rounded-full font-medium"
+                                  className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full font-medium"
                                   style={{
-                                    background: "rgba(192,25,59,0.09)",
-                                    border: "1px solid rgba(192,25,59,0.22)",
-                                    color: "var(--wine-red)",
+                                    background: kind.tint,
+                                    border: `1px solid ${kind.border}`,
+                                    color: kind.color,
                                     fontFamily: "var(--font-inter)",
                                   }}
                                 >
-                                  {removalReasonLabel(entry.reason)}
+                                  <KindIcon size={12} strokeWidth={1.9} aria-hidden="true" />
+                                  {isAddition ? "Ajout" : removalReasonLabel(entry.reason)}
                                 </span>
                               )}
                               {entry.vintage && (
@@ -312,7 +351,11 @@ export default async function HistoryPage({
                               </p>
                             )}
 
-                            {isRemoval ? (
+                            {isAddition ? (
+                              <p className="text-xs mt-3" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
+                                {entry.quantity} bouteille{entry.quantity > 1 ? "s" : ""} ajoutée{entry.quantity > 1 ? "s" : ""} au stock
+                              </p>
+                            ) : isRemoval ? (
                               <p className="text-xs mt-3" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
                                 {entry.quantity} bouteille{entry.quantity > 1 ? "s" : ""} sortie{entry.quantity > 1 ? "s" : ""} du stock
                               </p>

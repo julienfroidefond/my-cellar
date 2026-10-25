@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   REMOVAL_REASON_LABELS,
+  buildAdditionHistory,
   buildRemovalHistory,
   isRemovalReason,
   removalReasonLabel,
@@ -91,6 +92,40 @@ describe("buildRemovalHistory", () => {
       reason: "regul",
       note: null,
       quantity: 1,
+    });
+  });
+});
+
+describe("buildAdditionHistory", () => {
+  const source: VintageWithWine = {
+    vintage: 2019,
+    volume: 75,
+    wine: {
+      name: "Château Test",
+      producer: "Domaine Test",
+      color: "rouge",
+      appellation: "Pauillac",
+      region: "Bordeaux",
+      country: "France",
+      imageUrl: "/wines/test.jpg",
+    },
+  };
+
+  it("snapshote le millésime ajouté sans raison ni note", () => {
+    expect(buildAdditionHistory(source, 6)).toEqual({
+      action: "ajout",
+      reason: null,
+      note: null,
+      wineName: "Château Test",
+      producer: "Domaine Test",
+      vintage: 2019,
+      color: "rouge",
+      appellation: "Pauillac",
+      region: "Bordeaux",
+      country: "France",
+      volume: 75,
+      quantity: 6,
+      imageUrl: "/wines/test.jpg",
     });
   });
 });

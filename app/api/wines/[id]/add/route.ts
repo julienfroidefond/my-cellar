@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { buildAdditionHistory } from "@/lib/history";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -23,25 +24,33 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const existingVintage = wine.vintages.find((v) => v.vintage === vintage);
 
-  if (existingVintage) {
-    await prisma.wineVintage.update({
-      where: { id: existingVintage.id },
-      data: { quantity: { increment: quantity } },
-    });
-  } else {
-    await prisma.wineVintage.create({
-      data: {
-        wineId: id,
-        vintage,
-        quantity,
-        ...(volume !== undefined ? { volume } : {}),
-        ...(purchasePrice !== undefined ? { purchasePrice } : {}),
-        ...(marketPrice !== undefined ? { marketPrice } : {}),
-        ...(drinkFrom !== undefined ? { drinkFrom } : {}),
-        ...(drinkUntil !== undefined ? { drinkUntil } : {}),
-      },
-    });
-  }
+  await prisma.$transaction(async (tx) => {
+    let source: Parameters<typeof buildAdditionHistory>[0];
+
+    if (existingVintage) {
+      await tx.wineVintage.update({
+        where: { id: existingVintage.id },
+        data: { quantity: { increment: quantity } },
+      });
+      source = { vintage: existingVintage.vintage, volume: existingVintage.volume, wine };
+    } else {
+      const created = await tx.wineVintage.create({
+        data: {
+          wineId: id,
+          vintage,
+          quantity,
+          ...(volume !== undefined ? { volume } : {}),
+          ...(purchasePrice !== undefined ? { purchasePrice } : {}),
+          ...(marketPrice !== undefined ? { marketPrice } : {}),
+          ...(drinkFrom !== undefined ? { drinkFrom } : {}),
+          ...(drinkUntil !== undefined ? { drinkUntil } : {}),
+        },
+      });
+      source = { vintage: created.vintage, volume: created.volume, wine };
+    }
+
+    await tx.wineHistory.create({ data: buildAdditionHistory(source, quantity) });
+  });
 
   const updatedWine = await prisma.wine.findUnique({
     where: { id },

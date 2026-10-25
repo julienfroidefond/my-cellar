@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 const FILTERS = [
   { value: "all", label: "Tout" },
   { value: "bu", label: "Dégustations" },
+  { value: "ajout", label: "Ajouts" },
   { value: "retiré", label: "Sorties de stock" },
 ] as const;
 
@@ -14,13 +15,8 @@ export function HistoryFilters({ active, counts }: { active: string; counts: Rec
 
   function select(value: string) {
     const params = new URLSearchParams(searchParams.toString());
-    if (value === "all") {
-      params.delete("filter");
-    } else {
-      params.set("filter", value);
-    }
-    const query = params.toString();
-    router.push(query ? `/history?${query}` : "/history", { scroll: false });
+    params.set("filter", value);
+    router.push(`/history?${params.toString()}`, { scroll: false });
   }
 
   return (
