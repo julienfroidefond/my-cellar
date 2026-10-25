@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { PageHeader } from "@/components/PageHeader";
 import ApiTokenSection from "./ApiTokenSection";
 
 type ImportResult = {
@@ -130,22 +131,18 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      {/* Hero */}
-      <div className="diagonal-stripe relative overflow-hidden" style={{ minHeight: 280, background: "var(--background)" }}>
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-20">
-          <p className="text-xs tracking-[0.45em] uppercase mb-5 font-semibold" style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}>
-            Paramètres
-          </p>
-          <h1 className="text-6xl font-bold leading-none" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
-            Export / Import
-          </h1>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Paramètres"
+        title="Export / Import"
+        lead="Sauvegardez votre cave, restaurez une sauvegarde ou transférez vos données."
+      />
 
-      <div className="max-w-2xl mx-auto px-6 py-12 space-y-8">
-        <ApiTokenSection />
+      <div className="max-w-7xl mx-auto px-6 py-12">
+        <div className="grid gap-6 lg:grid-cols-2 items-start">
+          <div className="space-y-6">
+            <ApiTokenSection />
 
-        {/* Export */}
+            {/* Export */}
         <section className="rounded-2xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.07)" }}>
           <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
             Exporter la base
@@ -162,9 +159,10 @@ export default function SettingsPage() {
             Télécharger l&apos;export
           </a>
         </section>
+          </div>
 
-        {/* Import */}
-        <section className="rounded-2xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.07)" }}>
+          {/* Import */}
+          <section className="rounded-2xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.07)" }}>
           <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
             Importer une base
           </h2>
@@ -275,6 +273,7 @@ export default function SettingsPage() {
             </div>
           )}
         </section>
+        </div>
       </div>
     </div>
   );

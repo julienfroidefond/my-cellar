@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { PageHeader } from "@/components/PageHeader";
 import WineImageField from "@/components/WineImageField";
 import { updateWineAction } from "@/app/wines/actions";
 import { ColorField, Field, RegionField, Section, inputStyle } from "@/components/WineFormUI";
@@ -16,21 +17,25 @@ export default async function EditWinePage({ params }: { params: Promise<{ id: s
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <div className="max-w-5xl mx-auto px-6 py-12">
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: "var(--font-playfair)" }}>
-            Modifier
-          </h1>
-          <p className="opacity-40 text-sm" style={{ fontFamily: "var(--font-inter)" }}>
+      <PageHeader
+        eyebrow="Collection"
+        title="Modifier"
+        lead={
+          <>
             {wine.name}
-          </p>
-          {wine.vintages.length > 0 && (
-            <p className="text-sm mt-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-              Les périodes d’apogée se règlent ci-dessous, pour chaque millésime.
-            </p>
-          )}
-        </div>
+            {wine.vintages.length > 0 && (
+              <span style={{ color: "var(--text-faint)" }}> · Les périodes d’apogée se règlent ci-dessous.</span>
+            )}
+          </>
+        }
+        actions={
+          <Link href={`/wines/${wine.id}`} className="px-4 py-2 rounded-full text-sm" style={{ border: "1px solid var(--border)", color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}>
+            ← Fiche du vin
+          </Link>
+        }
+      />
 
+      <div className="max-w-7xl mx-auto px-6 py-12">
         <form action={action}>
           <div className="grid md:grid-cols-2 gap-6 mb-6">
             <Section title="Image">

@@ -9,6 +9,7 @@ import EditVintagePriceButton from "./EditVintagePriceButton";
 import { decodeSlot } from "@/lib/rack-configs";
 import { estimateMaturity } from "@/lib/maturity";
 import { Stars } from "@/components/StarRating";
+import { PageHeader } from "@/components/PageHeader";
 import { MaturityTimeline } from "@/components/MaturityTimeline";
 import { removalReasonLabel } from "@/lib/history";
 import type { WineVintage } from "@/app/generated/prisma/client";
@@ -183,7 +184,6 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
   };
 
   const totalBottles = wine.vintages.reduce((s, v) => s + v.quantity, 0);
-  const inStockCount = wine.vintages.filter((v) => v.quantity > 0).length;
 
   const ratedEntries = wineHistory.filter((h) => h.rating != null);
   const avgRating = ratedEntries.length
@@ -193,94 +193,88 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
 
-      {/* ── Hero ─────────────────────────────────────── */}
-      <div className="diagonal-stripe relative overflow-hidden" style={{ minHeight: 360, background: "var(--background)" }}>
-        {wine.imageUrl && (
-          <div
-            className="absolute hidden md:block pointer-events-none"
-            style={{ right: "13%", top: "-8%", bottom: "-8%", width: 180, zIndex: 20 }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={wine.imageUrl}
-              alt={wine.name}
-              style={{ height: "116%", width: "100%", objectFit: "contain", objectPosition: "center", filter: "drop-shadow(-10px 18px 36px rgba(26,10,14,0.32))" }}
+      <PageHeader
+        eyebrow={
+          <span className="inline-flex items-center gap-2">
+            <span
+              className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{ background: cfg.color }}
             />
-          </div>
-        )}
-
-        <div className="relative z-10 max-w-5xl mx-auto px-6 pt-10 pb-16">
-          <Link href="/wines" className="inline-flex items-center gap-2 text-sm mb-10 transition-opacity hover:opacity-100 opacity-60" style={{ fontFamily: "var(--font-inter)", color: "var(--foreground)" }}>
-            ← Collection
-          </Link>
-
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: cfg.color }} />
-                <span className="text-xs tracking-[0.3em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: cfg.color }}>
-                  {cfg.label}{wine.appellation ? ` · ${wine.appellation}` : ""}
-                </span>
-              </div>
-
-              <h1 className="text-5xl md:text-7xl font-bold leading-none mb-4 max-w-xl" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
-                {wine.name}
-              </h1>
-
-              {wine.producer && (
-                <p className="text-base mb-6" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>{wine.producer}</p>
-              )}
-            </div>
-
+            {cfg.label}
+            {wine.appellation ? ` · ${wine.appellation}` : ""}
+          </span>
+        }
+        title={
+          <span className="flex items-start justify-between gap-4">
+            <span className="min-w-0">{wine.name}</span>
             {wine.imageUrl && (
-              <div className="md:hidden shrink-0 pt-1">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={wine.imageUrl}
-                  alt={wine.name}
-                  style={{ height: 200, width: "auto", objectFit: "contain", filter: "drop-shadow(0 10px 20px rgba(26,10,14,0.28))" }}
-                />
-              </div>
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={wine.imageUrl}
+                alt=""
+                aria-hidden="true"
+                className="h-24 w-auto shrink-0 object-contain lg:hidden"
+                style={{ filter: "drop-shadow(0 8px 16px rgba(26,10,14,0.22))" }}
+              />
             )}
-          </div>
-
-          <div className="flex flex-wrap gap-3 mt-4">
-            <div className="px-4 py-2.5 rounded-xl" style={{ background: "rgba(192,25,59,0.09)", border: "1px solid rgba(192,25,59,0.22)" }}>
-              <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Stock total</p>
-              <p className="text-sm font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>{totalBottles} bouteille{totalBottles !== 1 ? "s" : ""}</p>
+          </span>
+        }
+        lead={wine.producer ?? undefined}
+        asideSize="narrow"
+        aside={
+          wine.imageUrl ? (
+            <div className="hidden min-h-[300px] items-center justify-center lg:flex lg:pt-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={wine.imageUrl}
+                alt={wine.name}
+                style={{
+                  maxHeight: 320,
+                  maxWidth: "100%",
+                  width: "auto",
+                  objectFit: "contain",
+                  filter: "drop-shadow(0 18px 30px rgba(26,10,14,0.25))",
+                }}
+              />
             </div>
-            <div className="px-4 py-2.5 rounded-xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-              <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Millésimes</p>
-              <p className="text-sm font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--foreground)" }}>{wine.vintages.length} ({inStockCount} en stock)</p>
-            </div>
-            {wine.region && (
-              <div className="px-4 py-2.5 rounded-xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-                <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Région</p>
-                <p className="text-sm font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--foreground)" }}>{wine.region}</p>
-              </div>
-            )}
-            {avgRating != null && (
-              <div className="px-4 py-2.5 rounded-xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-                <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Note moyenne</p>
-                <Stars rating={avgRating} />
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-3 mt-6">
-            <Link href={`/wines/${wine.id}/edit`} className="px-5 py-2.5 rounded-full text-sm font-medium text-center transition-opacity hover:opacity-90" style={{ background: "var(--wine-red)", color: "#fff", fontFamily: "var(--font-inter)" }}>
+          ) : undefined
+        }
+        stats={[
+          { value: totalBottles, label: "Bouteilles" },
+          { value: wine.vintages.length, label: "Millésimes" },
+          ...(wine.region ? [{ value: wine.region, label: "Région" }] : []),
+          ...(avgRating != null
+            ? [{ value: `${avgRating.toFixed(1)} / 5`, label: "Note moyenne" }]
+            : []),
+        ]}
+        actions={
+          <>
+            <Link
+              href="/wines"
+              className="px-4 py-2 rounded-full text-sm"
+              style={{
+                border: "1px solid var(--border)",
+                color: "var(--text-muted)",
+                fontFamily: "var(--font-inter)",
+                fontWeight: 600,
+              }}
+            >
+              ← Collection
+            </Link>
+            <Link
+              href={`/wines/${wine.id}/edit`}
+              className="px-5 py-2.5 rounded-full text-sm font-medium text-center transition-opacity hover:opacity-90"
+              style={{ background: "var(--wine-red)", color: "#fff", fontFamily: "var(--font-inter)" }}
+            >
               Modifier
             </Link>
             <AddBottleButton id={wine.id} vintage={wine.vintages[0]?.vintage ?? null} />
-          </div>
-          <div className="mt-4">
-            <DeleteWineButton id={wine.id} name={wine.name} />
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
 
       {/* ── Body ─────────────────────────────────────── */}
-      <div className="max-w-5xl mx-auto px-6 py-12">
+      <div className="max-w-7xl mx-auto px-6 py-12">
         <MaturityTimeline vintages={wine.vintages} wine={wine} />
         <div className="grid md:grid-cols-3 gap-8">
 
@@ -427,6 +421,9 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
             </div>
           );
         })()}
+        <div className="mt-10">
+          <DeleteWineButton id={wine.id} name={wine.name} />
+        </div>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import { connection } from "next/server";
 import { prisma } from "@/lib/db";
+import { PageHeader } from "@/components/PageHeader";
 import { MissingDataList } from "@/components/MissingDataList";
 
 type MissingField = { label: string; scope: "wine" | "vintage" };
@@ -52,19 +53,17 @@ export default async function MissingDataPage() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <div className="max-w-5xl mx-auto px-6 py-12">
-        <header className="mb-10">
-          <p className="text-xs tracking-[0.3em] uppercase font-semibold mb-2" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>
-            Qualité des données
-          </p>
-          <h1 className="text-4xl font-bold mb-3" style={{ fontFamily: "var(--font-playfair)" }}>Données à compléter</h1>
-          <p className="text-sm max-w-2xl" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-            {incompleteWines.length === 0
-              ? "Tous les vins possèdent les informations suivies par cette vue."
-              : `${incompleteWines.length} vin${incompleteWines.length > 1 ? "s" : ""} présentent ${missingCount} information${missingCount > 1 ? "s" : ""} manquante${missingCount > 1 ? "s" : ""}.`}
-          </p>
-        </header>
+      <PageHeader
+        eyebrow="Qualité des données"
+        title="Données à compléter"
+        lead={
+          incompleteWines.length === 0
+            ? "Tous les vins possèdent les informations suivies par cette vue."
+            : `${incompleteWines.length} vin${incompleteWines.length > 1 ? "s" : ""} présentent ${missingCount} information${missingCount > 1 ? "s" : ""} manquante${missingCount > 1 ? "s" : ""}.`
+        }
+      />
 
+      <div className="max-w-7xl mx-auto px-6 py-12">
         {incompleteWines.length === 0 ? (
           <div className="rounded-2xl p-8 text-center" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
             <p className="text-3xl mb-3">✓</p>

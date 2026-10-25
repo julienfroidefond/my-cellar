@@ -1,6 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/db";
+import { PageHeader } from "@/components/PageHeader";
 import CaveInteractive, { type RackData, type RackConfig } from "./CaveInteractive";
 
 // ─── Rack configs ─────────────────────────────────────────────────────────────
@@ -142,61 +143,26 @@ export default async function CavePage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
 
-      {/* ── Hero ──────────────────────────────────────── */}
-      <div className="diagonal-stripe relative overflow-hidden" style={{ minHeight: 480, background: "var(--background)" }}>
+      {/* ── Header ────────────────────────────────────── */}
+      <PageHeader
+        eyebrow="Visualisation"
+        title={
+          <>
+            Ma Cave <span style={{ color: "var(--wine-red)" }}>à Vin</span>
+          </>
+        }
+        lead="Le plan et la vue 3D pour retrouver chaque bouteille, casier par casier."
+        stats={[
+          { value: allRacks.length, label: "Casier" + (allRacks.length > 1 ? "s" : "") },
+          { value: totalBottles, label: "Bouteilles rangées" },
+          { value: `${occupancyPct} %`, label: "Taux d'occupation" },
+          ...(unrackedCount > 0
+            ? [{ value: unrackedCount, label: "À ranger" }]
+            : [{ value: totalCapacity, label: "Capacité totale" }]),
+        ]}
+      />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-14 md:py-24">
-          <p
-            className="animate-fade-up text-xs tracking-[0.45em] uppercase mb-5 font-semibold"
-            style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}
-          >
-            Visualisation
-          </p>
-          <h1
-            className="animate-fade-up-1 text-6xl md:text-8xl font-bold leading-none mb-4"
-            style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
-          >
-            Ma Cave<br />
-            <span style={{ color: "var(--wine-red)" }}>à Vin</span>
-          </h1>
-
-          <div className="animate-fade-up-2 grid grid-cols-2 md:grid-cols-4 gap-4 mt-14 max-w-3xl">
-            {[
-              { value: allRacks.length, label: "Casier" + (allRacks.length > 1 ? "s" : "") },
-              { value: totalBottles, label: "Bouteilles rangées" },
-              { value: `${occupancyPct} %`, label: "Taux d'occupation" },
-              ...(unrackedCount > 0
-                ? [{ value: unrackedCount, label: "À ranger" }]
-                : [{ value: totalCapacity, label: "Capacité totale" }]),
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-2xl p-5"
-                style={{
-                  background: "var(--surface)",
-                  border: "1px solid var(--border)",
-                  boxShadow: "0 2px 12px rgba(26,10,14,0.07)",
-                }}
-              >
-                <div
-                  className="text-3xl font-bold mb-1"
-                  style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}
-                >
-                  {stat.value}
-                </div>
-                <div
-                  className="text-xs tracking-wider uppercase"
-                  style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-                >
-                  {stat.label}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="animate-fade-up-3 max-w-3xl mx-auto px-6 pb-12">
+      <div className="animate-fade-up-3 max-w-3xl mx-auto px-6 pt-12 pb-12">
         {/* Legend */}
         <div className="flex items-center gap-6 mb-8 text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
           {[

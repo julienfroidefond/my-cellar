@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { PageHeader } from "@/components/PageHeader";
 import { estimateMaturity } from "@/lib/maturity";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -229,226 +230,214 @@ function WinesContent() {
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
 
-      {/* ── Page header ── */}
-      <div
-        className="relative overflow-hidden"
-        style={{ background: "var(--background)", borderBottom: "1px solid var(--border)" }}
-      >
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <p className="text-xs tracking-[0.35em] uppercase mb-3" style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 500 }}>
-            Inventaire
-          </p>
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
-                La collection
-              </h1>
-              <p style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)", fontSize: "0.875rem" }}>
-                {loading ? "…" : `${wines.length} référence${wines.length > 1 ? "s" : ""} · ${totalBottles} bouteille${totalBottles > 1 ? "s" : ""}`}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2">
-              {activeCount > 0 && (
-                <button
-                  onClick={() => setFilters(EMPTY_FILTERS)}
-                  className="text-xs px-3 py-2 rounded-full transition-opacity hover:opacity-80"
-                  style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)", border: "1px solid var(--border)" }}
-                >
-                  Tout effacer
-                </button>
-              )}
-              <select
-                value={sort}
-                onChange={e => setSort(e.target.value as typeof sort)}
-                className="px-4 py-2.5 rounded-full text-sm outline-none cursor-pointer"
-                style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-muted)", fontFamily: "var(--font-inter)", appearance: "none", paddingRight: "2rem" }}
+      <PageHeader
+        eyebrow="Inventaire"
+        title="La collection"
+        lead={loading ? "…" : `${wines.length} référence${wines.length > 1 ? "s" : ""} · ${totalBottles} bouteille${totalBottles > 1 ? "s" : ""}`}
+        actions={
+          <>
+            {activeCount > 0 && (
+              <button
+                onClick={() => setFilters(EMPTY_FILTERS)}
+                className="text-xs px-3 py-2 rounded-full transition-opacity hover:opacity-80"
+                style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)", border: "1px solid var(--border)" }}
               >
-                <option value="name">A → Z</option>
-                <option value="stock-desc">Stock ↓</option>
-                <option value="price-desc">Prix ↓</option>
-                <option value="vintage-desc">Millésime ↓</option>
-              </select>
-              <input
-                type="text"
-                placeholder="Rechercher un vin…"
-                value={filters.search}
-                onChange={e => set("search", e.target.value)}
-                className="flex-1 px-5 py-2.5 rounded-full text-sm outline-none transition-all"
-                style={{ minWidth: "160px", background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
-                onFocus={e => (e.target.style.borderColor = "rgba(192,25,59,0.40)")}
-                onBlur={e  => (e.target.style.borderColor = "var(--border)")}
-              />
-            </div>
-          </div>
+                Tout effacer
+              </button>
+            )}
+            <select
+              value={sort}
+              onChange={e => setSort(e.target.value as typeof sort)}
+              className="px-4 py-2.5 rounded-full text-sm outline-none cursor-pointer"
+              style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-muted)", fontFamily: "var(--font-inter)", appearance: "none", paddingRight: "2rem" }}
+            >
+              <option value="name">A → Z</option>
+              <option value="stock-desc">Stock ↓</option>
+              <option value="price-desc">Prix ↓</option>
+              <option value="vintage-desc">Millésime ↓</option>
+            </select>
+            <input
+              type="text"
+              placeholder="Rechercher un vin…"
+              value={filters.search}
+              onChange={e => set("search", e.target.value)}
+              className="flex-1 px-5 py-2.5 rounded-full text-sm outline-none transition-all"
+              style={{ minWidth: "160px", background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
+              onFocus={e => (e.target.style.borderColor = "rgba(192,25,59,0.40)")}
+              onBlur={e  => (e.target.style.borderColor = "var(--border)")}
+            />
+          </>
+        }
+        bottom={
+          <>
+            {/* ── Filter row ── */}
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap gap-2 items-center">
+                {/* Color */}
+                <Chip active={!filters.color} onClick={() => set("color", "")} label="Tous" />
+                {Object.entries(COLORS).map(([c, { label, color }]) => (
+                  <Chip key={c} active={filters.color === c} onClick={() => toggle("color", c)} label={label} dot={color} />
+                ))}
 
-          {/* ── Filter row ── */}
-          <div className="mt-6 flex flex-col gap-2">
-            <div className="flex flex-wrap gap-2 items-center">
-              {/* Color */}
-              <Chip active={!filters.color} onClick={() => set("color", "")} label="Tous" />
-              {Object.entries(COLORS).map(([c, { label, color }]) => (
-                <Chip key={c} active={filters.color === c} onClick={() => toggle("color", c)} label={label} dot={color} />
-              ))}
+                {/* Divider */}
+                <div className="w-px h-5 mx-1" style={{ background: "var(--border)" }} />
 
-              {/* Divider */}
-              <div className="w-px h-5 mx-1" style={{ background: "var(--border)" }} />
+                {/* Maturité */}
+                {([
+                  ["optimal",  "✓ Prêtes",  "#1a7a3c"],
+                  ["bientôt",  "~ Bientôt", "#b87a2c"],
+                  ["dépassé",  "✗ Passées", "rgba(26,10,14,0.4)"],
+                ] as [Filters["maturity"], string, string][]).map(([v, label, color]) => (
+                  <button
+                    key={v}
+                    onClick={() => toggle("maturity", v)}
+                    className="flex items-center rounded-full transition-all duration-200"
+                    style={{
+                      padding: "6px 14px",
+                      fontSize: "0.875rem",
+                      fontFamily: "var(--font-inter)",
+                      background: filters.maturity === v ? `${color}18` : "var(--surface)",
+                      border: `1px solid ${filters.maturity === v ? color : "var(--border)"}`,
+                      color: filters.maturity === v ? color : "var(--text-muted)",
+                      fontWeight: filters.maturity === v ? 500 : 400,
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
 
-              {/* Maturité */}
-              {([
-                ["optimal",  "✓ Prêtes",  "#1a7a3c"],
-                ["bientôt",  "~ Bientôt", "#b87a2c"],
-                ["dépassé",  "✗ Passées", "rgba(26,10,14,0.4)"],
-              ] as [Filters["maturity"], string, string][]).map(([v, label, color]) => (
+                {/* Filter toggle */}
                 <button
-                  key={v}
-                  onClick={() => toggle("maturity", v)}
-                  className="flex items-center rounded-full transition-all duration-200"
+                  onClick={() => setShowFilters(v => !v)}
+                  className="sm:ml-auto flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition-all"
                   style={{
-                    padding: "6px 14px",
-                    fontSize: "0.875rem",
                     fontFamily: "var(--font-inter)",
-                    background: filters.maturity === v ? `${color}18` : "var(--surface)",
-                    border: `1px solid ${filters.maturity === v ? color : "var(--border)"}`,
-                    color: filters.maturity === v ? color : "var(--text-muted)",
-                    fontWeight: filters.maturity === v ? 500 : 400,
+                    background: (showFilters || activeCount > 0) ? "rgba(192,25,59,0.08)" : "var(--surface-2)",
+                    border: (showFilters || activeCount > 0) ? "1px solid rgba(192,25,59,0.25)" : "1px solid var(--border)",
+                    color: (showFilters || activeCount > 0) ? "var(--wine-red)" : "var(--text-muted)",
                   }}
                 >
-                  {label}
+                  <span style={{ fontSize: 13 }}>⚙</span>
+                  Filtres {activeCount > 0 && <span className="px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ background: "var(--wine-red)", color: "white" }}>{activeCount}</span>}
+                  <span style={{ fontSize: 10 }}>{showFilters ? "▲" : "▼"}</span>
                 </button>
-              ))}
-
-              {/* Filter toggle */}
-              <button
-                onClick={() => setShowFilters(v => !v)}
-                className="sm:ml-auto flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition-all"
-                style={{
-                  fontFamily: "var(--font-inter)",
-                  background: (showFilters || activeCount > 0) ? "rgba(192,25,59,0.08)" : "var(--surface-2)",
-                  border: (showFilters || activeCount > 0) ? "1px solid rgba(192,25,59,0.25)" : "1px solid var(--border)",
-                  color: (showFilters || activeCount > 0) ? "var(--wine-red)" : "var(--text-muted)",
-                }}
-              >
-                <span style={{ fontSize: 13 }}>⚙</span>
-                Filtres {activeCount > 0 && <span className="px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ background: "var(--wine-red)", color: "white" }}>{activeCount}</span>}
-                <span style={{ fontSize: 10 }}>{showFilters ? "▲" : "▼"}</span>
-              </button>
+              </div>
             </div>
-          </div>
 
-          {/* ── Expanded filter panel ── */}
-          {showFilters && (
-            <div
-              className="mt-4 rounded-2xl p-5 space-y-5"
-              style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-            >
-              {/* Country */}
-              {options.countries.length > 0 && (
-                <FilterSection label="Pays">
-                  <div className="flex flex-wrap gap-2">
-                    <Chip active={!filters.country} onClick={() => set("country", "")} label="Tous" small />
-                    {options.countries.map(c => (
-                      <Chip key={c} active={filters.country === c} onClick={() => toggle("country", c)} label={c} small />
-                    ))}
-                  </div>
-                </FilterSection>
-              )}
+            {/* ── Expanded filter panel ── */}
+            {showFilters && (
+              <div
+                className="mt-4 rounded-2xl p-5 space-y-5"
+                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+              >
+                {/* Country */}
+                {options.countries.length > 0 && (
+                  <FilterSection label="Pays">
+                    <div className="flex flex-wrap gap-2">
+                      <Chip active={!filters.country} onClick={() => set("country", "")} label="Tous" small />
+                      {options.countries.map(c => (
+                        <Chip key={c} active={filters.country === c} onClick={() => toggle("country", c)} label={c} small />
+                      ))}
+                    </div>
+                  </FilterSection>
+                )}
 
-              {/* Region */}
-              {options.regions.length > 0 && (
-                <FilterSection label="Région">
-                  <RegionSelect
-                    options={options.regions}
-                    value={filters.region}
-                    onChange={v => set("region", v)}
-                  />
-                </FilterSection>
-              )}
-
-              {/* Grape + Price */}
-              <div className="grid sm:grid-cols-2 gap-5">
-                <FilterSection label="Cépage">
-                  <input
-                    type="text"
-                    value={filters.grape}
-                    onChange={e => set("grape", e.target.value)}
-                    placeholder="Merlot, Chardonnay…"
-                    className="w-full px-4 py-2 rounded-xl text-sm outline-none transition-all"
-                    style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
-                    onFocus={e => (e.target.style.borderColor = "rgba(192,25,59,0.40)")}
-                    onBlur={e  => (e.target.style.borderColor = "var(--border)")}
-                  />
-                  {filters.grape && options.grapes.filter(g => g.toLowerCase().includes(filters.grape.toLowerCase())).slice(0, 6).map(g => (
-                    <button
-                      key={g}
-                      onClick={() => set("grape", g)}
-                      className="mt-1 mr-1.5 text-xs px-2.5 py-1 rounded-full transition-all hover:opacity-80"
-                      style={{ background: "rgba(26,10,14,0.06)", border: "1px solid var(--border)", color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}
-                    >
-                      {g}
-                    </button>
-                  ))}
-                </FilterSection>
-
-                <FilterSection label="Prix marché (€)">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="number"
-                      value={filters.priceMin}
-                      onChange={e => set("priceMin", e.target.value)}
-                      placeholder="Min"
-                      min={0}
-                      className="w-full px-4 py-2 rounded-xl text-sm outline-none"
-                      style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
+                {/* Region */}
+                {options.regions.length > 0 && (
+                  <FilterSection label="Région">
+                    <RegionSelect
+                      options={options.regions}
+                      value={filters.region}
+                      onChange={v => set("region", v)}
                     />
-                    <span style={{ color: "var(--text-faint)" }}>—</span>
+                  </FilterSection>
+                )}
+
+                {/* Grape + Price */}
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <FilterSection label="Cépage">
                     <input
-                      type="number"
-                      value={filters.priceMax}
-                      onChange={e => set("priceMax", e.target.value)}
-                      placeholder="Max"
-                      min={0}
-                      className="w-full px-4 py-2 rounded-xl text-sm outline-none"
+                      type="text"
+                      value={filters.grape}
+                      onChange={e => set("grape", e.target.value)}
+                      placeholder="Merlot, Chardonnay…"
+                      className="w-full px-4 py-2 rounded-xl text-sm outline-none transition-all"
                       style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
+                      onFocus={e => (e.target.style.borderColor = "rgba(192,25,59,0.40)")}
+                      onBlur={e  => (e.target.style.borderColor = "var(--border)")}
                     />
-                  </div>
-                  <div className="flex gap-2 mt-2">
-                    {[[0,20,"< 20 €"],[20,50,"20–50 €"],[50,100,"50–100 €"],[100,0,"+ 100 €"]].map(([min, max, label]) => (
+                    {filters.grape && options.grapes.filter(g => g.toLowerCase().includes(filters.grape.toLowerCase())).slice(0, 6).map(g => (
                       <button
-                        key={label as string}
-                        onClick={() => setFilters(f => ({ ...f, priceMin: min ? String(min) : "", priceMax: max ? String(max) : "" }))}
-                        className="text-xs px-2.5 py-1 rounded-full transition-all hover:opacity-80"
-                        style={{ background: "rgba(26,10,14,0.06)", border: "1px solid var(--border)", color: "var(--text-faint)", fontFamily: "var(--font-inter)" }}
+                        key={g}
+                        onClick={() => set("grape", g)}
+                        className="mt-1 mr-1.5 text-xs px-2.5 py-1 rounded-full transition-all hover:opacity-80"
+                        style={{ background: "rgba(26,10,14,0.06)", border: "1px solid var(--border)", color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}
                       >
-                        {label as string}
+                        {g}
                       </button>
                     ))}
-                  </div>
-                </FilterSection>
-              </div>
+                  </FilterSection>
 
-              {/* Stock + Racked */}
-              <div className="grid sm:grid-cols-2 gap-5">
-                <FilterSection label="En possession">
-                  <div className="flex gap-2">
-                    {([["", "Tous"], ["in", "En cave"], ["out", "Épuisé"]] as [Filters["stock"], string][]).map(([v, label]) => (
-                      <ToggleBtn key={v} active={filters.stock === v} onClick={() => set("stock", v)} label={label} />
-                    ))}
-                  </div>
-                </FilterSection>
+                  <FilterSection label="Prix marché (€)">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="number"
+                        value={filters.priceMin}
+                        onChange={e => set("priceMin", e.target.value)}
+                        placeholder="Min"
+                        min={0}
+                        className="w-full px-4 py-2 rounded-xl text-sm outline-none"
+                        style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
+                      />
+                      <span style={{ color: "var(--text-faint)" }}>—</span>
+                      <input
+                        type="number"
+                        value={filters.priceMax}
+                        onChange={e => set("priceMax", e.target.value)}
+                        placeholder="Max"
+                        min={0}
+                        className="w-full px-4 py-2 rounded-xl text-sm outline-none"
+                        style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
+                      />
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      {[[0,20,"< 20 €"],[20,50,"20–50 €"],[50,100,"50–100 €"],[100,0,"+ 100 €"]].map(([min, max, label]) => (
+                        <button
+                          key={label as string}
+                          onClick={() => setFilters(f => ({ ...f, priceMin: min ? String(min) : "", priceMax: max ? String(max) : "" }))}
+                          className="text-xs px-2.5 py-1 rounded-full transition-all hover:opacity-80"
+                          style={{ background: "rgba(26,10,14,0.06)", border: "1px solid var(--border)", color: "var(--text-faint)", fontFamily: "var(--font-inter)" }}
+                        >
+                          {label as string}
+                        </button>
+                      ))}
+                    </div>
+                  </FilterSection>
+                </div>
 
-                <FilterSection label="Casier">
-                  <div className="flex gap-2">
-                    {([["", "Tous"], ["yes", "Rangé"], ["no", "Non rangé"]] as [Filters["racked"], string][]).map(([v, label]) => (
-                      <ToggleBtn key={v} active={filters.racked === v} onClick={() => set("racked", v)} label={label} />
-                    ))}
-                  </div>
-                </FilterSection>
+                {/* Stock + Racked */}
+                <div className="grid sm:grid-cols-2 gap-5">
+                  <FilterSection label="En possession">
+                    <div className="flex gap-2">
+                      {([["", "Tous"], ["in", "En cave"], ["out", "Épuisé"]] as [Filters["stock"], string][]).map(([v, label]) => (
+                        <ToggleBtn key={v} active={filters.stock === v} onClick={() => set("stock", v)} label={label} />
+                      ))}
+                    </div>
+                  </FilterSection>
+
+                  <FilterSection label="Casier">
+                    <div className="flex gap-2">
+                      {([["", "Tous"], ["yes", "Rangé"], ["no", "Non rangé"]] as [Filters["racked"], string][]).map(([v, label]) => (
+                        <ToggleBtn key={v} active={filters.racked === v} onClick={() => set("racked", v)} label={label} />
+                      ))}
+                    </div>
+                  </FilterSection>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </div>
+            )}
+          </>
+        }
+      />
 
       {/* ── Wine grid ── */}
       <div className="max-w-7xl mx-auto px-6 py-10">

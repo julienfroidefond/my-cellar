@@ -1,6 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { PageHeader } from "@/components/PageHeader";
 import { prisma } from "@/lib/db";
 import { estimateMaturity } from "@/lib/maturity";
 import { getMaturityPhase } from "@/lib/maturity-phase";
@@ -26,18 +27,16 @@ export default async function MaturityPage() {
 
   return (
     <main className="min-h-screen" style={{ background: "var(--background)" }}>
-      <header style={{ borderBottom: "1px solid var(--border)" }}>
-        <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
-          <p className="text-xs tracking-[0.35em] uppercase mb-3" style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}>Maturité</p>
-          <div className="flex flex-wrap items-end justify-between gap-5">
-            <div>
-              <h1 className="text-4xl md:text-5xl font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>Le temps de la cave</h1>
-              <p className="mt-3 max-w-2xl" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>Suivez les fenêtres de dégustation et repérez les bouteilles à ouvrir au bon moment.</p>
-            </div>
-            <Link href="/wines" className="px-4 py-2 rounded-full text-sm" style={{ border: "1px solid var(--border)", color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}>Voir tous les vins →</Link>
-          </div>
-        </div>
-      </header>
+      <PageHeader
+        eyebrow="Maturité"
+        title="Le temps de la cave"
+        lead="Suivez les fenêtres de dégustation et repérez les bouteilles à ouvrir au bon moment."
+        actions={
+          <Link href="/wines" className="px-4 py-2 rounded-full text-sm" style={{ border: "1px solid var(--border)", color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}>
+            Voir tous les vins →
+          </Link>
+        }
+      />
 
       <div className="max-w-7xl mx-auto px-6 py-12 space-y-14">
         {maturityWines.length === 0 ? (
