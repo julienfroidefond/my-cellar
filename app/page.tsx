@@ -17,6 +17,20 @@ function pickRandom<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+const COLOR_LABELS: Record<string, string> = {
+  rouge: "Rouge",
+  blanc: "Blanc",
+  rosé: "Rosé",
+  effervescent: "Effervescent",
+};
+
+function normalized(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
 export default async function DashboardPage() {
   const wines = await prisma.wine.findMany({
     orderBy: { name: "asc" },
@@ -132,67 +146,194 @@ export default async function DashboardPage() {
 
   const winesWithImage = wines.filter((w) => w.imageUrl && w.vintages.some((v) => v.quantity > 0));
   const heroWine = winesWithImage.length > 0 ? pickRandom(winesWithImage) : null;
+  const heroVintage = heroWine?.vintages.find((v) => v.quantity > 0) ?? null;
+  const heroDescription = heroWine?.description?.trim() || heroWine?.notes?.trim() || null;
+  const heroProducer = heroWine?.producer?.trim() ?? "";
+  const showProducer = heroWine
+    ? heroProducer.length > 0 &&
+      !normalized(heroWine.name).includes(normalized(heroProducer))
+    : false;
+  const heroMeta = heroWine
+    ? [
+        heroVintage?.vintage ? String(heroVintage.vintage) : null,
+        heroWine.appellation?.trim() || heroWine.region?.trim(),
+        heroWine.color ? COLOR_LABELS[heroWine.color] ?? heroWine.color : null,
+        heroVintage
+          ? `${heroVintage.quantity}\u00A0bouteille${heroVintage.quantity > 1 ? "s" : ""}`
+          : null,
+      ].filter((item): item is string => Boolean(item))
+    : [];
+
+  const stats = [
+    { value: totalBottles, label: "Bouteilles" },
+    { value: wines.length, label: "Références" },
+    { value: `${Math.round(totalValue).toLocaleString("fr-FR")} €`, label: "Valeur estimée" },
+    { value: oldestVintage ?? "—", label: "Plus ancien millésime" },
+  ];
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <div
+      <section
         className="diagonal-stripe relative overflow-hidden"
-        style={{ minHeight: 480, background: "var(--background)" }}
+        style={{ background: "var(--background)" }}
+        aria-labelledby="featured-wine-title"
       >
         {heroWine?.imageUrl && (
           <div
-            className="animate-fade-bottle absolute hidden md:block"
-            style={{ right: "16%", top: "-5%", bottom: "-5%", width: 200, zIndex: 20, pointerEvents: "none" }}
+            className="animate-fade-bottle pointer-events-none absolute bottom-[-6%] top-[-6%] z-20 hidden w-[200px] md:right-[5%] md:block lg:right-[12%] lg:w-[220px]"
+            aria-hidden="true"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={heroWine.imageUrl}
-              alt={heroWine.name}
-              style={{ height: "110%", width: "100%", objectFit: "contain", objectPosition: "center" }}
+              alt=""
+              style={{
+                height: "100%",
+                width: "100%",
+                objectFit: "contain",
+                objectPosition: "center",
+                filter: "drop-shadow(0 34px 42px rgba(26,10,14,0.30))",
+              }}
             />
           </div>
         )}
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-14 md:py-24">
-          <div className="max-w-xl">
-            <p
-              className="animate-fade-up text-xs tracking-[0.45em] uppercase mb-5"
-              style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}
-            >
-              Collection personnelle
-            </p>
-            <h1
-              className="animate-fade-up-1 text-6xl md:text-8xl font-bold mb-4 leading-none"
-              style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
-            >
-              Ma Cave<br />
-              <span style={{ color: "var(--wine-red)" }}>à Vin</span>
-            </h1>
-          </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-16 lg:py-20">
+          {heroWine ? (
+            <div className="max-w-[640px] md:max-w-[480px] lg:max-w-[640px]">
+              {heroWine.imageUrl && (
+                <div
+                  className="animate-fade-bottle float-right mb-3 ml-5 w-[84px] sm:w-[104px] md:hidden"
+                  aria-hidden="true"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={heroWine.imageUrl}
+                    alt=""
+                    style={{
+                      width: "100%",
+                      height: "auto",
+                      filter: "drop-shadow(0 20px 26px rgba(26,10,14,0.26))",
+                    }}
+                  />
+                </div>
+              )}
 
-          <div className="animate-fade-up-2 grid grid-cols-2 md:grid-cols-4 gap-4 mt-14 max-w-3xl">
-            {[
-              { value: totalBottles, label: "Bouteilles" },
-              { value: wines.length, label: "Références" },
-              { value: `${totalValue.toFixed(0)} €`, label: "Valeur estimée" },
-              { value: oldestVintage ?? "—", label: "Millésime le + ancien" },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded-2xl p-5 text-left"
-                style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.07)" }}
+              <p
+                className="animate-fade-up text-[11px] font-semibold uppercase tracking-[0.35em]"
+                style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}
               >
-                <div className="text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}>
-                  {stat.value}
-                </div>
-                <div className="text-xs tracking-wider uppercase" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                  {stat.label}
-                </div>
+                La bouteille du moment
+              </p>
+
+              <h1
+                id="featured-wine-title"
+                className="animate-fade-up-1 mt-4 text-balance text-[2.5rem] font-bold leading-[0.95] sm:text-5xl lg:text-7xl"
+                style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
+              >
+                {heroWine.name}
+              </h1>
+
+              {showProducer && (
+                <p
+                  className="animate-fade-up-1 mt-3 text-[11px] font-semibold uppercase tracking-[0.28em]"
+                  style={{ color: "var(--gold)", fontFamily: "var(--font-inter)" }}
+                >
+                  {heroProducer}
+                </p>
+              )}
+
+              {heroMeta.length > 0 && (
+                <p
+                  className="animate-fade-up-1 mt-3 text-xs"
+                  style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+                >
+                  {heroMeta.join(" · ")}
+                </p>
+              )}
+
+              {heroDescription && (
+                <p
+                  className="animate-fade-up-2 mt-6 line-clamp-4 max-w-[52ch] text-sm leading-relaxed"
+                  style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+                >
+                  {heroDescription}
+                </p>
+              )}
+
+              <div className="animate-fade-up-2 mt-7 flex flex-wrap items-center gap-3">
+                <Link
+                  href={`/wines/${heroWine.id}`}
+                  className="group inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium transition-opacity hover:opacity-90"
+                  style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}
+                >
+                  Découvrir cette bouteille
+                  <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
+                    →
+                  </span>
+                </Link>
+                <Link
+                  href="/wines"
+                  className="inline-flex items-center rounded-full px-6 py-3 text-sm font-medium transition-all hover:border-[var(--wine-red)] hover:text-[var(--wine-red)]"
+                  style={{
+                    background: "transparent",
+                    border: "1px solid var(--border)",
+                    color: "var(--text-muted)",
+                    fontFamily: "var(--font-inter)",
+                  }}
+                >
+                  Explorer la cave
+                </Link>
               </div>
-            ))}
-          </div>
+            </div>
+          ) : (
+            <div className="max-w-xl">
+              <p
+                className="animate-fade-up text-xs tracking-[0.45em] uppercase mb-5"
+                style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}
+              >
+                Collection personnelle
+              </p>
+              <h1
+                id="featured-wine-title"
+                className="animate-fade-up-1 text-6xl md:text-8xl font-bold leading-none"
+                style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
+              >
+                Ma Cave<br />
+                <span style={{ color: "var(--wine-red)" }}>à Vin</span>
+              </h1>
+            </div>
+          )}
         </div>
-      </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-6 py-9 md:py-10" aria-label="La cave en chiffres">
+        <div
+          className="grid grid-cols-2 gap-y-6 border-t pt-7 md:grid-cols-4 md:gap-y-0"
+          style={{ borderColor: "var(--border)" }}
+        >
+          {stats.map((stat, index) => (
+            <div
+              key={stat.label}
+              className={index > 0 ? "md:border-l md:pl-6" : undefined}
+              style={{ borderColor: "var(--border)" }}
+            >
+              <div
+                className="text-3xl font-bold leading-none"
+                style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}
+              >
+                {stat.value}
+              </div>
+              <div
+                className="mt-2 text-[10px] uppercase leading-tight tracking-[0.14em]"
+                style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+              >
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <div className="animate-fade-up-3 max-w-7xl mx-auto px-6 py-14 space-y-14">
         {premiumTotal > 0 && (
