@@ -60,8 +60,8 @@ export function MissingDataList({ wines, fieldCounts }: { wines: IncompleteWine[
 
   return (
     <>
-      <section className="rounded-2xl p-6 mb-8" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.06)" }} data-reveal>
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <section className="mb-8" data-reveal>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Les plus fréquentes</p>
           {activeFilter && (
             <button type="button" onClick={() => setActiveFilter(null)} className="text-xs underline" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
@@ -69,7 +69,7 @@ export function MissingDataList({ wines, fieldCounts }: { wines: IncompleteWine[
             </button>
           )}
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {fieldCounts.map(([label, count]) => {
             const isActive = activeFilter === label;
             return (
@@ -78,10 +78,18 @@ export function MissingDataList({ wines, fieldCounts }: { wines: IncompleteWine[
                 type="button"
                 onClick={() => setActiveFilter(isActive ? null : label)}
                 aria-pressed={isActive}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-opacity hover:opacity-80"
-                style={{ background: isActive ? "var(--wine-red)" : "var(--surface-2)", color: isActive ? "white" : "var(--text-muted)", fontFamily: "var(--font-inter)" }}
+                className="inline-flex items-center gap-2 rounded-full transition-all duration-200"
+                style={{
+                  padding: "6px 16px",
+                  fontSize: "0.875rem",
+                  background: isActive ? "rgba(192,25,59,0.08)" : "var(--surface)",
+                  border: `1px solid ${isActive ? "rgba(192,25,59,0.22)" : "var(--border)"}`,
+                  color: isActive ? "var(--wine-red)" : "var(--text-muted)",
+                  fontFamily: "var(--font-inter)",
+                  fontWeight: isActive ? 500 : 400,
+                }}
               >
-                <FieldIcon label={label} /> {label} <strong>· {count}</strong>
+                <FieldIcon label={label} /> {label} · {count}
               </button>
             );
           })}
