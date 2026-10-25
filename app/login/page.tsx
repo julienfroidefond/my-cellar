@@ -1,4 +1,5 @@
 import { loginAction } from "@/app/actions/auth";
+import Image from "next/image";
 
 export default async function LoginPage({
   searchParams,
@@ -21,12 +22,14 @@ export default async function LoginPage({
         }}
       >
         <div className="flex flex-col items-center gap-3 mb-8">
-          <div
-            className="w-12 h-12 rounded-xl flex items-center justify-center"
-            style={{ background: 'var(--wine-red)' }}
-          >
-            <span style={{ fontSize: 22 }}>🍷</span>
-          </div>
+          <Image
+            src="/icons/logo-mark.png"
+            alt=""
+            width={48}
+            height={48}
+            className="w-12 h-12 rounded-xl"
+            priority
+          />
           <h1
             className="text-xl font-bold"
             style={{ fontFamily: 'var(--font-playfair)', color: 'var(--foreground)' }}

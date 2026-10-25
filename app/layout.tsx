@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
@@ -18,6 +18,16 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Ma Cave — Julien Froidefond",
   description: "Collection de vins premium",
+  applicationName: "Ma Cave",
+  appleWebApp: {
+    capable: true,
+    title: "Ma Cave",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#8a0f25",
 };
 
 export default function RootLayout({

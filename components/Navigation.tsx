@@ -2,6 +2,7 @@
 
 import { logoutAction } from "@/app/actions/auth";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -45,12 +46,14 @@ export default function Navigation() {
       >
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: "var(--wine-red)" }}
-            >
-              <span style={{ fontSize: 14 }}>🍷</span>
-            </div>
+            <Image
+              src="/icons/logo-mark.png"
+              alt=""
+              width={36}
+              height={36}
+              className="w-9 h-9 rounded-[10px]"
+              priority
+            />
             <span
               className="text-sm tracking-[0.18em] uppercase"
               style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)", fontWeight: 700 }}
