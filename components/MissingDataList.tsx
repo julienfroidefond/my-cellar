@@ -17,9 +17,10 @@ import {
   TrendingUp,
   User,
   UtensilsCrossed,
-  Wine,
+  X,
   type LucideIcon,
 } from "lucide-react";
+import { BottleSilhouette } from "@/components/WineTile";
 
 type MissingField = { label: string; scope: "wine" | "vintage" };
 type IncompleteWine = {
@@ -60,16 +61,17 @@ export function MissingDataList({ wines, fieldCounts }: { wines: IncompleteWine[
 
   return (
     <>
-      <section className="mb-8" data-reveal>
+      <section className="mb-8" data-reveal aria-labelledby="missing-filters-title">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-          <p className="text-xs tracking-[0.2em] uppercase font-semibold" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>Les plus fréquentes</p>
+          <h2 id="missing-filters-title" className="label">Filtrer par information manquante</h2>
           {activeFilter && (
-            <button type="button" onClick={() => setActiveFilter(null)} className="text-xs underline" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+            <button type="button" onClick={() => setActiveFilter(null)} className="btn btn-ghost btn-sm">
+              <X />
               Effacer le filtre
             </button>
           )}
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
           {fieldCounts.map(([label, count]) => {
             const isActive = activeFilter === label;
             return (
@@ -78,63 +80,86 @@ export function MissingDataList({ wines, fieldCounts }: { wines: IncompleteWine[
                 type="button"
                 onClick={() => setActiveFilter(isActive ? null : label)}
                 aria-pressed={isActive}
-                className="inline-flex items-center gap-2 rounded-full transition-all duration-200"
-                style={{
-                  padding: "6px 16px",
-                  fontSize: "0.875rem",
-                  background: isActive ? "rgba(192,25,59,0.08)" : "var(--surface)",
-                  border: `1px solid ${isActive ? "rgba(192,25,59,0.22)" : "var(--border)"}`,
-                  color: isActive ? "var(--wine-red)" : "var(--text-muted)",
-                  fontFamily: "var(--font-inter)",
-                  fontWeight: isActive ? 500 : 400,
-                }}
+                className="chip h-10 shrink-0"
               >
-                <FieldIcon label={label} /> {label} · {count}
+                <FieldIcon label={label} />
+                {label}
+                <span className="tabular opacity-70">{count}</span>
               </button>
             );
           })}
         </div>
       </section>
 
-      <p className="text-sm mb-3" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-        {filteredWines.length} vin{filteredWines.length > 1 ? "s" : ""}{activeFilter ? ` sans « ${activeFilter} »` : " à compléter"}
+      <p className="mb-3 text-sm text-muted" aria-live="polite">
+        <span className="font-semibold tabular text-foreground">{filteredWines.length}</span> vin{filteredWines.length > 1 ? "s" : ""}
+        {activeFilter ? ` sans « ${activeFilter} »` : " à compléter"}
       </p>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3" data-reveal-stagger>
-        {filteredWines.map(({ wine, missing }) => (
-          <article key={wine.id} data-reveal className="rounded-2xl p-5 sm:p-6" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(26,10,14,0.05)" }}>
-            <div className="flex gap-4">
-              {wine.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={wine.imageUrl} alt="" className="w-16 h-24 sm:w-20 sm:h-28 shrink-0 object-contain" />
-              ) : (
-                <div className="w-16 h-24 sm:w-20 sm:h-28 shrink-0 flex items-center justify-center" aria-label="Image manquante">
-                  <Wine size={30} strokeWidth={1.25} aria-hidden="true" style={{ color: "var(--text-faint)", opacity: 0.6 }} />
-                </div>
-              )}
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2" data-reveal-stagger>
+        {filteredWines.map(({ wine, missing }) => {
+          const wineFields = missing.filter((field) => field.scope === "wine");
+          const vintageFields = missing.filter((field) => field.scope === "vintage");
+          return (
+            <article key={wine.id} data-reveal className="card flex overflow-hidden">
+              <div className="flex w-16 shrink-0 items-center justify-center bg-surface-2 p-1.5 sm:w-24 sm:p-2">
+                {wine.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={wine.imageUrl} alt="" loading="lazy" className="h-20 w-auto object-contain drop-shadow-[0_6px_10px_rgba(43,9,18,0.22)] sm:h-28" />
+                ) : (
+                  <span className="flex flex-col items-center gap-1 text-faint" aria-label="Image manquante">
+                    <BottleSilhouette className="h-12 w-auto text-surface-3 sm:h-16" />
+                  </span>
+                )}
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-5">
+                <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-3 mb-1">
-                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "var(--wine-red)" }} />
-                      <h2 className="text-xl font-semibold truncate" style={{ fontFamily: "var(--font-playfair)" }}>{wine.name}</h2>
-                    </div>
-                    {wine.producer && <p className="text-sm ml-5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>{wine.producer}</p>}
+                    <h3 className="truncate font-display text-lg font-semibold leading-snug">{wine.name}</h3>
+                    {wine.producer && <p className="truncate text-sm text-muted">{wine.producer}</p>}
                   </div>
-                  <Link href={`/wines/${wine.id}/edit`} className="shrink-0 px-4 py-2 rounded-full text-sm font-medium text-center" style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}>
+                  <span className="badge badge-wine shrink-0" title="Informations manquantes">
+                    {missing.length}
+                  </span>
+                </div>
+
+                {wineFields.length > 0 && (
+                  <div className="mt-4">
+                    <p className="mb-1.5 text-xs font-medium text-faint">Fiche du vin</p>
+                    <ul className="flex flex-wrap gap-1.5">
+                      {wineFields.map((field) => (
+                        <li key={field.label} className="tag tag-wine">
+                          <FieldIcon label={field.label} size={12} /> {field.label}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {vintageFields.length > 0 && (
+                  <div className="mt-3">
+                    <p className="mb-1.5 text-xs font-medium text-faint">Millésimes</p>
+                    <ul className="flex flex-wrap gap-1.5">
+                      {vintageFields.map((field) => (
+                        <li key={field.label} className="tag">
+                          <FieldIcon label={field.label} size={12} /> {field.label}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="mt-auto flex flex-wrap gap-2 pt-4">
+                  <Link href={`/wines/${wine.id}/edit`} className="btn btn-primary btn-sm h-10 flex-1 sm:flex-none">
+                    <PenLine />
                     Compléter
                   </Link>
-                </div>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  {missing.map((field) => (
-                    <span key={field.label} className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs" style={{ background: field.scope === "wine" ? "rgba(192,25,59,0.08)" : "var(--surface-2)", color: field.scope === "wine" ? "var(--wine-red)" : "var(--text-muted)", fontFamily: "var(--font-inter)" }}>
-                      <FieldIcon label={field.label} size={12} /> {field.label}
-                    </span>
-                  ))}
+                  <Link href={`/wines/${wine.id}`} className="btn btn-ghost btn-sm h-10">
+                    Voir la fiche
+                  </Link>
                 </div>
               </div>
-            </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
     </>
   );

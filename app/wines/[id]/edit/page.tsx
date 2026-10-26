@@ -1,10 +1,11 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft, BookOpenText, CalendarClock, Check, ImageIcon, MapPin, Wine } from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
 import WineImageField from "@/components/WineImageField";
 import { updateWineAction } from "@/app/wines/actions";
-import { ColorField, Field, RegionField, Section, inputStyle } from "@/components/WineFormUI";
+import { ColorField, Field, FormActions, RegionField, Section } from "@/components/WineFormUI";
 
 export default async function EditWinePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,131 +17,119 @@ export default async function EditWinePage({ params }: { params: Promise<{ id: s
   const action = updateWineAction.bind(null, wine.id);
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
+    <div>
       <PageHeader
-        eyebrow="Collection"
-        title="Modifier"
+        eyebrow="Modifier"
+        title={wine.name}
         lead={
-          <>
-            {wine.name}
-            {wine.vintages.length > 0 && (
-              <span style={{ color: "var(--text-faint)" }}> · Les périodes d’apogée se règlent ci-dessous.</span>
-            )}
-          </>
+          wine.vintages.length > 0
+            ? "Les périodes d’apogée de chaque millésime se règlent en bas de page."
+            : undefined
         }
-        actions={
-          <Link href={`/wines/${wine.id}`} className="px-4 py-2 rounded-full text-sm" style={{ border: "1px solid var(--border)", color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}>
-            ← Fiche du vin
+        back={
+          <Link href={`/wines/${wine.id}`} className="btn btn-ghost btn-sm -ml-3">
+            <ArrowLeft />
+            Fiche du vin
           </Link>
         }
       />
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="container-page pt-6 md:pt-8">
         <form action={action}>
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <Section title="Image">
-              <WineImageField wineId={wine.id} wineName={wine.name} currentImage={wine.imageUrl} />
-            </Section>
+          <div className="grid items-start gap-4 lg:grid-cols-2">
+            <div className="space-y-4">
+              <Section title="Image" icon={ImageIcon}>
+                <div className="sm:col-span-2">
+                  <WineImageField wineId={wine.id} wineName={wine.name} currentImage={wine.imageUrl} />
+                </div>
+              </Section>
 
-            <Section title="Informations principales">
-              <Field label="Nom du vin *">
-                <input required name="name" defaultValue={wine.name} style={inputStyle} />
-              </Field>
-              <Field label="Producteur">
-                <input name="producer" defaultValue={wine.producer ?? ""} style={inputStyle} />
-              </Field>
-            </Section>
-          </div>
+              <Section title="Identité" icon={Wine}>
+                <Field label="Nom du vin *" wide>
+                  <input required name="name" defaultValue={wine.name} className="input" />
+                </Field>
+                <Field label="Producteur" wide>
+                  <input name="producer" defaultValue={wine.producer ?? ""} className="input" />
+                </Field>
+                <div className="sm:col-span-2">
+                  <ColorField defaultValue={wine.color} />
+                </div>
+              </Section>
+            </div>
 
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <Section title="Classification">
-              <ColorField defaultValue={wine.color} />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-4">
+              <Section title="Origine" icon={MapPin}>
                 <RegionField defaultValue={wine.region} />
                 <Field label="Appellation">
-                  <input name="appellation" defaultValue={wine.appellation ?? ""} style={inputStyle} />
+                  <input name="appellation" defaultValue={wine.appellation ?? ""} className="input" />
                 </Field>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label="Pays">
-                  <input name="country" defaultValue={wine.country ?? "France"} style={inputStyle} />
+                  <input name="country" defaultValue={wine.country ?? "France"} className="input" />
                 </Field>
                 <Field label="Cépage(s)">
-                  <input name="grapeVarieties" defaultValue={wine.grapeVarieties ?? ""} style={inputStyle} />
+                  <input name="grapeVarieties" defaultValue={wine.grapeVarieties ?? ""} className="input" />
                 </Field>
-              </div>
-            </Section>
+              </Section>
 
-            <Section title="Description & Notes">
-              <Field label="Description">
-                <textarea
-                  name="description"
-                  defaultValue={wine.description ?? ""}
-                  rows={4}
-                  placeholder="Description du vin (cépage, terroir, style…)"
-                  style={{ ...inputStyle, resize: "vertical" }}
-                />
-              </Field>
-              <Field label="Notes de dégustation">
-                <textarea
-                  name="notes"
-                  defaultValue={wine.notes ?? ""}
-                  rows={4}
-                  style={{ ...inputStyle, resize: "vertical" }}
-                />
-              </Field>
-              <Field label="Accords mets/vin">
-                <input
-                  name="foodPairing"
-                  defaultValue={wine.foodPairing ?? ""}
-                  placeholder="Magret de canard, fromages affinés, gibier…"
-                  style={inputStyle}
-                />
-              </Field>
-            </Section>
+              <Section title="Dégustation" icon={BookOpenText}>
+                <Field label="Description" wide>
+                  <textarea
+                    name="description"
+                    defaultValue={wine.description ?? ""}
+                    rows={4}
+                    placeholder="Cépage, terroir, style…"
+                    className="input input-area"
+                  />
+                </Field>
+                <Field label="Notes de dégustation" wide>
+                  <textarea
+                    name="notes"
+                    defaultValue={wine.notes ?? ""}
+                    rows={4}
+                    placeholder="Nez, bouche, équilibre, potentiel…"
+                    className="input input-area"
+                  />
+                </Field>
+                <Field label="Accords mets & vin" wide>
+                  <input
+                    name="foodPairing"
+                    defaultValue={wine.foodPairing ?? ""}
+                    placeholder="Magret de canard, fromages affinés, gibier…"
+                    className="input"
+                  />
+                </Field>
+              </Section>
+            </div>
           </div>
 
           {wine.vintages.length > 0 && (
-            <Section title="Périodes d’apogée">
-              <p className="-mt-2 text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                Ces périodes sont propres à chaque millésime et remplacent l’estimation automatique affichée sur la fiche.
-              </p>
-              <div className="space-y-4">
+            <div className="mt-4">
+              <Section
+                title="Périodes d’apogée"
+                icon={CalendarClock}
+                description="Propres à chaque millésime, elles remplacent l’estimation automatique affichée sur la fiche."
+              >
                 {wine.vintages.map((vintage) => (
-                  <div key={vintage.id} className="rounded-xl p-4" style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}>
-                    <p className="text-sm font-semibold mb-3" style={{ fontFamily: "var(--font-playfair)" }}>
+                  <fieldset key={vintage.id} className="panel min-w-0 p-4">
+                    <legend className="sr-only">Millésime {vintage.vintage ?? "inconnu"}</legend>
+                    <p aria-hidden="true" className="mb-3 font-display text-base font-semibold tabular">
                       {vintage.vintage ?? "Millésime inconnu"}
                     </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <Field label="À boire à partir de">
-                        <input type="number" name={`drinkFrom:${vintage.id}`} min="1900" max="2100" defaultValue={vintage.drinkFrom ?? ""} placeholder="2024" style={inputStyle} />
+                    <div className="grid grid-cols-2 gap-3">
+                      <Field label="À partir de">
+                        <input type="number" inputMode="numeric" name={`drinkFrom:${vintage.id}`} min="1900" max="2100" defaultValue={vintage.drinkFrom ?? ""} placeholder="2024" className="input" />
                       </Field>
                       <Field label="Jusqu’à">
-                        <input type="number" name={`drinkUntil:${vintage.id}`} min="1900" max="2100" defaultValue={vintage.drinkUntil ?? ""} placeholder="2035" style={inputStyle} />
+                        <input type="number" inputMode="numeric" name={`drinkUntil:${vintage.id}`} min="1900" max="2100" defaultValue={vintage.drinkUntil ?? ""} placeholder="2035" className="input" />
                       </Field>
                     </div>
-                  </div>
+                  </fieldset>
                 ))}
-              </div>
-            </Section>
+              </Section>
+            </div>
           )}
 
-          <div className="flex gap-4 pt-2">
-            <button
-              type="submit"
-              className="px-8 py-3 rounded-full font-medium text-sm"
-              style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}
-            >
-              Enregistrer
-            </button>
-            <Link
-              href={`/wines/${wine.id}`}
-              className="px-6 py-3 rounded-full text-sm"
-              style={{ background: "var(--surface)", border: "1px solid var(--border)", fontFamily: "var(--font-inter)" }}
-            >
-              Annuler
-            </Link>
-          </div>
+          <FormActions cancelHref={`/wines/${wine.id}`} submitLabel="Enregistrer" icon={Check} />
         </form>
       </div>
     </div>

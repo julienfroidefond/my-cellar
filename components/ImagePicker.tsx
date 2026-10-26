@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { ExternalLink, Loader2, Scissors, Trash2, Upload } from "lucide-react";
+import { BottleSilhouette } from "@/components/WineTile";
 
 interface Props {
   wineId: string;
@@ -81,114 +83,118 @@ export default function ImagePicker({ wineId, wineName, currentImage, onSelect }
 
   return (
     <div className="space-y-4">
-      {/* Preview */}
-      <div className="flex items-start gap-5">
-        <div
-          className="rounded-2xl flex items-center justify-center shrink-0 overflow-hidden"
-          style={{ width: 72, height: 140, background: "rgba(26,10,14,0.04)", border: "1px solid rgba(26,10,14,0.09)" }}
-        >
+      <div className="flex items-start gap-4">
+        {/* Aperçu */}
+        <div className="panel flex h-44 w-24 shrink-0 items-center justify-center overflow-hidden p-2 sm:w-28">
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element -- local blob/URL preview, not a remote asset
-            <img src={preview} alt="Bouteille" className="w-full h-full object-contain" onError={() => { setPreview(null); setUrlError(true); }} />
+            <img
+              src={preview}
+              alt={`Bouteille ${wineName}`}
+              className="h-full w-full object-contain drop-shadow-[0_6px_10px_rgba(43,9,18,0.22)]"
+              onError={() => { setPreview(null); setUrlError(true); }}
+            />
           ) : (
-            <span style={{ fontSize: 28, opacity: 0.3 }}>🍷</span>
+            <BottleSilhouette className="h-24 w-auto text-surface-3" />
           )}
         </div>
 
-        <div className="flex-1 space-y-2.5">
-          {/* Upload */}
+        <div className="min-w-0 flex-1 space-y-2.5">
+          {/* Téléversement */}
           <button
             type="button"
             onClick={() => { setUploadError(""); fileRef.current?.click(); }}
-            className="w-full text-sm px-4 py-2.5 rounded-xl text-left transition-opacity hover:opacity-80"
-            style={{ background: "rgba(26,10,14,0.04)", border: "1px solid rgba(26,10,14,0.10)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+            disabled={uploading}
+            className="btn btn-secondary w-full justify-start"
           >
-            {uploading ? "Upload en cours…" : "📁 Uploader un fichier"}
+            {uploading ? <Loader2 className="animate-spin" /> : <Upload />}
+            {uploading ? "Envoi en cours…" : "Importer un fichier"}
           </button>
           {uploadError && (
-            <p className="text-xs" style={{ color: "rgba(220,50,50,0.9)", fontFamily: "var(--font-inter)" }}>{uploadError}</p>
+            <p role="alert" className="text-xs font-medium text-wine-red">{uploadError}</p>
           )}
 
-          {/* Paste URL */}
-          <div className="flex gap-2">
-            <input
-              value={pasteUrl}
-              onChange={(e) => { setPasteUrl(e.target.value); setUrlError(false); }}
-              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyUrl())}
-              placeholder="Coller une URL d'image…"
-              className="flex-1 px-3 py-2.5 rounded-xl text-sm"
-              style={{
-                background: "rgba(26,10,14,0.04)",
-                border: `1px solid ${urlError ? "rgba(255,80,80,0.5)" : "rgba(26,10,14,0.10)"}`,
-                fontFamily: "var(--font-inter)",
-                color: "#1a0a0e",
-                outline: "none",
-              }}
-            />
-            <button
-              type="button"
-              onClick={applyUrl}
-              disabled={!pasteUrl.trim()}
-              className="px-3 py-2.5 rounded-xl text-sm disabled:opacity-30 transition-opacity hover:opacity-80"
-              style={{ background: "rgba(192,25,59,0.10)", color: "var(--wine-red)", border: "1px solid rgba(192,25,59,0.25)", fontFamily: "var(--font-inter)" }}
-            >
-              OK
-            </button>
-          </div>
-          {urlError && (
-            <p className="text-xs" style={{ color: "rgba(255,80,80,0.8)", fontFamily: "var(--font-inter)" }}>
-              URL invalide ou image inaccessible
+          {!preview && (
+            <p className="text-sm text-muted">
+              Aucune image. Importez un fichier ou collez une URL.
             </p>
           )}
 
           {preview && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-1">
               <button
                 type="button"
                 onClick={removeBackground}
                 disabled={removingBg}
-                className="text-xs transition-opacity hover:opacity-80 disabled:opacity-40"
-                style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+                className="btn btn-ghost -ml-2 px-2.5"
               >
-                {removingBg ? "Détourage en cours…" : "✂️ Détourer automatiquement"}
+                {removingBg ? <Loader2 className="animate-spin" /> : <Scissors />}
+                {removingBg ? "Détourage en cours…" : "Détourer"}
               </button>
-              {removeBgError && (
-                <span className="text-xs" style={{ color: "rgba(220,50,50,0.9)", fontFamily: "var(--font-inter)" }}>{removeBgError}</span>
-              )}
               <button
                 type="button"
                 onClick={() => { setPreview(null); onSelect(""); }}
-                className="text-xs transition-opacity hover:opacity-80"
-                style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}
+                className="btn btn-ghost px-2.5 text-wine-deep"
               >
-                Supprimer l&apos;image
+                <Trash2 />
+                Retirer
               </button>
+              {removeBgError && (
+                <p role="alert" className="w-full text-xs font-medium text-wine-red">{removeBgError}</p>
+              )}
             </div>
           )}
         </div>
       </div>
 
-      {/* Liens de recherche */}
-      <div className="rounded-xl p-3" style={{ background: "rgba(26,10,14,0.04)", border: "1px solid rgba(26,10,14,0.08)" }}>
-        <p className="text-xs mb-2.5" style={{ fontFamily: "var(--font-inter)", color: "rgba(26,10,14,0.40)" }}>
-          Chercher l&apos;image sur…
+      <div className="space-y-2">
+      {/* URL collée */}
+      <div className="flex gap-2">
+        <input
+          value={pasteUrl}
+          onChange={(e) => { setPasteUrl(e.target.value); setUrlError(false); }}
+          onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyUrl())}
+          placeholder="Coller une URL d’image…"
+          aria-label="URL de l’image"
+          aria-invalid={urlError || undefined}
+          inputMode="url"
+          className={`input h-10 min-w-0 flex-1 text-sm ${urlError ? "border-wine-red" : ""}`}
+        />
+        <button
+          type="button"
+          onClick={applyUrl}
+          disabled={!pasteUrl.trim()}
+          className="btn btn-soft shrink-0"
+        >
+          Utiliser
+        </button>
+      </div>
+      {urlError && (
+        <p role="alert" className="text-xs font-medium text-wine-red">
+          URL invalide ou image inaccessible.
         </p>
-        <div className="flex gap-2 flex-wrap">
+      )}
+      </div>
+
+      {/* Liens de recherche */}
+      <div className="panel p-3.5">
+        <p className="label mb-2.5">Chercher l’image sur…</p>
+        <div className="flex flex-wrap gap-1.5">
           {SEARCH_LINKS.map(({ label, url }) => (
             <a
               key={label}
               href={url(wineName)}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs px-3 py-1.5 rounded-full transition-opacity hover:opacity-80"
-              style={{ background: "rgba(26,10,14,0.05)", border: "1px solid rgba(26,10,14,0.09)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
+              className="chip"
             >
-              {label} ↗
+              {label}
+              <ExternalLink />
             </a>
           ))}
         </div>
-        <p className="text-xs mt-2" style={{ fontFamily: "var(--font-inter)", color: "rgba(26,10,14,0.30)" }}>
-          Clic droit sur l&apos;image → &quot;Copier l&apos;adresse de l&apos;image&quot; → coller ci-dessus
+        <p className="mt-2.5 text-xs text-faint">
+          Clic droit sur l’image, « Copier l’adresse de l’image », puis collez-la ci-dessus.
         </p>
       </div>
 

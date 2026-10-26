@@ -1,8 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
+import { Ban, Check, Copy, KeyRound, RefreshCw, type LucideIcon } from "lucide-react";
 
 type TokenStatus = { exists: boolean; createdAt: string | null; lastUsedAt: string | null };
+
+/**
+ * Ligne de réglage : icône, titre et description à gauche, action à droite
+ * (empilée sous le texte sur mobile). Partagée par les sections de la page Données.
+ */
+export function SettingsRow({
+  icon: Icon,
+  title,
+  titleId,
+  description,
+  action,
+  children,
+}: {
+  icon: LucideIcon;
+  title: ReactNode;
+  titleId?: string;
+  description: ReactNode;
+  action?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="card p-5 sm:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+        <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-surface-2 text-foreground sm:flex">
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h2 id={titleId} className="font-display text-lg font-semibold">
+            {title}
+          </h2>
+          <div className="mt-1 text-sm text-muted">{description}</div>
+        </div>
+        {action && <div className="flex shrink-0 flex-col gap-2 sm:flex-row sm:items-center">{action}</div>}
+      </div>
+      {children && <div className="mt-5 sm:pl-[3.75rem]">{children}</div>}
+    </div>
+  );
+}
 
 export default function ApiTokenSection() {
   const [status, setStatus] = useState<TokenStatus | null>(null);
@@ -42,67 +81,69 @@ export default function ApiTokenSection() {
   }
 
   return (
-    <section className="rounded-2xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.07)" }}>
-      <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
-        Token API
-      </h2>
-      <p className="text-sm mb-6" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-        Permet d&apos;appeler les APIs (/api/wines, /api/vintages…) depuis l&apos;extérieur, en ajoutant l&apos;en-tête{" "}
-        <code style={{ background: "var(--surface-2)", padding: "1px 5px", borderRadius: 4 }}>Authorization: Bearer &lt;token&gt;</code>.
-        Utile pour piloter les données par un agent.
-      </p>
+    <SettingsRow
+      icon={KeyRound}
+      title="Token API"
+      description={
+        <>
+          Appelle les APIs (<code className="font-mono text-[0.8125rem]">/api/wines</code>,{" "}
+          <code className="font-mono text-[0.8125rem]">/api/vintages</code>…) depuis l&apos;extérieur avec l&apos;en-tête{" "}
+          <code className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[0.8125rem] text-foreground">
+            Authorization: Bearer &lt;token&gt;
+          </code>
+          . Utile pour piloter la cave depuis un agent.
+        </>
+      }
+      action={
+        <>
+          {status?.exists && (
+            <button type="button" onClick={revoke} disabled={loading} className="btn btn-ghost order-last sm:order-none">
+              <Ban />
+              Révoquer
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={generate}
+            disabled={loading}
+            className={`btn ${status?.exists ? "btn-secondary" : "btn-primary"}`}
+          >
+            {status?.exists ? <RefreshCw /> : <KeyRound />}
+            {status?.exists ? "Régénérer" : "Générer un token"}
+          </button>
+        </>
+      }
+    >
+      {status && (
+        <p className="flex items-center gap-2 text-sm">
+          <span
+            aria-hidden="true"
+            className={`h-2 w-2 rounded-full ${status.exists ? "bg-success" : "bg-border-strong"}`}
+          />
+          <span className={status.exists ? "font-medium" : "text-muted"}>
+            {status.exists
+              ? `Token actif${status.createdAt ? " · généré le " + new Date(status.createdAt).toLocaleDateString("fr-FR") : ""}`
+              : "Aucun token configuré."}
+          </span>
+        </p>
+      )}
 
       {newToken && (
-        <div className="p-4 rounded-xl mb-4" style={{ background: "rgba(192,25,59,0.06)", border: "1px solid rgba(192,25,59,0.25)" }}>
-          <p className="text-xs font-semibold mb-2" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>
-            Ce token ne sera plus jamais affiché — copie-le maintenant.
+        <div className="mt-4 rounded-[var(--radius-md)] border border-[rgba(192,25,59,0.3)] bg-[var(--wine-tint)] p-4">
+          <p className="text-sm font-semibold text-wine-deep">
+            Ce token ne sera plus jamais affiché : copie-le maintenant.
           </p>
-          <div className="flex items-center gap-2">
-            <code
-              className="flex-1 text-xs px-3 py-2 rounded-lg break-all"
-              style={{ background: "var(--surface-2)", fontFamily: "monospace", color: "var(--foreground)" }}
-            >
+          <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+            <code className="flex-1 break-all rounded-lg bg-surface px-3 py-2.5 font-mono text-xs">
               {newToken}
             </code>
-            <button
-              onClick={copy}
-              className="text-xs px-3 py-2 rounded-lg font-medium shrink-0 transition-opacity hover:opacity-90"
-              style={{ background: "var(--wine-red)", color: "#fff", fontFamily: "var(--font-inter)" }}
-            >
-              {copied ? "Copié !" : "Copier"}
+            <button type="button" onClick={copy} className="btn btn-primary shrink-0">
+              {copied ? <Check /> : <Copy />}
+              {copied ? "Copié" : "Copier"}
             </button>
           </div>
         </div>
       )}
-
-      {status && (
-        <p className="text-sm mb-4" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-          {status.exists
-            ? `Token actif${status.createdAt ? " · généré le " + new Date(status.createdAt).toLocaleDateString("fr-FR") : ""}`
-            : "Aucun token configuré."}
-        </p>
-      )}
-
-      <div className="flex gap-3">
-        <button
-          onClick={generate}
-          disabled={loading}
-          className="px-5 py-2.5 rounded-full text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-40"
-          style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}
-        >
-          {status?.exists ? "Régénérer" : "Générer un token"}
-        </button>
-        {status?.exists && (
-          <button
-            onClick={revoke}
-            disabled={loading}
-            className="px-5 py-2.5 rounded-full text-sm transition-opacity hover:opacity-80 disabled:opacity-40"
-            style={{ border: "1.5px solid var(--border)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-          >
-            Révoquer
-          </button>
-        )}
-      </div>
-    </section>
+    </SettingsRow>
   );
 }

@@ -6,11 +6,78 @@ type HeaderStat = {
 };
 
 /**
- * Shared header for every view except the home page.
+ * Surtitre de section ou de page : petit trait diagonal cramoisi (le motif de
+ * la marque) suivi du libellé.
+ */
+export function Eyebrow({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return (
+    <p className={`eyebrow flex items-center gap-2 ${className}`}>
+      <span aria-hidden="true" className="h-3 w-[3px] skew-x-[-20deg] rounded-[1px] bg-current" />
+      {children}
+    </p>
+  );
+}
+
+/**
+ * Titre de section partagé : surtitre, titre, sous-titre et actions alignées
+ * à droite. Utilisé par toutes les sections de contenu sous l'en-tête de page.
+ */
+export function SectionHeader({
+  eyebrow,
+  title,
+  lead,
+  actions,
+  id,
+}: {
+  eyebrow?: ReactNode;
+  title: ReactNode;
+  lead?: ReactNode;
+  actions?: ReactNode;
+  id?: string;
+}) {
+  return (
+    <div className="mb-5 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+      <div className="min-w-0">
+        {eyebrow && <Eyebrow className="mb-2">{eyebrow}</Eyebrow>}
+        <h2 id={id} className="text-title">
+          {title}
+        </h2>
+        {lead && <p className="mt-1 max-w-2xl text-sm text-muted">{lead}</p>}
+      </div>
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+    </div>
+  );
+}
+
+/**
+ * Grille de statistiques : valeurs tabulaires séparées par des filets.
+ */
+export function StatsRow({ stats, className = "" }: { stats: HeaderStat[]; className?: string }) {
+  const columns =
+    stats.length === 3 ? "sm:grid-cols-3" : stats.length === 2 ? "sm:grid-cols-2" : "sm:grid-cols-4";
+  return (
+    <dl
+      className={`grid grid-cols-2 gap-px overflow-hidden rounded-[var(--radius-lg)] border border-border bg-border [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1 ${columns} ${className}`}
+    >
+      {stats.map((stat) => (
+        <div key={stat.label} className="flex flex-col-reverse gap-2 bg-surface px-4 py-4 sm:px-5">
+          <dt className="label">{stat.label}</dt>
+          <dd data-count className="stat-value break-words text-[1.75rem] sm:text-[2rem]">
+            {stat.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/**
+ * En-tête partagé de toutes les vues sauf l'accueil.
  *
- * One type scale and one grid for all inner pages: same eyebrow, title size,
- * lead and vertical rhythm. Pages can add a stats ledger, an optional aside
- * (a bottle portrait, for example) and page-specific actions.
+ * Une seule échelle typographique et une seule grille pour toutes les pages
+ * internes : même surtitre, même taille de titre, même chapeau, même rythme.
+ * Les pages peuvent ajouter des statistiques, un visuel à droite (portrait de
+ * bouteille) et des actions propres.
  */
 export function PageHeader({
   eyebrow,
@@ -37,56 +104,38 @@ export function PageHeader({
   const hasTitleActions = Boolean(actions) && !hasAside;
 
   return (
-    <header
-      className="relative"
-      style={{
-        background: "var(--background)",
-        borderBottom: "1px solid var(--border)",
-      }}
-    >
-      <div className="max-w-7xl mx-auto px-6 py-12 md:py-16">
+    <header className="relative border-b border-border">
+      <div className="container-page pb-8 pt-6 md:pb-10 md:pt-10">
         <div
           className={
             hasAside
               ? asideSize === "narrow"
-                ? "grid gap-10 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-start"
-                : "grid gap-10 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start"
+                ? "grid gap-8 lg:grid-cols-[minmax(0,1fr)_240px] lg:items-start"
+                : "grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start"
               : undefined
           }
         >
           <div className="min-w-0">
+            {back && <div data-enter className="mb-5">{back}</div>}
+
             <div
               className={
                 hasTitleActions
-                  ? "flex flex-col gap-6 md:flex-row md:items-end md:justify-between"
+                  ? "flex flex-col gap-5 md:flex-row md:items-end md:justify-between"
                   : undefined
               }
             >
               <div className="min-w-0 max-w-3xl">
-                {back && <div data-enter className="mb-5">{back}</div>}
+                <div data-enter>
+                  <Eyebrow className="mb-3">{eyebrow}</Eyebrow>
+                </div>
 
-                <p
-                  data-enter
-                  className="mb-3 text-[11px] font-semibold uppercase tracking-[0.35em]"
-                  style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}
-                >
-                  {eyebrow}
-                </p>
-
-                <h1
-                  data-enter
-                  className="text-4xl md:text-5xl font-bold leading-[0.98]"
-                  style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
-                >
+                <h1 data-enter="title" className="text-display">
                   {title}
                 </h1>
 
                 {lead && (
-                  <div
-                    data-enter
-                    className="mt-3 max-w-2xl text-sm leading-relaxed"
-                    style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-                  >
+                  <div data-enter className="mt-3 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
                     {lead}
                   </div>
                 )}
@@ -100,37 +149,8 @@ export function PageHeader({
             </div>
 
             {stats && stats.length > 0 && (
-              <div
-                data-enter
-                className={`mt-8 grid grid-cols-2 gap-y-6 border-t pt-6 ${
-                  stats.length === 3
-                    ? "sm:grid-cols-3"
-                    : stats.length === 2
-                      ? "sm:grid-cols-2"
-                      : "sm:grid-cols-4"
-                }`}
-                style={{ borderColor: "var(--border)" }}
-              >
-                {stats.map((stat, index) => (
-                  <div
-                    key={stat.label}
-                    className={index > 0 ? "sm:border-l sm:pl-5" : undefined}
-                    style={{ borderColor: "var(--border)" }}
-                  >
-                    <div
-                      className="text-3xl font-bold leading-none break-words"
-                      style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}
-                    >
-                      {stat.value}
-                    </div>
-                    <div
-                      className="mt-2 text-[10px] uppercase leading-tight tracking-[0.14em]"
-                      style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-                    >
-                      {stat.label}
-                    </div>
-                  </div>
-                ))}
+              <div data-enter className="mt-7">
+                <StatsRow stats={stats} />
               </div>
             )}
 
@@ -138,14 +158,14 @@ export function PageHeader({
               <div data-enter className="mt-6 flex flex-wrap items-center gap-2">{actions}</div>
             )}
 
-            {bottom && <div data-enter className="mt-8">{bottom}</div>}
+            {bottom && <div data-enter className="mt-7">{bottom}</div>}
           </div>
 
           {aside && (
             <div
               data-enter
               className={`mx-auto w-full lg:mx-0 lg:justify-self-end ${
-                asideSize === "narrow" ? "max-w-[260px]" : "max-w-[380px]"
+                asideSize === "narrow" ? "max-w-[240px]" : "max-w-[360px]"
               }`}
             >
               {aside}

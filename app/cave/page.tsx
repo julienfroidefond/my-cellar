@@ -141,16 +141,10 @@ export default async function CavePage() {
   }));
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
-
-      {/* ── Header ────────────────────────────────────── */}
+    <div>
       <PageHeader
         eyebrow="Visualisation"
-        title={
-          <>
-            Ma Cave <span style={{ color: "var(--wine-red)" }}>à Vin</span>
-          </>
-        }
+        title="La cave"
         lead="Le plan et la vue 3D pour retrouver chaque bouteille, casier par casier."
         stats={[
           { value: allRacks.length, label: "Casier" + (allRacks.length > 1 ? "s" : "") },
@@ -162,25 +156,7 @@ export default async function CavePage() {
         ]}
       />
 
-      <div className="max-w-3xl mx-auto px-6 pt-12 pb-12">
-        {/* Legend */}
-        <div className="flex items-center gap-6 mb-8 text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }} data-reveal>
-          {[
-            { key: "rouge", color: "#c02030" },
-            { key: "blanc", color: "#c4983c" },
-            { key: "rosé",  color: "#d4647a" },
-          ].map(({ key, color }) => (
-            <div key={key} className="flex items-center gap-2">
-              <div className="rounded-full" style={{ width: 10, height: 10, background: color, boxShadow: `0 0 6px ${color}80` }} />
-              <span className="capitalize">{key}</span>
-            </div>
-          ))}
-          <div className="flex items-center gap-2">
-            <div className="rounded-full border border-dashed" style={{ width: 10, height: 10, borderColor: "rgba(26,10,14,0.30)" }} />
-            <span>Vide</span>
-          </div>
-        </div>
-
+      <div className="container-page py-6 md:py-10">
         <CaveInteractive racks={racks} unracked={unracked} />
       </div>
     </div>

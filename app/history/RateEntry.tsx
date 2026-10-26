@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Check } from "lucide-react";
 import { Stars, StarRatingInput } from "@/components/StarRating";
 
 export function RateEntry({ id, rating }: { id: string; rating: number | null }) {
@@ -10,11 +11,7 @@ export function RateEntry({ id, rating }: { id: string; rating: number | null })
   const [saving, setSaving] = useState(false);
 
   if (rating !== null) {
-    return (
-      <div className="mt-3 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
-        <Stars rating={rating} />
-      </div>
-    );
+    return <Stars rating={rating} />;
   }
 
   async function save() {
@@ -30,16 +27,17 @@ export function RateEntry({ id, rating }: { id: string; rating: number | null })
   }
 
   return (
-    <div className="mt-3 pt-3 flex items-center gap-3" style={{ borderTop: "1px solid var(--border)" }}>
+    <div className="flex items-center gap-1.5">
       <StarRatingInput value={draft} onChange={setDraft} size={18} />
       {draft !== null && (
         <button
+          type="button"
           onClick={save}
           disabled={saving}
-          className="text-xs font-medium px-3 py-1 rounded-full transition-opacity hover:opacity-80 disabled:opacity-40 shrink-0"
-          style={{ background: "var(--wine-red)", color: "#fff", fontFamily: "var(--font-inter)" }}
+          className="btn btn-primary btn-sm shrink-0"
         >
-          {saving ? "…" : "Enregistrer"}
+          <Check />
+          {saving ? "…" : "Noter"}
         </button>
       )}
     </div>

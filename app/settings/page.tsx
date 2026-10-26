@@ -1,8 +1,17 @@
 "use client";
 
 import { useRef, useState } from "react";
+import {
+  CircleCheck,
+  Download,
+  FileJson,
+  LoaderCircle,
+  RotateCcw,
+  TriangleAlert,
+  Upload,
+} from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
-import ApiTokenSection from "./ApiTokenSection";
+import ApiTokenSection, { SettingsRow } from "./ApiTokenSection";
 
 type ImportResult = {
   wines: number;
@@ -129,151 +138,158 @@ export default function SettingsPage() {
         ? `Import des images (${parsedImageCount})…`
         : null;
 
+  const busy = importState === "loading-db" || importState === "loading-images";
+
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
+    <div>
       <PageHeader
         eyebrow="Paramètres"
-        title="Export / Import"
-        lead="Sauvegardez votre cave, restaurez une sauvegarde ou transférez vos données."
+        title="Données"
+        lead="Sauvegardez votre cave, restaurez une sauvegarde ou ouvrez l’accès aux agents."
       />
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        <div className="grid gap-6 lg:grid-cols-2 items-start">
-          <div className="space-y-6" data-reveal>
-            <ApiTokenSection />
-
-            {/* Export */}
-        <section className="rounded-2xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.07)" }}>
-          <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
-            Exporter la base
-          </h2>
-          <p className="text-sm mb-6" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-            Télécharge un fichier JSON contenant tous vos vins, millésimes, emplacements, casiers, historique et images.
-          </p>
-          <a
-            href="/api/export"
-            download
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)", textDecoration: "none" }}
-          >
-            Télécharger l&apos;export
-          </a>
+      <div className="container-page max-w-4xl space-y-10 py-10 md:py-14">
+        {/* ── Sauvegarde ───────────────────────────────────────────────── */}
+        <section data-reveal aria-labelledby="export-title">
+          <SettingsRow
+            icon={Download}
+            title="Exporter la base"
+            titleId="export-title"
+            description="Un fichier JSON avec vos vins, millésimes, emplacements, casiers, historique et images."
+            action={
+              <a href="/api/export" download className="btn btn-primary w-full sm:w-auto">
+                <Download />
+                Télécharger l&apos;export
+              </a>
+            }
+          />
         </section>
-          </div>
 
-          {/* Import */}
-          <section className="rounded-2xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.07)" }} data-reveal>
-          <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
-            Importer une base
-          </h2>
-          <p className="text-sm mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-            Restaure un export JSON. <strong>Toutes les données existantes seront remplacées.</strong>
+        {/* ── Accès externe ────────────────────────────────────────────── */}
+        <section data-reveal>
+          <ApiTokenSection />
+        </section>
+
+        {/* ── Zone sensible : import ───────────────────────────────────── */}
+        <section data-reveal aria-labelledby="import-title">
+          <p className="eyebrow mb-3 flex items-center gap-2">
+            <TriangleAlert className="h-3.5 w-3.5" aria-hidden="true" />
+            Zone sensible
           </p>
-          <p className="text-xs mb-6" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
-            Les données et les images sont envoyées en deux requêtes séparées.
-          </p>
-
-          {importState === "idle" && (
-            <label
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold cursor-pointer transition-opacity hover:opacity-80"
-              style={{ border: "1.5px solid var(--border)", fontFamily: "var(--font-inter)", color: "var(--foreground)" }}
-            >
-              Choisir un fichier
-              <input ref={fileRef} type="file" accept=".json,application/json" className="sr-only" onChange={handleFileChange} />
-            </label>
-          )}
-
-          {importState === "confirm" && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "rgba(192,25,59,0.06)", border: "1px solid rgba(192,25,59,0.18)" }}>
-                <span className="text-sm flex-1 truncate" style={{ fontFamily: "var(--font-inter)", color: "var(--foreground)" }}>
-                  {importFile?.name}
-                </span>
-              </div>
-              <div className="p-3 rounded-xl text-sm" style={{ background: "rgba(192,25,59,0.06)", border: "1px solid rgba(192,25,59,0.18)", fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>
-                Cette opération est irréversible. Toutes les données actuelles seront effacées.
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleImport}
-                  className="px-5 py-2.5 rounded-full text-sm font-semibold transition-opacity hover:opacity-90"
-                  style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}
-                >
-                  Confirmer l&apos;import
-                </button>
-                <button
-                  onClick={reset}
-                  className="px-5 py-2.5 rounded-full text-sm transition-opacity hover:opacity-80"
-                  style={{ border: "1.5px solid var(--border)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-                >
-                  Annuler
-                </button>
-              </div>
-            </div>
-          )}
-
-          {(importState === "loading-db" || importState === "loading-images") && (
-            <p className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-              {loadingLabel}
-            </p>
-          )}
-
-          {importState === "done" && importResult && (
-            <div className="space-y-4">
-              <div className="p-4 rounded-xl" style={{ background: "rgba(26,120,60,0.07)", border: "1px solid rgba(26,120,60,0.2)" }}>
-                <p className="text-sm font-semibold mb-2" style={{ fontFamily: "var(--font-inter)", color: "#1a783c" }}>
-                  Import réussi
+          <div className="card overflow-hidden border-[rgba(192,25,59,0.35)]">
+            <div className="flex flex-col gap-4 p-5 sm:flex-row sm:items-start sm:gap-5 sm:p-6">
+              <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-[var(--wine-tint)] text-wine-red sm:flex">
+                <Upload className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div className="min-w-0 flex-1">
+                <h2 id="import-title" className="font-display text-lg font-semibold">
+                  Importer une base
+                </h2>
+                <p className="mt-1 text-sm text-muted">
+                  Restaure un export JSON.{" "}
+                  <strong className="font-semibold text-wine-deep">Toutes les données existantes seront remplacées.</strong>
                 </p>
-                <ul className="text-xs space-y-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                  <li>{importResult.wines} vins</li>
-                  <li>{importResult.vintages} millésimes</li>
-                  <li>{importResult.slots} emplacements</li>
-                  <li>{importResult.racks} casiers</li>
-                  <li>{importResult.history} entrées d&apos;historique</li>
-                  <li>{importResult.images} images</li>
-                </ul>
-              </div>
-              {importResult.imageErrors.length > 0 && (
-                <div className="p-3 rounded-xl" style={{ background: "rgba(192,25,59,0.06)", border: "1px solid rgba(192,25,59,0.2)" }}>
-                  <p className="text-xs font-semibold mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>
-                    {importResult.imageErrors.length} image(s) non importée(s)
-                  </p>
-                  <ul className="text-xs space-y-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                    {importResult.imageErrors.map((e, i) => <li key={i}>{e}</li>)}
-                  </ul>
+                <p className="mt-1 text-xs text-faint">
+                  Les données puis les images sont envoyées en deux requêtes séparées.
+                </p>
+
+                <div className="mt-5">
+                  {importState === "idle" && (
+                    <label className="btn btn-danger w-full cursor-pointer sm:w-auto">
+                      <FileJson />
+                      Choisir un fichier
+                      <input ref={fileRef} type="file" accept=".json,application/json" className="sr-only" onChange={handleFileChange} />
+                    </label>
+                  )}
+
+                  {importState === "confirm" && (
+                    <div className="space-y-3">
+                      <div className="panel flex items-center gap-3 px-3.5 py-3">
+                        <FileJson className="h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
+                        <span className="flex-1 truncate text-sm font-medium">{importFile?.name}</span>
+                      </div>
+                      <p
+                        role="alert"
+                        className="flex items-start gap-2 rounded-[var(--radius-md)] bg-[var(--wine-tint)] px-3.5 py-3 text-sm font-medium text-wine-deep"
+                      >
+                        <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                        Opération irréversible : toutes les données actuelles seront effacées.
+                      </p>
+                      <div className="flex flex-col-reverse gap-2 sm:flex-row">
+                        <button type="button" onClick={reset} className="btn btn-secondary">
+                          Annuler
+                        </button>
+                        <button type="button" onClick={handleImport} className="btn btn-primary">
+                          Remplacer toutes les données
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {busy && (
+                    <p className="flex items-center gap-2.5 text-sm text-muted" aria-live="polite">
+                      <LoaderCircle className="h-4 w-4 animate-spin text-wine-red" aria-hidden="true" />
+                      {loadingLabel}
+                    </p>
+                  )}
+
+                  {importState === "done" && importResult && (
+                    <div className="space-y-3">
+                      <div className="rounded-[var(--radius-md)] bg-[rgba(38,110,64,0.09)] p-4">
+                        <p className="flex items-center gap-2 text-sm font-semibold text-success">
+                          <CircleCheck className="h-4 w-4" aria-hidden="true" />
+                          Import réussi
+                        </p>
+                        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm sm:grid-cols-3">
+                          {[
+                            [importResult.wines, "vins"],
+                            [importResult.vintages, "millésimes"],
+                            [importResult.slots, "emplacements"],
+                            [importResult.racks, "casiers"],
+                            [importResult.history, "entrées d’historique"],
+                            [importResult.images, "images"],
+                          ].map(([value, label]) => (
+                            <div key={label} className="flex items-baseline gap-1.5">
+                              <dt className="sr-only">{label}</dt>
+                              <dd className="font-semibold tabular">{value}</dd>
+                              <span className="text-muted">{label}</span>
+                            </div>
+                          ))}
+                        </dl>
+                      </div>
+                      {importResult.imageErrors.length > 0 && (
+                        <div className="rounded-[var(--radius-md)] bg-[var(--wine-tint)] p-4">
+                          <p className="text-sm font-semibold text-wine-deep">
+                            {importResult.imageErrors.length} image(s) non importée(s)
+                          </p>
+                          <ul className="mt-1 space-y-0.5 text-xs text-muted">
+                            {importResult.imageErrors.map((e, i) => <li key={i}>{e}</li>)}
+                          </ul>
+                        </div>
+                      )}
+                      <button type="button" onClick={reset} className="btn btn-secondary">
+                        Importer un autre fichier
+                      </button>
+                    </div>
+                  )}
+
+                  {importState === "error" && (
+                    <div className="space-y-3">
+                      <div role="alert" className="rounded-[var(--radius-md)] bg-[var(--wine-tint)] p-4">
+                        <p className="text-sm font-semibold text-wine-deep">Erreur lors de l&apos;import</p>
+                        <p className="mt-1 text-sm text-muted">{errorMsg}</p>
+                      </div>
+                      <button type="button" onClick={reset} className="btn btn-secondary">
+                        <RotateCcw />
+                        Réessayer
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
-              <button
-                onClick={reset}
-                className="px-5 py-2.5 rounded-full text-sm transition-opacity hover:opacity-80"
-                style={{ border: "1.5px solid var(--border)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-              >
-                Importer un autre fichier
-              </button>
-            </div>
-          )}
-
-          {importState === "error" && (
-            <div className="space-y-4">
-              <div className="p-4 rounded-xl" style={{ background: "rgba(192,25,59,0.06)", border: "1px solid rgba(192,25,59,0.25)" }}>
-                <p className="text-sm font-semibold mb-1" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>
-                  Erreur lors de l&apos;import
-                </p>
-                <p className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                  {errorMsg}
-                </p>
               </div>
-              <button
-                onClick={reset}
-                className="px-5 py-2.5 rounded-full text-sm transition-opacity hover:opacity-80"
-                style={{ border: "1.5px solid var(--border)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-              >
-                Réessayer
-              </button>
             </div>
-          )}
+          </div>
         </section>
-        </div>
       </div>
     </div>
   );

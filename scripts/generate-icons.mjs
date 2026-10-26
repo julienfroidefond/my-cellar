@@ -1,67 +1,53 @@
 #!/usr/bin/env node
 /**
- * Génère les icônes du site et de la PWA à partir de l'illustration source.
+ * Génère les icônes du site et de la PWA à partir de la marque vectorielle.
  *
  *   node scripts/generate-icons.mjs
  *
+ * Source : assets/logo-mark.svg (groupes #background et #drawing).
+ *
  * Sorties :
- *   app/favicon.ico              → onglet navigateur (16 / 32 / 48)
- *   app/icon.png                 → <link rel="icon"> (256)
- *   app/apple-icon.png           → <link rel="apple-touch-icon"> (180)
- *   public/icons/icon-*.png      → manifest PWA (192 / 512)
- *   public/icons/icon-maskable-* → manifest PWA, zone de sécurité maskable
- *   public/icons/logo-mark.png   → vignette de la marque dans la navigation
+ *   app/favicon.ico              → onglet navigateur (16 / 32 / 48), coins arrondis
+ *   app/icon.png                 → <link rel="icon"> (256), coins arrondis
+ *   app/apple-icon.png           → <link rel="apple-touch-icon"> (180), plein cadre
+ *   public/icons/icon-*.png      → manifest PWA (192 / 512), plein cadre
+ *   public/icons/icon-maskable-* → manifest PWA, dessin dans la zone de sécurité
  */
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
 const ROOT = path.resolve(import.meta.dirname, "..");
-const SOURCE = path.join(ROOT, "assets", "icon-source.png");
+const SOURCE = await readFile(path.join(ROOT, "assets", "logo-mark.svg"), "utf8");
 
-/** Illustration pleine page, telle quelle. */
-function square(size, { palette = true } = {}) {
-  return sharp(SOURCE)
-    .resize(size, size, { fit: "cover" })
-    .ensureAlpha()
-    .png(
-      palette
-        ? { compressionLevel: 9, palette: true, quality: 92 }
-        : { compressionLevel: 9 },
-    );
+function group(id) {
+  const match = SOURCE.match(new RegExp(`<g id="${id}">([\\s\\S]*?)</g>`));
+  if (!match) throw new Error(`Groupe #${id} introuvable dans logo-mark.svg`);
+  return match[1];
 }
 
-/** Cadrage légèrement resserré sur la bouteille et le verre (sans rien couper). */
-const MARK_CROP = { left: 130, top: 80, width: 1050, height: 1050 };
-
-function mark(size) {
-  return sharp(SOURCE)
-    .extract(MARK_CROP)
-    .resize(size, size)
-    .ensureAlpha()
-    .png({ compressionLevel: 9, palette: true, quality: 92 });
-}
+const BACKGROUND = group("background");
+const DRAWING = group("drawing");
 
 /**
- * Version maskable : l'illustration est réduite à 80 % de la surface pour
- * rester dans la zone de sécurité (cercle de 80 % de diamètre) des masques
- * Android/iOS. Le fond est un flou de l'image elle-même, ce qui évite une
- * bordure nette quand le masque ne rogne pas les bords.
+ * @param {object} options
+ * @param {number} options.radius  Rayon des coins (0 = plein cadre, laissé à l'OS).
+ * @param {number} options.scale   Échelle du dessin autour du centre (maskable : 0.78).
  */
-async function maskable(size) {
-  const inner = Math.round(size * 0.8);
-  const offset = Math.round((size - inner) / 2);
+function svg({ radius = 0, scale = 1 } = {}) {
+  const offset = (64 - 64 * scale) / 2;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+    <defs><clipPath id="c"><rect width="64" height="64" rx="${radius}"/></clipPath></defs>
+    <g clip-path="url(#c)">
+      ${BACKGROUND}
+      <g transform="translate(${offset} ${offset}) scale(${scale})">${DRAWING}</g>
+    </g>
+  </svg>`;
+}
 
-  const background = await sharp(SOURCE)
-    .resize(size, size, { fit: "cover" })
-    .blur(Math.max(8, Math.round(size / 24)))
-    .modulate({ brightness: 0.92 })
-    .toBuffer();
-
-  const foreground = await square(inner).toBuffer();
-
-  return sharp(background)
-    .composite([{ input: foreground, top: offset, left: offset }])
+function render(size, options) {
+  return sharp(Buffer.from(svg(options)), { density: Math.max(72, (size / 64) * 72 * 2) })
+    .resize(size, size)
     .png({ compressionLevel: 9 });
 }
 
@@ -93,19 +79,21 @@ function ico(pngs) {
 async function main() {
   await mkdir(path.join(ROOT, "public", "icons"), { recursive: true });
 
+  const rounded = { radius: 14 };
+  const fullBleed = { radius: 0 };
+  const maskable = { radius: 0, scale: 0.78 };
+
   const targets = [
-    { file: "app/icon.png", size: 256, pipeline: square },
-    { file: "app/apple-icon.png", size: 180, pipeline: square },
-    { file: "public/icons/icon-192.png", size: 192, pipeline: square },
-    { file: "public/icons/icon-512.png", size: 512, pipeline: square },
-    { file: "public/icons/icon-maskable-192.png", size: 192, pipeline: maskable },
-    { file: "public/icons/icon-maskable-512.png", size: 512, pipeline: maskable },
-    { file: "public/icons/logo-mark.png", size: 144, pipeline: mark },
+    { file: "app/icon.png", size: 256, options: rounded },
+    { file: "app/apple-icon.png", size: 180, options: fullBleed },
+    { file: "public/icons/icon-192.png", size: 192, options: fullBleed },
+    { file: "public/icons/icon-512.png", size: 512, options: fullBleed },
+    { file: "public/icons/icon-maskable-192.png", size: 192, options: maskable },
+    { file: "public/icons/icon-maskable-512.png", size: 512, options: maskable },
   ];
 
-  for (const { file, size, pipeline } of targets) {
-    const buffer = await (await pipeline(size)).toBuffer();
-    await writeFile(path.join(ROOT, file), buffer);
+  for (const { file, size, options } of targets) {
+    await writeFile(path.join(ROOT, file), await render(size, options).toBuffer());
     console.log(`✓ ${file} (${size}×${size})`);
   }
 
@@ -113,8 +101,7 @@ async function main() {
   const faviconPngs = await Promise.all(
     faviconSizes.map(async (size) => ({
       size,
-      // PNG truecolor + alpha : Next.js refuse les PNG indexés dans un .ico.
-      data: await square(size, { palette: false }).toBuffer(),
+      data: await render(size, rounded).toBuffer(),
     })),
   );
   await writeFile(path.join(ROOT, "app", "favicon.ico"), ico(faviconPngs));

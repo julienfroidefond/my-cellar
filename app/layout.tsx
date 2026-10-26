@@ -1,16 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import { Playfair_Display, Inter } from "next/font/google";
+import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin"],
+  display: "swap",
+  axes: ["SOFT", "WONK", "opsz"],
+});
+
+const geist = Geist({
+  variable: "--font-geist",
   subsets: ["latin"],
   display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
 });
@@ -27,7 +34,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#8a0f25",
+  themeColor: "#f6efe4",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -36,10 +44,25 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr" className={`${playfair.variable} ${inter.variable} h-full`}>
+    <html
+      lang="fr"
+      className={`${fraunces.variable} ${geist.variable} ${geistMono.variable} h-full`}
+    >
       <body className="min-h-full flex flex-col antialiased">
+        <a
+          href="#contenu"
+          className="btn btn-dark sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-3 focus:z-[100]"
+        >
+          Aller au contenu
+        </a>
         <Navigation />
-        <main className="flex-1">{children}</main>
+        {/* Réserve la place de la barre d'onglets mobile (+ zone de sécurité iOS). */}
+        <main
+          id="contenu"
+          className="flex-1 pb-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] lg:pb-0"
+        >
+          {children}
+        </main>
       </body>
     </html>
   );

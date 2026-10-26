@@ -1,32 +1,100 @@
 @import "tailwindcss";
 
+/* ──────────────────────────────────────────────────────────────────────────
+   Système de design « Ma Cave »
+   Tiré de la marque (assets/logo-mark.svg) : papier crème, cramoisi,
+   aubergine presque noire, aplats nets et coupe diagonale.
+   Toutes les pages consomment ces tokens et composants : pas de couleur ni
+   de rayon codés en dur dans les vues.
+   ────────────────────────────────────────────────────────────────────────── */
+
 :root {
-  --background: #f5f0ec;
-  --foreground: #1a0a0e;
+  /* Couleurs de marque */
   --wine-red: #c0193b;
   --wine-deep: #8a0f25;
-  --wine-light: #e03050;
-  --gold: #b87a2c;
+  --wine-light: #e0234b;
+  --gold: #b07425;
   --gold-light: #d4a050;
-  --surface: #ffffff;
-  --surface-2: #ede6dd;
-  --border: rgba(26,10,14,0.09);
-  --text-muted: rgba(26,10,14,0.55);
-  --text-faint: rgba(26,10,14,0.32);
+  --ink: #2b0912;
+
+  /* Surfaces */
+  --background: #f6efe4;
+  --surface: #fffcf7;
+  --surface-2: #efe6d8;
+  --surface-3: #e6dac8;
+  --foreground: #22090f;
+
+  /* Texte secondaire : contrastes AA sur --background et --surface */
+  --text-muted: rgba(34, 9, 15, 0.66);
+  --text-faint: rgba(34, 9, 15, 0.46);
+
+  /* Traits */
+  --border: rgba(43, 9, 18, 0.10);
+  --border-strong: rgba(43, 9, 18, 0.18);
+
+  /* Teintes d'accent */
+  --wine-tint: rgba(192, 25, 59, 0.08);
+  --wine-tint-strong: rgba(192, 25, 59, 0.14);
+  --gold-tint: rgba(176, 116, 37, 0.12);
+  --success: #22633a;
+  --success-tint: rgba(38, 110, 64, 0.11);
+
+  /* Couleurs de vin (pastilles, graphiques) */
+  --color-rouge: #c0193b;
+  --color-blanc: #d4a050;
+  --color-rose: #e8798f;
+  --color-effervescent: #c9b26a;
+
+  /* Rayons : serrés sur les contrôles, plus doux sur les conteneurs */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  /* Ombres teintées aubergine, lumière venant du haut */
+  --shadow-sm: 0 1px 2px rgba(43, 9, 18, 0.06);
+  --shadow-md: 0 1px 2px rgba(43, 9, 18, 0.05), 0 8px 24px -12px rgba(43, 9, 18, 0.18);
+  --shadow-lg: 0 2px 6px rgba(43, 9, 18, 0.06), 0 24px 48px -20px rgba(43, 9, 18, 0.32);
+
+  /* Mise en page */
+  --nav-height: 64px;
+  --tabbar-height: 64px;
+
+  /* Échelle de z-index */
+  --z-sticky: 30;
+  --z-nav: 50;
+  --z-overlay: 60;
+  --z-modal: 70;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-ink: var(--ink);
   --color-wine-red: var(--wine-red);
   --color-wine-deep: var(--wine-deep);
   --color-wine-light: var(--wine-light);
   --color-gold: var(--gold);
   --color-gold-light: var(--gold-light);
+  --color-success: var(--success);
+  --color-success-tint: var(--success-tint);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-muted: var(--text-muted);
+  --color-faint: var(--text-faint);
+
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
 }
+
+/* ── Base ────────────────────────────────────────────────────────────────── */
 
 * {
   box-sizing: border-box;
@@ -34,25 +102,25 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Georgia', serif;
-  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.55;
+  min-height: 100dvh;
+  font-feature-settings: "ss01", "cv11";
 }
 
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+h1, h2, h3, h4 {
+  text-wrap: balance;
 }
-::-webkit-scrollbar-track {
-  background: var(--surface-2);
-}
-::-webkit-scrollbar-thumb {
-  background: var(--wine-red);
-  border-radius: 3px;
+
+p {
+  text-wrap: pretty;
 }
 
 ::selection {
@@ -60,67 +128,501 @@ body {
   color: #fff;
 }
 
+:focus-visible {
+  outline: 2px solid var(--wine-red);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid var(--background);
+}
+
 /* Entrées animées par GSAP (voir components/MotionEffects.tsx).
    L'état initial est rendu côté serveur pour éviter que le contenu
    n'apparaisse puis ne disparaisse au moment de l'hydratation.
    Sans JS ou avec « réduire les animations », rien n'est masqué. */
 @media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
-  [data-enter] {
+  [data-enter],
+  [data-reveal]:not([data-revealed]),
+  [data-reveal-stagger] > :not([data-revealed]) {
     opacity: 0;
   }
-}
-
-/* Diagonal accent — red stripe crossing hero sections */
-.diagonal-stripe {
-  position: relative;
-  overflow: hidden;
-}
-.diagonal-stripe::after {
-  content: '';
-  position: absolute;
-  top: -40%;
-  right: -8%;
-  width: 38%;
-  height: 220%;
-  background: var(--wine-red);
-  transform: rotate(14deg);
-  transform-origin: top right;
-  opacity: 0.92;
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Sur mobile, pas d'image de bouteille pour équilibrer la bande —
-   on la réduit à un accent de coin plutôt qu'un pan qui écrase le hero. */
-@media (max-width: 767px) {
-  .diagonal-stripe::after {
-    top: -30%;
-    right: -30%;
-    width: 20%;
-    height: 160%;
+  /* Barres de graphiques : elles poussent depuis leur base (voir MotionEffects). */
+  [data-grow="x"] {
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+  [data-grow="y"] {
+    transform: scaleY(0);
+    transform-origin: center bottom;
   }
 }
 
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
+[data-grow="x"] {
+  transform-origin: left center;
+}
+[data-grow="y"] {
+  transform-origin: center bottom;
 }
 
-.input-base {
+/* ── Typographie ─────────────────────────────────────────────────────────── */
+
+@utility font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  font-variation-settings: "SOFT" 30, "WONK" 0;
+}
+
+/* Titre de page */
+@utility text-display {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 30, "WONK" 0;
+  font-weight: 600;
+  font-size: clamp(2.25rem, 1.6rem + 2.6vw, 3.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+}
+
+/* Titre de section */
+@utility text-title {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 30, "WONK" 0;
+  font-weight: 600;
+  font-size: clamp(1.4rem, 1.2rem + 0.8vw, 1.75rem);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+}
+
+/* Petit surtitre : lisible, sans tracking exagéré */
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wine-red);
+}
+
+/* Libellé discret (formulaires, légendes de statistiques) */
+@utility label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Conteneurs ──────────────────────────────────────────────────────────── */
+
+@utility container-page {
   width: 100%;
-  padding: 10px 14px;
-  border-radius: 10px;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @media (width >= 40rem) {
+    padding-inline: 1.5rem;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 2rem;
+  }
+}
+
+/* Carte : fond légèrement plus clair que le papier, trait fin, ombre douce */
+@utility card {
   background: var(--surface);
   border: 1px solid var(--border);
-  color: var(--foreground);
-  font-size: 0.875rem;
-  font-family: var(--font-inter);
-  outline: none;
-  transition: border-color 0.15s;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
 }
-.input-base:focus {
-  border-color: rgba(192,25,59,0.4);
+
+/* Carte cliquable : soulèvement au survol, retour tactile à l'appui */
+@utility card-link {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease, border-color 200ms ease;
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--border-strong);
+  }
+  &:active {
+    transform: translateY(0) scale(0.99);
+  }
+}
+
+/* Panneau en retrait (zones secondaires, listes compactes) */
+@utility panel {
+  background: var(--surface-2);
+  border-radius: var(--radius-md);
+}
+
+/* Motif signature de la marque : coin coupé en diagonale */
+@utility cut-corner {
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%);
+}
+
+/* ── Boutons ─────────────────────────────────────────────────────────────── */
+
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 2.5rem;
+  padding-inline: 1rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease, transform 120ms ease, box-shadow 160ms ease;
+  &:active:not(:disabled) {
+    transform: translateY(1px) scale(0.98);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  & svg {
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+  }
+}
+
+@utility btn-primary {
+  background: var(--wine-red);
+  color: #fff;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.18) inset, 0 6px 14px -8px rgba(138, 15, 37, 0.7);
+  &:hover:not(:disabled) {
+    background: var(--wine-deep);
+  }
+}
+
+@utility btn-dark {
+  background: var(--ink);
+  color: var(--background);
+  &:hover:not(:disabled) {
+    background: #45101e;
+  }
+}
+
+@utility btn-secondary {
+  background: var(--surface);
+  color: var(--foreground);
+  border-color: var(--border-strong);
+  &:hover:not(:disabled) {
+    border-color: rgba(43, 9, 18, 0.32);
+    background: #fff;
+  }
+}
+
+@utility btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  &:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--foreground);
+  }
+}
+
+@utility btn-soft {
+  background: var(--wine-tint);
+  color: var(--wine-deep);
+  &:hover:not(:disabled) {
+    background: var(--wine-tint-strong);
+  }
+}
+
+@utility btn-danger {
+  background: transparent;
+  color: var(--wine-deep);
+  border-color: rgba(192, 25, 59, 0.3);
+  &:hover:not(:disabled) {
+    background: var(--wine-tint);
+    border-color: rgba(192, 25, 59, 0.5);
+  }
+}
+
+@utility btn-sm {
+  height: 2rem;
+  padding-inline: 0.75rem;
+  font-size: 0.8125rem;
+  border-radius: var(--radius-sm);
+  & svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+@utility btn-lg {
+  height: 3rem;
+  padding-inline: 1.25rem;
+  font-size: 0.9375rem;
+}
+
+/* Bouton carré icône seule (cible tactile ≥ 40 px) */
+@utility btn-icon {
+  width: 2.5rem;
+  padding-inline: 0;
+}
+
+/* ── Filtres, étiquettes, badges ─────────────────────────────────────────── */
+
+/* Puce de filtre : état actif via aria-pressed, aria-current ou data-active */
+@utility chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2.125rem;
+  padding-inline: 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+  &:hover {
+    color: var(--foreground);
+    border-color: rgba(43, 9, 18, 0.32);
+  }
+  &[aria-pressed="true"],
+  &[aria-current="page"],
+  &[data-active="true"] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--background);
+  }
+  & svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+}
+
+/* Étiquette d'information (millésime, appellation) */
+@utility tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  height: 1.5rem;
+  padding-inline: 0.5rem;
+  border-radius: 6px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Étiquette teintée vin (information à traiter, mise en avant) */
+@utility tag-wine {
+  background: var(--wine-tint);
+  color: var(--wine-deep);
+}
+
+/* Compteur (quantité de bouteilles, nombre d'éléments) */
+@utility badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding-inline: 0.45rem;
+  border-radius: 6px;
+  background: var(--wine-red);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+@utility badge-muted {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+@utility badge-gold {
+  background: var(--gold-tint);
+  color: var(--gold);
+}
+
+@utility badge-wine {
+  background: var(--wine-tint);
+  color: var(--wine-deep);
+}
+
+/* Pastille de couleur de vin : <span class="wine-dot" data-color="rouge" /> */
+@utility wine-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: var(--text-faint);
+  &[data-color="rouge"] { background: var(--color-rouge); }
+  &[data-color="blanc"] { background: var(--color-blanc); }
+  &[data-color="rosé"] { background: var(--color-rose); }
+  &[data-color="effervescent"] { background: var(--color-effervescent); }
+}
+
+/* ── Formulaires ─────────────────────────────────────────────────────────── */
+
+@utility input {
+  width: 100%;
+  height: 2.75rem;
+  padding: 0 0.875rem;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 0.9375rem;
+  outline: none;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  &::placeholder {
+    color: var(--text-faint);
+  }
+  &:hover {
+    border-color: rgba(43, 9, 18, 0.3);
+  }
+  &:focus {
+    border-color: var(--wine-red);
+    box-shadow: 0 0 0 3px var(--wine-tint-strong);
+  }
+}
+
+/* Variante multiligne */
+@utility input-area {
+  height: auto;
+  min-height: 6rem;
+  padding: 0.75rem 0.875rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+/* Ancien nom conservé pour compatibilité */
+@utility input-base {
+  width: 100%;
+  height: 2.75rem;
+  padding: 0 0.875rem;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  outline: none;
+  &:focus {
+    border-color: var(--wine-red);
+    box-shadow: 0 0 0 3px var(--wine-tint-strong);
+  }
+}
+
+/* Contrôle segmenté (Plan / 3D, vues alternatives) */
+@utility segmented {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  & > * {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 2rem;
+    padding-inline: 0.875rem;
+    border-radius: 7px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: background-color 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  }
+  & > *:hover {
+    color: var(--foreground);
+  }
+  & > [aria-pressed="true"],
+  & > [aria-selected="true"],
+  & > [data-active="true"] {
+    background: var(--surface);
+    color: var(--foreground);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+  }
+}
+
+/* ── Fenêtres modales et feuilles ────────────────────────────────────────── */
+
+@utility overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  background: rgba(34, 9, 15, 0.42);
+  backdrop-filter: blur(4px);
+}
+
+/* Fenêtre : feuille ancrée en bas sur mobile, centrée sur grand écran */
+@utility sheet {
+  background: var(--surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-lg);
+  max-height: 92dvh;
+  overflow-y: auto;
+  @media (width >= 40rem) {
+    border-radius: var(--radius-lg);
+  }
+}
+
+/* ── Divers ──────────────────────────────────────────────────────────────── */
+
+/* Statistique : grande valeur tabulaire + libellé */
+@utility stat-value {
+  font-family: var(--font-display);
+  font-variation-settings: "SOFT" 30, "WONK" 0;
+  font-weight: 600;
+  font-size: 2rem;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--foreground);
+}
+
+/* Lien texte souligné au survol */
+@utility link {
+  color: var(--wine-red);
+  font-weight: 600;
+  text-underline-offset: 3px;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* Masque la barre de défilement des carrousels horizontaux */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 /* react-simple-maps v5 styles geographies through CSS classes instead of the
@@ -131,5 +633,5 @@ body {
   transition: fill 150ms ease;
 }
 .map-region:hover {
-  fill: rgba(192,25,59,0.10);
+  fill: rgba(192, 25, 59, 0.10);
 }

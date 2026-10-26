@@ -53,7 +53,7 @@ export default async function MissingDataPage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
+    <div>
       <PageHeader
         eyebrow="Qualité des données"
         title="Données à compléter"
@@ -64,11 +64,13 @@ export default async function MissingDataPage() {
         }
       />
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="container-page py-8 md:py-12">
         {incompleteWines.length === 0 ? (
-          <div className="rounded-2xl p-8 text-center" style={{ background: "var(--surface)", border: "1px solid var(--border)" }} data-reveal>
-            <Check size={28} strokeWidth={1.5} aria-hidden="true" className="mx-auto mb-3" style={{ color: "var(--wine-red)" }} />
-            <p className="font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>La cave est complète.</p>
+          <div className="card flex flex-col items-center p-10 text-center" data-reveal>
+            <span className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-[var(--wine-tint)] text-wine-red">
+              <Check size={24} strokeWidth={2} aria-hidden="true" />
+            </span>
+            <p className="text-title">La cave est complète.</p>
           </div>
         ) : (
           <MissingDataList wines={incompleteWines} fieldCounts={Array.from(fieldCounts.entries()).sort(([, a], [, b]) => b - a)} />

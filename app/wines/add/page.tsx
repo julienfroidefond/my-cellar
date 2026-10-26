@@ -1,117 +1,119 @@
 import Link from "next/link";
+import { ArrowLeft, BookOpenText, Euro, MapPin, Package, Plus, Wine } from "lucide-react";
 import { createWineAction } from "@/app/wines/actions";
 import { PageHeader } from "@/components/PageHeader";
-import { ColorField, Field, RegionField, Section, inputStyle } from "@/components/WineFormUI";
+import {
+  ColorField,
+  Field,
+  FormActions,
+  RegionField,
+  Section,
+  Select,
+  Suffixed,
+} from "@/components/WineFormUI";
 
 export default function AddWinePage() {
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
+    <div>
       <PageHeader
         eyebrow="Collection"
         title="Ajouter un vin"
-        lead="Renseigner les informations de la bouteille."
-        actions={
-          <Link href="/wines" className="px-4 py-2 rounded-full text-sm" style={{ border: "1px solid var(--border)", color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}>
-            ← Collection
+        lead="Seul le nom est obligatoire. Le reste peut être complété plus tard."
+        back={
+          <Link href="/wines" className="btn btn-ghost btn-sm -ml-3">
+            <ArrowLeft />
+            Collection
           </Link>
         }
       />
 
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="container-page pt-6 md:pt-8">
         <form action={createWineAction}>
-          <div className="grid lg:grid-cols-2 gap-6 items-start">
-            <div className="space-y-6">
-              <Section title="Informations principales">
-                <Field label="Nom du vin *">
-                  <input required name="name" placeholder="Ex: Château Margaux" style={inputStyle} />
+          <div className="grid items-start gap-4 lg:grid-cols-2">
+            <div className="space-y-4">
+              <Section title="Identité" icon={Wine}>
+                <Field label="Nom du vin *" wide>
+                  <input required name="name" placeholder="Ex : Château Margaux" className="input" />
                 </Field>
-                <Field label="Producteur / Domaine">
-                  <input name="producer" placeholder="Ex: Château Margaux" style={inputStyle} />
+                <Field label="Producteur / Domaine" wide>
+                  <input name="producer" placeholder="Ex : Château Margaux" className="input" />
                 </Field>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <Field label="Millésime">
-                    <input type="number" name="vintage" min="1900" max="2030" placeholder="2019" style={inputStyle} />
-                  </Field>
-                  <Field label="Quantité">
-                    <input type="number" name="quantity" min="1" defaultValue="1" style={inputStyle} />
-                  </Field>
-                  <Field label="Volume (cl)">
-                    <select name="volume" defaultValue="75" style={inputStyle}>
-                      {[37.5, 50, 75, 100, 150, 300].map((value) => (
-                        <option key={value} value={value}>
-                          {value} cl
-                        </option>
-                      ))}
-                    </select>
-                  </Field>
+                <div className="sm:col-span-2">
+                  <ColorField />
                 </div>
               </Section>
 
-              <Section title="Classification">
-                <ColorField />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <RegionField />
-                  <Field label="Appellation">
-                    <input name="appellation" placeholder="Ex: Margaux" style={inputStyle} />
-                  </Field>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Pays">
-                    <input name="country" defaultValue="France" placeholder="France" style={inputStyle} />
-                  </Field>
-                  <Field label="Cépage(s)">
-                    <input name="grapeVarieties" placeholder="Ex: Cabernet Sauvignon" style={inputStyle} />
-                  </Field>
-                </div>
+              <Section title="Origine" icon={MapPin}>
+                <RegionField />
+                <Field label="Appellation">
+                  <input name="appellation" placeholder="Ex : Margaux" className="input" />
+                </Field>
+                <Field label="Pays">
+                  <input name="country" defaultValue="France" placeholder="France" className="input" />
+                </Field>
+                <Field label="Cépage(s)">
+                  <input name="grapeVarieties" placeholder="Ex : Cabernet Sauvignon" className="input" />
+                </Field>
               </Section>
 
-              <Section title="Prix">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="Prix d'achat (€)">
-                    <input type="number" name="purchasePrice" step="0.01" min="0" placeholder="0.00" style={inputStyle} />
-                  </Field>
-                  <Field label="Estimation marché (€)">
-                    <input type="number" name="marketPrice" step="0.01" min="0" placeholder="0.00" style={inputStyle} />
-                  </Field>
-                </div>
+              <Section title="Millésime & stock" icon={Package}>
+                <Field label="Millésime" wide>
+                  <input type="number" inputMode="numeric" name="vintage" min="1900" max="2030" placeholder="2019" className="input" />
+                </Field>
+                <Field label="Quantité">
+                  <input type="number" inputMode="numeric" name="quantity" min="1" defaultValue="1" className="input" />
+                </Field>
+                <Field label="Volume">
+                  <Select name="volume" defaultValue="75">
+                    {[37.5, 50, 75, 100, 150, 300].map((value) => (
+                      <option key={value} value={value}>
+                        {value} cl
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
               </Section>
             </div>
 
-            <div className="space-y-6">
-              <Section title="Dégustation">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field label="À boire à partir de">
-                    <input type="number" name="drinkFrom" min="2000" max="2050" placeholder="2024" style={inputStyle} />
-                  </Field>
-                  <Field label="Jusqu'à">
-                    <input type="number" name="drinkUntil" min="2000" max="2060" placeholder="2035" style={inputStyle} />
-                  </Field>
-                </div>
-              </Section>
-
-              <Section title="Description & Notes">
-                <Field label="Description">
-                  <textarea name="description" rows={4} placeholder="Description du vin (cépage, terroir, style…)" style={{ ...inputStyle, resize: "vertical" }} />
+            <div className="space-y-4">
+              <Section title="Prix" icon={Euro}>
+                <Field label="Prix d’achat">
+                  <Suffixed suffix="€">
+                    <input type="number" inputMode="decimal" name="purchasePrice" step="0.01" min="0" placeholder="0,00" className="input tabular" />
+                  </Suffixed>
                 </Field>
-                <Field label="Notes de dégustation">
-                  <textarea name="notes" rows={4} placeholder="Nez, bouche, équilibre, potentiel…" style={{ ...inputStyle, resize: "vertical" }} />
-                </Field>
-                <Field label="Accords mets/vin">
-                  <input name="foodPairing" placeholder="Magret de canard, fromages affinés, gibier…" style={inputStyle} />
+                <Field label="Estimation marché">
+                  <Suffixed suffix="€">
+                    <input type="number" inputMode="decimal" name="marketPrice" step="0.01" min="0" placeholder="0,00" className="input tabular" />
+                  </Suffixed>
                 </Field>
               </Section>
 
-              <div className="flex gap-4 pt-2">
-                <button
-                  type="submit"
-                  className="px-8 py-3 rounded-full font-medium text-sm"
-                  style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}
-                >
-                  Ajouter
-                </button>
-              </div>
+              <Section
+                title="Dégustation"
+                icon={BookOpenText}
+                description="Sans fenêtre saisie, la fiche affiche une estimation automatique."
+              >
+                <Field label="À boire à partir de">
+                  <input type="number" inputMode="numeric" name="drinkFrom" min="2000" max="2050" placeholder="2024" className="input" />
+                </Field>
+                <Field label="Jusqu’à">
+                  <input type="number" inputMode="numeric" name="drinkUntil" min="2000" max="2060" placeholder="2035" className="input" />
+                </Field>
+                <Field label="Description" wide>
+                  <textarea name="description" rows={4} placeholder="Cépage, terroir, style…" className="input input-area" />
+                </Field>
+                <Field label="Notes de dégustation" wide>
+                  <textarea name="notes" rows={4} placeholder="Nez, bouche, équilibre, potentiel…" className="input input-area" />
+                </Field>
+                <Field label="Accords mets & vin" wide>
+                  <input name="foodPairing" placeholder="Magret de canard, fromages affinés, gibier…" className="input" />
+                </Field>
+              </Section>
             </div>
           </div>
+
+          <FormActions cancelHref="/wines" submitLabel="Ajouter le vin" icon={Plus} />
         </form>
       </div>
     </div>

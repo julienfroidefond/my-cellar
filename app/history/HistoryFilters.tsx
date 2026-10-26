@@ -20,23 +20,24 @@ export function HistoryFilters({ active, counts }: { active: string; counts: Rec
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 mb-6" data-reveal>
+    <div
+      className="scrollbar-none -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0"
+      role="group"
+      aria-label="Filtrer l’historique"
+      data-reveal
+    >
       {FILTERS.map((f) => {
         const isActive = active === f.value;
         return (
           <button
             key={f.value}
+            type="button"
             onClick={() => select(f.value)}
-            className="text-xs px-3.5 py-1.5 rounded-full font-medium transition-opacity hover:opacity-80"
-            style={{
-              fontFamily: "var(--font-inter)",
-              background: isActive ? "var(--wine-red)" : "var(--surface)",
-              color: isActive ? "#fff" : "var(--text-muted)",
-              border: `1px solid ${isActive ? "var(--wine-red)" : "var(--border)"}`,
-            }}
+            aria-pressed={isActive}
+            className="chip h-10 shrink-0"
           >
             {f.label}
-            <span className="ml-1.5 opacity-70 tabular-nums">{counts[f.value] ?? 0}</span>
+            <span className="tabular opacity-60">{counts[f.value] ?? 0}</span>
           </button>
         );
       })}

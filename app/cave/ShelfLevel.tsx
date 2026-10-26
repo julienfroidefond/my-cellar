@@ -1,26 +1,17 @@
 "use client";
 
-import { BOTTLE, SLOT_FRONT, SLOT_BACK } from "./constants";
+import { Plus } from "lucide-react";
+import { BOTTLE, BOTTLE_FALLBACK, SLOT_FRONT, SLOT_BACK } from "./constants";
 import type { WineRef } from "./types";
 
 export type SlotEntry = { wine: WineRef | null; slotIndex: number };
 
-// ─── Plank ────────────────────────────────────────────────────────────────────
-
-export function Plank() {
-  return (
-    <div
-      className="h-2.5 rounded mx-1"
-      style={{
-        background: "linear-gradient(90deg, #6a3e18 0%, #a86828 20%, #cc8840 50%, #a86828 80%, #6a3e18 100%)",
-        boxShadow: "0 2px 4px rgba(0,0,0,0.45)",
-      }}
-    />
-  );
-}
-
 // ─── ShelfLevel ───────────────────────────────────────────────────────────────
 
+/**
+ * Une étagère du plan : rangée arrière (si présente) puis rangée avant, posées
+ * sur une planche. `labelMode` remplace les bouchons par des étiquettes lisibles.
+ */
 export function ShelfLevel({
   frontSlots, backSlots, label, onSelect, selectedId, onEmptyClick, labelMode, showFront, showBack,
 }: {
@@ -34,104 +25,47 @@ export function ShelfLevel({
   showFront: boolean;
   showBack: boolean;
 }) {
-  const sharedStyle = {
-    background: "rgba(26,10,14,0.04)",
-    border: "1px solid rgba(26,10,14,0.09)",
-  };
-  const labelStyle: React.CSSProperties = {
-    fontFamily: "var(--font-inter)",
-    fontSize: "9px",
-    letterSpacing: "0.1em",
-    color: "rgba(26,10,14,0.35)",
-  };
-  const subLabelStyle: React.CSSProperties = {
-    fontFamily: "var(--font-inter)",
-    fontSize: "8px",
-    color: "rgba(26,10,14,0.32)",
-    marginBottom: 6,
-  };
-
-  if (labelMode) {
-    return (
-      <div className="rounded-xl overflow-hidden mb-0.5" style={sharedStyle}>
-        <p className="text-center pt-1.5" style={labelStyle}>{label.toUpperCase()}</p>
-        {showBack && backSlots.length > 0 && (
-          <div className="px-3 pt-2 pb-1">
-            <p style={subLabelStyle}>arrière (P2)</p>
-            <div className="grid grid-cols-2 gap-1">
-              {backSlots.map(({ wine, slotIndex }) => (
-                <LabelCard
-                  key={slotIndex}
-                  wine={wine}
-                  dim
-                  onSelect={onSelect}
-                  isSelected={wine?.id === selectedId}
-                  onEmptyClick={!wine && onEmptyClick ? () => onEmptyClick(slotIndex) : null}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-        {showFront && (
-          <div className="px-3 pt-1 pb-3">
-            <p style={subLabelStyle}>avant (P1)</p>
-            <div className="grid grid-cols-2 gap-1">
-              {frontSlots.map(({ wine, slotIndex }) => (
-                <LabelCard
-                  key={slotIndex}
-                  wine={wine}
-                  dim={false}
-                  onSelect={onSelect}
-                  isSelected={wine?.id === selectedId}
-                  onEmptyClick={!wine && onEmptyClick ? () => onEmptyClick(slotIndex) : null}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
+  const rows = [
+    showBack && backSlots.length > 0 ? { key: "back", title: "Arrière", slots: backSlots, dim: true } : null,
+    showFront ? { key: "front", title: "Avant", slots: frontSlots, dim: false } : null,
+  ].filter((row): row is { key: string; title: string; slots: SlotEntry[]; dim: boolean } => row !== null);
 
   return (
-    <div className="rounded-xl overflow-hidden mb-0.5" style={sharedStyle}>
-      <p className="text-center pt-1.5" style={labelStyle}>{label.toUpperCase()}</p>
-      {showBack && backSlots.length > 0 && (
-        <div className="px-4 pt-2 pb-1">
-          <p style={subLabelStyle}>arrière (P2)</p>
-          <div className="flex justify-center gap-2">
-            {backSlots.map(({ wine, slotIndex }) => (
-              <Slot
-                key={slotIndex}
-                wine={wine}
-                size={SLOT_BACK}
-                dim
-                onSelect={onSelect}
-                isSelected={wine?.id === selectedId}
-                onEmptyClick={!wine && onEmptyClick ? () => onEmptyClick(slotIndex) : null}
-              />
-            ))}
-          </div>
+    <div className="panel overflow-hidden border-b-[5px] border-b-surface-3">
+      <p className="px-3 pt-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-faint">{label}</p>
+      {rows.map((row) => (
+        <div key={row.key} className="px-3 pb-2.5 pt-1.5">
+          <p className="mb-1.5 text-[11px] font-medium text-faint">{row.title}</p>
+          {labelMode ? (
+            <div className="grid grid-cols-2 gap-1.5">
+              {row.slots.map(({ wine, slotIndex }) => (
+                <LabelCard
+                  key={slotIndex}
+                  wine={wine}
+                  dim={row.dim}
+                  onSelect={onSelect}
+                  isSelected={wine?.id === selectedId}
+                  onEmptyClick={!wine && onEmptyClick ? () => onEmptyClick(slotIndex) : null}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {row.slots.map(({ wine, slotIndex }) => (
+                <Slot
+                  key={slotIndex}
+                  wine={wine}
+                  size={row.dim ? SLOT_BACK : SLOT_FRONT}
+                  dim={row.dim}
+                  onSelect={onSelect}
+                  isSelected={wine?.id === selectedId}
+                  onEmptyClick={!wine && onEmptyClick ? () => onEmptyClick(slotIndex) : null}
+                />
+              ))}
+            </div>
+          )}
         </div>
-      )}
-      {showFront && (
-        <div className="px-4 pt-1 pb-3">
-          <p style={subLabelStyle}>avant (P1)</p>
-          <div className="flex justify-center gap-2">
-            {frontSlots.map(({ wine, slotIndex }) => (
-              <Slot
-                key={slotIndex}
-                wine={wine}
-                size={SLOT_FRONT}
-                dim={false}
-                onSelect={onSelect}
-                isSelected={wine?.id === selectedId}
-                onEmptyClick={!wine && onEmptyClick ? () => onEmptyClick(slotIndex) : null}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      ))}
     </div>
   );
 }
@@ -147,90 +81,53 @@ function LabelCard({
   isSelected: boolean;
   onEmptyClick: (() => void) | null;
 }) {
-  const c = wine ? (BOTTLE[wine.color ?? ""] ?? { base: "#555", hi: "#888" }) : null;
-
   if (!wine) {
     if (onEmptyClick) {
       return (
         <button
+          type="button"
           onClick={onEmptyClick}
-          className="flex items-center gap-2 px-2.5 py-2 rounded-xl text-left transition-all hover:bg-black/5"
-          style={{ fontFamily: "var(--font-inter)", border: "1.5px dashed rgba(192,25,59,0.30)", background: "rgba(192,25,59,0.03)" }}
+          className="flex min-h-12 items-center gap-2 rounded-[var(--radius-sm)] border-[1.5px] border-dashed border-wine-red/40 bg-[var(--wine-tint)] px-2.5 text-left text-xs font-medium text-wine-red transition-colors hover:border-wine-red/70"
         >
-          <div
-            className="shrink-0 flex items-center justify-center rounded-full"
-            style={{ width: 18, height: 18, border: "1.5px dashed rgba(192,25,59,0.55)", color: "rgba(192,25,59,0.55)", fontSize: 10 }}
-          >
-            +
-          </div>
-          <span className="text-xs italic" style={{ color: "rgba(192,25,59,0.55)" }}>Placer ici</span>
+          <Plus className="h-4 w-4 shrink-0" />
+          Placer ici
         </button>
       );
     }
     return (
-      <div
-        className="flex items-center gap-2 px-2.5 py-2 rounded-xl"
-        style={{ border: "1px dashed rgba(26,10,14,0.12)" }}
-      >
-        <div className="shrink-0 rounded-full" style={{ width: 18, height: 18, border: "1px dashed rgba(26,10,14,0.18)" }} />
-        <span className="text-xs" style={{ color: "rgba(26,10,14,0.22)", fontFamily: "var(--font-inter)" }}>Vide</span>
+      <div className="flex min-h-12 items-center rounded-[var(--radius-sm)] border border-dashed border-border-strong px-2.5 text-xs text-faint">
+        Vide
       </div>
     );
   }
 
+  const c = BOTTLE[wine.color ?? ""] ?? BOTTLE_FALLBACK;
+
   return (
     <button
+      type="button"
       onClick={() => onSelect(wine)}
-      className="flex items-center gap-2.5 w-full rounded-xl text-left transition-all hover:scale-[1.01] active:scale-[0.99]"
-      style={{
-        padding: "6px 8px",
-        background: isSelected ? "rgba(192,25,59,0.07)" : "var(--surface)",
-        border: `1px solid ${isSelected ? "rgba(192,25,59,0.30)" : "var(--border)"}`,
-        boxShadow: "0 1px 4px rgba(26,10,14,0.06)",
-        opacity: dim ? 0.72 : 1,
-      }}
+      aria-pressed={isSelected}
+      className={`flex min-h-12 w-full items-center gap-2 rounded-[var(--radius-sm)] border px-2 py-1.5 text-left shadow-[var(--shadow-sm)] transition-colors ${
+        isSelected
+          ? "border-wine-red bg-[var(--wine-tint)]"
+          : "border-border bg-surface hover:border-border-strong"
+      } ${dim ? "opacity-75" : ""}`}
     >
-      {/* Bottle image or color dot */}
-      <div className="shrink-0 flex items-center justify-center" style={{ width: 28, height: 42 }}>
+      <span className="flex h-10 w-6 shrink-0 items-center justify-center">
         {wine.imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={wine.imageUrl}
-            alt=""
-            style={{ width: 28, height: 42, objectFit: "contain", filter: "drop-shadow(0 2px 6px rgba(26,10,14,0.22))" }}
-          />
+          <img src={wine.imageUrl} alt="" className="h-10 w-6 object-contain" />
         ) : (
-          <div style={{
-            width: 10, height: 10, borderRadius: "50%",
-            background: c!.base,
-            boxShadow: `0 0 6px ${c!.base}80`,
-          }} />
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: c.base }} />
         )}
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <p
-          className="truncate leading-tight"
-          style={{ fontFamily: "var(--font-playfair)", fontSize: "0.72rem", fontWeight: 600, color: "var(--foreground)" }}
-        >
-          {wine.name}
-        </p>
-        <p
-          className="truncate mt-0.5"
-          style={{ fontFamily: "var(--font-inter)", fontSize: "0.62rem", color: "var(--text-faint)" }}
-        >
-          {wine.appellation ?? wine.region ?? (c ? BOTTLE[wine.color ?? ""]?.label ?? "" : "")}
-        </p>
-        {wine.vintage && (
-          <p
-            className="tabular-nums mt-0.5"
-            style={{ fontFamily: "var(--font-inter)", fontSize: "0.62rem", color: "var(--text-muted)", fontWeight: 500 }}
-          >
-            {wine.vintage}
-          </p>
-        )}
-      </div>
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-xs font-semibold leading-tight">{wine.name}</span>
+        <span className="mt-0.5 block truncate text-[11px] text-muted">
+          {[wine.vintage, wine.appellation ?? wine.region ?? c.label].filter(Boolean).join(" · ")}
+        </span>
+      </span>
     </button>
   );
 }
@@ -247,92 +144,62 @@ function Slot({
   isSelected: boolean;
   onEmptyClick: (() => void) | null;
 }) {
+  // Taille du bouchon : seule valeur dynamique, passée en style.
+  const box = { width: size, height: size };
+
   if (!wine) {
     if (onEmptyClick) {
       return (
         <button
+          type="button"
           onClick={onEmptyClick}
-          style={{ width: size, height: size, flexShrink: 0, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
-          className="hover:scale-110 active:scale-95 transition-transform"
+          aria-label="Placer une bouteille ici"
+          style={box}
+          className="flex shrink-0 items-center justify-center rounded-full transition-transform hover:scale-110 active:scale-95"
         >
-          <div style={{
-            width: size * 0.82, height: size * 0.82, borderRadius: "50%",
-            border: "1.5px dashed rgba(192,25,59,0.55)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "rgba(192,25,59,0.55)", fontSize: size * 0.38, lineHeight: 1,
-            background: "rgba(192,25,59,0.05)",
-          }}>
-            +
-          </div>
+          <span className="flex h-[84%] w-[84%] items-center justify-center rounded-full border-[1.5px] border-dashed border-wine-red/60 bg-[var(--wine-tint)] text-wine-red">
+            <Plus className="h-[45%] w-[45%]" />
+          </span>
         </button>
       );
     }
     return (
-      <div style={{ width: size, height: size, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ width: size * 0.72, height: size * 0.72, borderRadius: "50%", border: "1px dashed rgba(26,10,14,0.18)" }} />
+      <div style={box} className="flex shrink-0 items-center justify-center" aria-hidden="true">
+        <span className="h-[70%] w-[70%] rounded-full border border-dashed border-border-strong" />
       </div>
     );
   }
 
-  const c = BOTTLE[wine.color ?? ""] ?? { base: "#555", hi: "#888", label: "" };
-
+  const c = BOTTLE[wine.color ?? ""] ?? BOTTLE_FALLBACK;
   const label = [wine.name, wine.vintage].filter(Boolean).join(" ");
 
   return (
-    <div className="group" style={{ width: size, height: size, flexShrink: 0, position: "relative" }}>
+    <div className="group relative shrink-0" style={box}>
       <button
+        type="button"
         onClick={() => onSelect(wine)}
-        style={{
-          width: "100%", height: "100%",
-          opacity: dim ? 0.65 : 1,
-          borderRadius: "50%",
-          position: "relative",
-          overflow: "hidden",
-        }}
-        className="hover:scale-110 active:scale-95 transition-transform"
+        aria-label={label}
+        aria-pressed={isSelected}
+        className={`relative h-full w-full overflow-hidden rounded-full transition-transform hover:scale-110 active:scale-95 ${dim ? "opacity-70" : ""}`}
       >
-        <div style={{
-          width: "100%", height: "100%", borderRadius: "50%",
-          background: `radial-gradient(circle at 35% 32%, ${c.hi}ee, ${c.base}ff 55%, ${c.base})`,
-          boxShadow: isSelected
-            ? `0 0 0 2.5px var(--wine-red), 0 4px 14px ${c.base}90`
-            : `0 2px 8px ${c.base}40, inset 0 1px 2px rgba(255,255,255,0.15)`,
-          transition: "box-shadow 0.15s",
-        }}>
-          <div style={{
-            position: "absolute", top: "15%", left: "20%", width: "26%", height: "16%",
-            borderRadius: "50%", background: "rgba(255,255,255,0.40)", transform: "rotate(-30deg)",
-          }} />
-        </div>
+        {/* Bouchon : dégradé calculé depuis la couleur du vin */}
+        <span
+          className="block h-full w-full rounded-full transition-shadow"
+          style={{
+            background: `radial-gradient(circle at 35% 32%, ${c.hi}ee, ${c.base}ff 55%, ${c.base})`,
+            boxShadow: isSelected
+              ? `0 0 0 2.5px var(--ink), 0 4px 14px ${c.base}90`
+              : `0 2px 6px ${c.base}40, inset 0 1px 2px rgba(255,255,255,0.15)`,
+          }}
+        />
+        <span className="absolute left-[20%] top-[15%] h-[16%] w-[26%] -rotate-30 rounded-full bg-white/40" />
       </button>
 
-      {/* Tooltip */}
-      <div
-        className="pointer-events-none absolute left-1/2 -translate-x-1/2 bottom-[calc(100%+6px)]
-                   opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-50"
-        style={{ whiteSpace: "nowrap" }}
-      >
-        <div
-          style={{
-            background: "var(--foreground)",
-            color: "#fff",
-            fontSize: 11,
-            fontFamily: "var(--font-inter)",
-            padding: "4px 9px",
-            borderRadius: 7,
-            boxShadow: "0 4px 12px rgba(26,10,14,0.22)",
-            lineHeight: 1.4,
-          }}
-        >
+      {/* Infobulle */}
+      <div className="pointer-events-none absolute bottom-[calc(100%+6px)] left-1/2 z-[var(--z-sticky)] -translate-x-1/2 whitespace-nowrap opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+        <div className="rounded-md bg-ink px-2.5 py-1 text-[11px] leading-snug text-background shadow-[var(--shadow-md)]">
           {label}
         </div>
-        {/* Arrow */}
-        <div style={{
-          width: 0, height: 0, margin: "0 auto",
-          borderLeft: "5px solid transparent",
-          borderRight: "5px solid transparent",
-          borderTop: `5px solid var(--foreground)`,
-        }} />
       </div>
     </div>
   );

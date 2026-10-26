@@ -3,12 +3,13 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ShelfLevel, Plank } from "./ShelfLevel";
+import { Box, Check, LayoutGrid, MapPin, Tag, X } from "lucide-react";
+import { BottleSilhouette } from "@/components/WineTile";
+import { ShelfLevel } from "./ShelfLevel";
 import { WineDetailModal, type RemovalPayload } from "./WineDetailModal";
 import { SlotPickerModal } from "./SlotPickerModal";
 import { BOTTLE } from "./constants";
 import { Cave3D } from "./Cave3D";
-
 
 // Re-export types so page.tsx can keep its current import path
 export type { WineRef, LevelConfig, RackConfig, RackData } from "./types";
@@ -98,243 +99,243 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
     refresh();
   }
 
+  const unrackedBottles = unracked.reduce((s, w) => s + w.quantity, 0);
+
   return (
     <div>
-      {/* Placement mode banner */}
+      {/* Bandeau du mode placement : reste visible pendant le défilement */}
       {placing && (
         <div
-          className="flex items-center justify-between px-5 py-3.5 rounded-xl mb-5"
-          style={{ background: "rgba(192,25,59,0.07)", border: "1px solid rgba(192,25,59,0.30)" }}
+          role="status"
+          className="sticky top-[calc(var(--nav-height)+0.5rem)] z-[var(--z-sticky)] mb-4 flex items-center gap-3 rounded-[var(--radius-md)] bg-ink py-2.5 pl-4 pr-2.5 text-background shadow-[var(--shadow-lg)]"
         >
-          <div>
-            <p className="text-sm font-semibold" style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}>
-              Ranger — {placing.name}
-            </p>
-            <p className="text-xs mt-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-              Clique sur un emplacement vide
-            </p>
+          <MapPin className="h-4 w-4 shrink-0 text-wine-light" aria-hidden="true" />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-semibold">Ranger : {placing.name}</p>
+            <p className="text-xs opacity-70">Touchez un emplacement vide</p>
           </div>
           <button
+            type="button"
             onClick={() => setPlacing(null)}
-            className="text-xs px-3 py-1.5 rounded-full transition-opacity hover:opacity-100"
-            style={{ fontFamily: "var(--font-inter)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
+            className="btn btn-sm shrink-0 bg-white/10 text-background hover:bg-white/20"
           >
+            <X />
             Annuler
           </button>
         </div>
       )}
 
-      {/* Toggles */}
-      <div className="flex flex-wrap justify-end gap-2 mb-4">
-        <div className="flex overflow-hidden rounded-full mr-auto" style={{ border: "1px solid var(--border)", fontFamily: "var(--font-inter)" }}>
-          {(["plan", "3d"] as const).map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setView(value)}
-              className="px-3.5 py-1.5 text-xs font-medium transition-all"
-              style={{ background: view === value ? "var(--wine-red)" : "var(--surface)", color: view === value ? "#fff" : "var(--text-muted)" }}
+      <div className={unracked.length > 0 ? "grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start" : undefined}>
+        <div className="min-w-0">
+          {/* Barre d'outils unique : vue, profondeurs, étiquettes, légende */}
+          <div className="mb-4 flex flex-wrap items-center gap-2" data-reveal>
+            <div className="segmented" role="group" aria-label="Type de vue">
+              {(["plan", "3d"] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setView(value)}
+                  aria-pressed={view === value}
+                >
+                  {value === "plan" ? <LayoutGrid className="h-3.5 w-3.5" /> : <Box className="h-3.5 w-3.5" />}
+                  {value === "plan" ? "Plan" : "Vue 3D"}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5" role="group" aria-label="Profondeurs affichées">
+              <button
+                type="button"
+                onClick={() => { if (showFront && !showBack) return; setShowFront((v) => !v); }}
+                disabled={showFront && !showBack}
+                aria-pressed={showFront}
+                className="chip disabled:cursor-not-allowed"
+                title="Rangée avant"
+              >
+                {showFront && <Check />}
+                Avant
+              </button>
+              <button
+                type="button"
+                onClick={() => { if (showBack && !showFront) return; setShowBack((v) => !v); }}
+                disabled={showBack && !showFront}
+                aria-pressed={showBack}
+                className="chip disabled:cursor-not-allowed"
+                title="Rangée arrière"
+              >
+                {showBack && <Check />}
+                Arrière
+              </button>
+              {view === "plan" && (
+                <button
+                  type="button"
+                  onClick={() => setShowLabels((v) => !v)}
+                  aria-pressed={showLabels}
+                  className="chip"
+                >
+                  <Tag />
+                  Étiquettes
+                </button>
+              )}
+            </div>
+
+            <ul className="ml-auto hidden items-center gap-3 text-xs text-muted sm:flex" aria-label="Légende">
+              {(["rouge", "blanc", "rosé"] as const).map((key) => (
+                <li key={key} className="flex items-center gap-1.5">
+                  <span className="wine-dot" data-color={key} />
+                  {BOTTLE[key].label}
+                </li>
+              ))}
+              <li className="flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full border border-dashed border-border-strong" />
+                Vide
+              </li>
+            </ul>
+          </div>
+
+          {/* Casiers */}
+          {view === "3d" ? (
+            <Cave3D
+              racks={racks}
+              selectedId={selected?.id ?? null}
+              showFront={showFront}
+              showBack={showBack}
+              onSelect={(wine) => { setSelected(wine); setPending(null); }}
+              onEmptyClick={(placing || unracked.length > 0) ? (rack, slotIndex) => {
+                if (placing) placeWine(placing, rack.id, slotIndex, rack.numCols);
+                else setTargetSlot({ rackId: rack.id, rackName: rack.name, slotIndex, numCols: rack.numCols });
+              } : null}
+            />
+          ) : (
+            <div
+              className={`grid gap-3 ${showLabels ? "xl:grid-cols-2" : "sm:grid-cols-2"}`}
+              data-reveal-stagger
             >
-              {value === "plan" ? "Plan" : "Vue 3D"}
-            </button>
-          ))}
+              {racks.map((rack) => {
+                const slotMap = buildSlotMap(rack.wines, rack.config, rack.numCols);
+                const levels = buildLevels(slotMap, rack.config);
+                const totalSlots = rack.config.levels.reduce((s, l) => s + l.front + l.back, 0);
+                const filledSlots = slotMap.filter(Boolean).length;
+                const fillPct = totalSlots > 0 ? Math.round((filledSlots / totalSlots) * 100) : 0;
+
+                const handleEmpty: ((slotIndex: number) => void) | null =
+                  (placing || unracked.length > 0)
+                    ? (slotIndex) => {
+                        if (placing) {
+                          placeWine(placing, rack.id, slotIndex, rack.numCols);
+                        } else {
+                          setTargetSlot({ rackId: rack.id, rackName: rack.name, slotIndex, numCols: rack.numCols });
+                        }
+                      }
+                    : null;
+
+                const highlighted = Boolean(placing) || targetSlot?.rackId === rack.id;
+
+                return (
+                  <section
+                    key={rack.id}
+                    data-reveal
+                    aria-label={`Casier ${rack.name}`}
+                    className={`card overflow-hidden transition-colors ${highlighted ? "border-wine-red/40" : ""}`}
+                  >
+                    <header className="flex items-center gap-3 border-b border-border px-4 py-3">
+                      <span className="badge h-7 min-w-9 rounded-lg bg-ink text-sm text-background">
+                        {rack.name}
+                      </span>
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
+                        <div className="h-full rounded-full bg-wine-red" style={{ width: `${fillPct}%` }} />
+                      </div>
+                      <span className="text-sm font-medium tabular text-muted">
+                        {filledSlots}
+                        <span className="text-faint"> / {totalSlots}</span>
+                      </span>
+                    </header>
+
+                    <div className="space-y-2 p-3 sm:p-4">
+                      {levels.map((lv, i) => (
+                        <ShelfLevel
+                          key={i}
+                          frontSlots={lv.frontSlots}
+                          backSlots={lv.backSlots}
+                          label={`Étagère ${levels.length - i}`}
+                          onSelect={(w) => { setSelected(w); setPending(null); }}
+                          selectedId={selected?.id ?? null}
+                          onEmptyClick={handleEmpty}
+                          labelMode={showLabels}
+                          showFront={showFront}
+                          showBack={showBack}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                );
+              })}
+            </div>
+          )}
         </div>
-        <button
-          onClick={() => { if (showFront && !showBack) return; setShowFront((v) => !v); }}
-          disabled={showFront && !showBack}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
-          style={{
-            fontFamily: "var(--font-inter)",
-            background: showFront ? "rgba(192,25,59,0.08)" : "rgba(26,10,14,0.04)",
-            border: showFront ? "1px solid rgba(192,25,59,0.30)" : "1px solid var(--border)",
-            color: showFront ? "var(--wine-red)" : "var(--text-muted)",
-          }}
-        >
-          <span style={{ fontSize: 11 }}>{showFront ? "◉" : "○"}</span>
-          Profondeur 1
-        </button>
-        <button
-          onClick={() => { if (showBack && !showFront) return; setShowBack((v) => !v); }}
-          disabled={showBack && !showFront}
-          className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all disabled:cursor-not-allowed disabled:opacity-50"
-          style={{
-            fontFamily: "var(--font-inter)",
-            background: showBack ? "rgba(192,25,59,0.08)" : "rgba(26,10,14,0.04)",
-            border: showBack ? "1px solid rgba(192,25,59,0.30)" : "1px solid var(--border)",
-            color: showBack ? "var(--wine-red)" : "var(--text-muted)",
-          }}
-        >
-          <span style={{ fontSize: 11 }}>{showBack ? "◉" : "○"}</span>
-          Profondeur 2
-        </button>
-        {view === "plan" && (
-          <button
-            onClick={() => setShowLabels((v) => !v)}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all"
-            style={{
-              fontFamily: "var(--font-inter)",
-              background: showLabels ? "rgba(192,25,59,0.08)" : "rgba(26,10,14,0.04)",
-              border: showLabels ? "1px solid rgba(192,25,59,0.30)" : "1px solid var(--border)",
-              color: showLabels ? "var(--wine-red)" : "var(--text-muted)",
-            }}
+
+        {/* À ranger : colonne latérale collante sur desktop */}
+        {unracked.length > 0 && (
+          <aside
+            data-reveal
+            aria-labelledby="unracked-title"
+            className="lg:sticky lg:top-[calc(var(--nav-height)+1.5rem)]"
           >
-            <span style={{ fontSize: 11 }}>{showLabels ? "◉" : "○"}</span>
-            {showLabels ? "Masquer les étiquettes" : "Afficher les étiquettes"}
-          </button>
+            <div className="card flex flex-col lg:max-h-[calc(100dvh-var(--nav-height)-3rem)]">
+              <div className="border-b border-border px-4 pb-3 pt-4">
+                <div className="flex items-center gap-2">
+                  <h2 id="unracked-title" className="font-display text-lg font-semibold">À ranger</h2>
+                  <span className="badge">{unrackedBottles}</span>
+                </div>
+                <p className="mt-0.5 text-sm text-muted">
+                  {unrackedBottles} bouteille{unrackedBottles > 1 ? "s" : ""} sans emplacement. Choisissez-en une, puis un emplacement vide.
+                </p>
+              </div>
+              <ul className="divide-y divide-border overflow-y-auto">
+                {unracked.map((wine) => {
+                  const isPlacing = placing?.id === wine.id;
+                  return (
+                    <li
+                      key={wine.id}
+                      className={`flex items-center gap-3 px-4 py-3 transition-colors ${isPlacing ? "bg-[var(--wine-tint)]" : ""}`}
+                    >
+                      <div className="flex h-12 w-9 shrink-0 items-center justify-center rounded-md bg-surface-2">
+                        {wine.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={wine.imageUrl} alt="" className="h-11 w-auto object-contain" />
+                        ) : (
+                          <BottleSilhouette className="h-9 w-auto text-surface-3" />
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <Link
+                          href={`/wines/${wine.wineId}`}
+                          className="block truncate text-sm font-semibold hover:text-wine-red"
+                        >
+                          {wine.name}
+                        </Link>
+                        <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted">
+                          <span className="wine-dot" data-color={wine.color ?? undefined} />
+                          {wine.vintage ? `${wine.vintage} · ` : ""}
+                          <span className="tabular">{wine.quantity}</span> à ranger
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setPlacing(isPlacing ? null : wine)}
+                        aria-pressed={isPlacing}
+                        className={`btn btn-sm shrink-0 ${isPlacing ? "btn-primary" : "btn-soft"}`}
+                      >
+                        {isPlacing ? "En cours…" : "Ranger"}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </aside>
         )}
       </div>
-
-      {/* Racks */}
-      {view === "3d" ? (
-        <Cave3D
-          racks={racks}
-          selectedId={selected?.id ?? null}
-          showFront={showFront}
-          showBack={showBack}
-          onSelect={(wine) => { setSelected(wine); setPending(null); }}
-          onEmptyClick={(placing || unracked.length > 0) ? (rack, slotIndex) => {
-            if (placing) placeWine(placing, rack.id, slotIndex, rack.numCols);
-            else setTargetSlot({ rackId: rack.id, rackName: rack.name, slotIndex, numCols: rack.numCols });
-          } : null}
-        />
-      ) : <div className="space-y-5" data-reveal-stagger>
-        {racks.map((rack) => {
-          const slotMap = buildSlotMap(rack.wines, rack.config, rack.numCols);
-          const levels = buildLevels(slotMap, rack.config);
-          const totalSlots = rack.config.levels.reduce((s, l) => s + l.front + l.back, 0);
-          const filledSlots = slotMap.filter(Boolean).length;
-          const fillPct = totalSlots > 0 ? Math.round((filledSlots / totalSlots) * 100) : 0;
-
-          const handleEmpty: ((slotIndex: number) => void) | null =
-            (placing || unracked.length > 0)
-              ? (slotIndex) => {
-                  if (placing) {
-                    placeWine(placing, rack.id, slotIndex, rack.numCols);
-                  } else {
-                    setTargetSlot({ rackId: rack.id, rackName: rack.name, slotIndex, numCols: rack.numCols });
-                  }
-                }
-              : null;
-
-          return (
-            <div
-              key={rack.id}
-              data-reveal
-              className="rounded-2xl overflow-hidden transition-all"
-              style={{
-                background: "var(--surface)",
-                border: (placing || targetSlot?.rackId === rack.id)
-                  ? "1px solid rgba(192,25,59,0.35)"
-                  : "1px solid var(--border)",
-              }}
-            >
-              <div
-                className="flex items-center gap-4 px-5 py-3"
-                style={{ borderBottom: "1px solid var(--border)", background: "var(--surface)" }}
-              >
-                <span
-                  className="font-bold px-3 py-1 rounded-lg text-sm tracking-wide"
-                  style={{ background: "#a05828", color: "#fff", fontFamily: "var(--font-inter)" }}
-                >
-                  {rack.name}
-                </span>
-                <span className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                  {filledSlots} / {totalSlots}
-                </span>
-                <div className="flex-1 h-1 rounded-full ml-1" style={{ background: "rgba(26,10,14,0.08)" }}>
-                  <div className="h-full rounded-full transition-all" style={{ width: `${fillPct}%`, background: "var(--wine-red)" }} />
-                </div>
-              </div>
-
-              <div className="p-4 space-y-1.5">
-                {levels.map((lv, i) => (
-                  <div key={i}>
-                    <ShelfLevel
-                      frontSlots={lv.frontSlots}
-                      backSlots={lv.backSlots}
-                      label={`Étagère ${levels.length - i}`}
-                      onSelect={(w) => { setSelected(w); setPending(null); }}
-                      selectedId={selected?.id ?? null}
-                      onEmptyClick={handleEmpty}
-                      labelMode={showLabels}
-                      showFront={showFront}
-                      showBack={showBack}
-                    />
-                    <Plank />
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </div>}
-
-      {/* À ranger */}
-      {unracked.length > 0 && (
-        <div className="mt-10" data-reveal>
-          <div className="mb-5">
-            <p className="text-xs tracking-[0.3em] uppercase mb-2" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", fontWeight: 500 }}>
-              Non rangés
-            </p>
-            <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>À ranger</h2>
-            <p className="text-sm mt-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-              {unracked.reduce((s, w) => s + w.quantity, 0)} bouteille{unracked.reduce((s, w) => s + w.quantity, 0) > 1 ? "s" : ""} sans emplacement
-            </p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {unracked.map((wine) => {
-              const c = BOTTLE[wine.color ?? ""] ?? { base: "#555", hi: "#888", label: "" };
-              return (
-                <div
-                  key={wine.id}
-                  className="flex items-center gap-4 rounded-xl p-3.5"
-                  style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
-                >
-                  {wine.imageUrl ? (
-                    <div className="rounded-full shrink-0 overflow-hidden flex items-center justify-center" style={{ width: 40, height: 40, background: `${c.base}33` }}>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={wine.imageUrl} alt="" style={{ width: 36, height: 36, objectFit: "contain" }} />
-                    </div>
-                  ) : (
-                    <div
-                      className="rounded-full shrink-0"
-                      style={{ width: 40, height: 40, background: `radial-gradient(circle at 35% 32%, ${c.hi}ee, ${c.base}ff 55%, ${c.base})`, boxShadow: `0 2px 10px ${c.base}55` }}
-                    />
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold truncate" style={{ fontFamily: "var(--font-playfair)" }}>{wine.name}</p>
-                    <p className="text-xs mt-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                      {wine.vintage ? `${wine.vintage} · ` : ""}{wine.quantity} à ranger
-                    </p>
-                  </div>
-                  <div className="flex gap-2 shrink-0">
-                    <Link
-                      href={`/wines/${wine.wineId}`}
-                      className="text-xs px-3 py-1.5 rounded-full transition-opacity hover:opacity-80"
-                      style={{ fontFamily: "var(--font-inter)", border: "1px solid var(--border)", color: "var(--text-muted)" }}
-                    >
-                      Voir
-                    </Link>
-                    <button
-                      onClick={() => setPlacing(wine)}
-                      className="text-xs px-3 py-1.5 rounded-full transition-all hover:opacity-90"
-                      style={{
-                        fontFamily: "var(--font-inter)",
-                        background: placing?.id === wine.id ? "var(--wine-red)" : "rgba(192,25,59,0.08)",
-                        color: placing?.id === wine.id ? "#fff" : "var(--wine-red)",
-                        border: "1px solid rgba(192,25,59,0.30)",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {placing?.id === wine.id ? "En cours…" : "Ranger"}
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
       {/* Modals */}
       {selected && (

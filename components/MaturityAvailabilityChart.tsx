@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ChevronRight } from "lucide-react";
+import { BottleSilhouette } from "@/components/WineTile";
 
 type MaturityPeriod = {
   wineId: string;
@@ -15,11 +17,14 @@ type MaturityPeriod = {
 };
 
 const COLOR_SEGMENTS = [
-  { key: "rouge", label: "Rouge", color: "#b51f3b" },
-  { key: "blanc", label: "Blanc", color: "#d6a24a" },
-  { key: "rosé", label: "Rosé", color: "#d8768b" },
-  { key: "autre", label: "Autre", color: "#927b72" },
+  { key: "rouge", label: "Rouge", color: "var(--color-rouge)" },
+  { key: "blanc", label: "Blanc", color: "var(--color-blanc)" },
+  { key: "rosé", label: "Rosé", color: "var(--color-rose)" },
+  { key: "autre", label: "Autre", color: "var(--text-faint)" },
 ] as const;
+
+/** Hauteur maximale d'une barre, en pixels. */
+const BAR_MAX = 150;
 
 export function MaturityAvailabilityChart({ periods, currentYear }: { periods: MaturityPeriod[]; currentYear: number }) {
   const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -42,76 +47,136 @@ export function MaturityAvailabilityChart({ periods, currentYear }: { periods: M
   const selectedWines = periods
     .filter((period) => selectedYear >= period.from && selectedYear <= period.until)
     .sort((a, b) => a.until - b.until || a.name.localeCompare(b.name));
+  const selectedBottles = selectedWines.reduce((total, wine) => total + wine.quantity, 0);
 
   return (
-    <div className="rounded-2xl p-5 sm:p-7" style={{ background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 2px 12px rgba(26,10,14,0.06)" }}>
-      <div className="flex flex-wrap items-start justify-between gap-4 mb-7">
-        <div>
-          <p className="text-lg font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>{readyNow} bouteille{readyNow !== 1 ? "s" : ""} à l’apogée cette année</p>
-          {peak > 0 && <p className="text-sm mt-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>Pic de disponibilité en {peakYear} · {peak} bouteilles</p>}
+    <div className="card overflow-hidden">
+      <div className="p-5 sm:p-7">
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="font-display text-lg font-semibold">
+              <span className="tabular">{readyNow}</span> bouteille{readyNow !== 1 ? "s" : ""} à l’apogée cette année
+            </p>
+            {peak > 0 && (
+              <p className="mt-0.5 text-sm text-muted">
+                Pic de disponibilité en {peakYear} · <span className="tabular">{peak}</span> bouteilles
+              </p>
+            )}
+          </div>
+          <ul className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
+            {COLOR_SEGMENTS.map((segment) => (
+              <li key={segment.key} className="inline-flex items-center gap-1.5">
+                <span className="h-2 w-2 rounded-full" style={{ background: segment.color }} />
+                {segment.label}
+              </li>
+            ))}
+          </ul>
         </div>
-        <p className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
-          {COLOR_SEGMENTS.map((segment) => (
-            <span key={segment.key} className="inline-flex items-center mr-2.5">
-              <span className="inline-block w-2 h-2 rounded-full mr-1" style={{ background: segment.color }} /> {segment.label}
-            </span>
-          ))}
-        </p>
-      </div>
 
-      <div
-        className="h-56 flex items-end gap-1.5 sm:gap-3 px-1 rounded-xl"
-        aria-label="Nombre de bouteilles à l’apogée par année"
-        style={{ backgroundImage: "repeating-linear-gradient(to bottom, transparent 0, transparent 31px, rgba(26,10,14,0.07) 32px)" }}
-      >
-        {years.map((year, index) => {
-          const segments = data[index];
-          const total = totalFor(segments);
-          const isCurrent = year === currentYear;
-          const isSelected = selectedYear === year;
-          return (
-            <button key={year} type="button" onClick={() => setSelectedYear(year)} className="h-full flex-1 min-w-0 flex flex-col justify-end items-center group relative" aria-pressed={isSelected}>
-              {isCurrent && <span className="absolute top-2 text-[9px] tracking-wider uppercase" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", fontWeight: 700 }}>Aujourd’hui</span>}
-              <span className="text-xs mb-2 font-medium min-h-4 px-1 rounded" style={{ fontFamily: "var(--font-inter)", color: isSelected ? "white" : "var(--text-muted)", background: isSelected ? "var(--wine-red)" : "transparent" }}>{total || ""}</span>
-              <div className="w-full max-w-11 rounded-t-lg overflow-hidden flex flex-col justify-end transition-all duration-200 group-hover:brightness-110" style={{ height: `${Math.max((total / max) * 155, total ? 8 : 2)}px`, background: "rgba(26,10,14,0.08)", boxShadow: isSelected && total ? "0 0 0 2px var(--wine-red), 0 8px 18px rgba(192,25,59,0.22)" : "none" }} title={`${year} : ${total} bouteille${total !== 1 ? "s" : ""} à l’apogée`}>
-                {COLOR_SEGMENTS.filter((segment) => segments[segment.key] > 0).map((segment) => (
-                  <div key={segment.key} style={{ height: `${(segments[segment.key] / total) * 100}%`, background: segment.color }} />
-                ))}
-              </div>
-              <span className="mt-2 text-[10px] sm:text-xs whitespace-nowrap px-1.5 py-0.5 rounded-full" style={{ fontFamily: "var(--font-inter)", color: isSelected ? "var(--wine-red)" : "var(--text-faint)", background: isSelected ? "rgba(192,25,59,0.09)" : "transparent", fontWeight: isSelected ? 700 : 400 }}>
-                {isCurrent ? "Auj." : String(year).slice(-2)}
+        <p className="mb-2 text-xs text-faint">Touchez une année pour voir les bouteilles.</p>
+        <div
+          className="flex h-[212px] items-end gap-1 border-b border-border sm:gap-2.5"
+          role="group"
+          aria-label="Nombre de bouteilles à l’apogée par année"
+        >
+          {years.map((year, index) => {
+            const segments = data[index];
+            const total = totalFor(segments);
+            const isCurrent = year === currentYear;
+            const isSelected = selectedYear === year;
+            return (
+              <button
+                key={year}
+                type="button"
+                onClick={() => setSelectedYear(year)}
+                aria-pressed={isSelected}
+                aria-label={`${year} : ${total} bouteille${total !== 1 ? "s" : ""} à l’apogée`}
+                className="group relative flex h-full min-w-0 flex-1 flex-col items-center justify-end rounded-t-md pt-6 focus-visible:outline-offset-0"
+              >
+                <span
+                  className={`mb-1.5 rounded px-1 text-[11px] font-semibold tabular sm:text-xs ${
+                    isSelected ? "bg-ink text-background" : "text-muted"
+                  }`}
+                >
+                  {total || ""}
+                </span>
+                <span
+                  className={`flex w-full max-w-11 flex-col-reverse overflow-hidden rounded-t-[5px] bg-surface-2 transition-[filter,opacity] duration-200 group-hover:brightness-110 ${
+                    isSelected ? "" : "opacity-80"
+                  }`}
+                  data-grow="y"
+                  style={{ height: `${Math.max((total / max) * BAR_MAX, total ? 6 : 2)}px` }}
+                >
+                  {COLOR_SEGMENTS.filter((segment) => segments[segment.key] > 0).map((segment) => (
+                    <span
+                      key={segment.key}
+                      className="block w-full"
+                      style={{ height: `${(segments[segment.key] / total) * 100}%`, background: segment.color }}
+                    />
+                  ))}
+                </span>
+                {isCurrent && (
+                  <span aria-hidden="true" className="absolute inset-x-0 top-0 mx-auto h-full w-px bg-wine-red/30" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-2 flex gap-1 sm:gap-2.5">
+          {years.map((year) => {
+            const isCurrent = year === currentYear;
+            const isSelected = selectedYear === year;
+            return (
+              <span
+                key={year}
+                className={`min-w-0 flex-1 text-center text-[11px] tabular sm:text-xs ${
+                  isSelected ? "font-bold text-foreground" : isCurrent ? "font-semibold text-wine-red" : "text-faint"
+                }`}
+              >
+                {isCurrent ? "Auj." : <><span className="hidden sm:inline">{String(year).slice(0, 2)}</span>{String(year).slice(-2)}</>}
               </span>
-            </button>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
-      <div className="mt-8 pt-6" style={{ borderTop: "1px solid var(--border)" }}>
-        <div className="flex items-baseline justify-between gap-3 mb-4">
-          <h3 className="text-lg font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>À l’apogée en {selectedYear}</h3>
-          <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>{selectedWines.reduce((total, wine) => total + wine.quantity, 0)} bouteilles</span>
+      <div className="border-t border-border bg-surface-2/50 p-5 sm:p-7">
+        <div className="mb-4 flex items-baseline justify-between gap-3">
+          <h3 className="font-display text-lg font-semibold">À l’apogée en {selectedYear}</h3>
+          <span className="badge badge-muted">{selectedBottles} bts</span>
         </div>
         {selectedWines.length === 0 ? (
-          <p className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>Aucune bouteille avec une période d’apogée pour cette année.</p>
+          <p className="text-sm text-muted">Aucune bouteille avec une période d’apogée pour cette année.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <ul className="grid grid-cols-1 gap-x-6 sm:grid-cols-2 lg:grid-cols-3" data-reveal-stagger>
             {selectedWines.map((wine) => (
-              <Link key={`${wine.wineId}-${wine.vintage ?? "unknown"}`} href={`/wines/${wine.wineId}`} className="flex items-center gap-3 rounded-xl p-3 transition-opacity hover:opacity-75" style={{ background: "var(--surface-2)" }}>
-                {wine.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={wine.imageUrl} alt="" className="w-9 h-14 shrink-0 object-contain" />
-                ) : (
-                  <span className="w-9 h-14 shrink-0 flex items-center justify-center" aria-hidden="true">🍷</span>
-                )}
-                <span className="min-w-0">
-                  <span className="block text-sm font-semibold truncate" style={{ fontFamily: "var(--font-inter)" }}>{wine.name}</span>
-                  <span className="block text-xs mt-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                    {wine.vintage ?? "—"} · {wine.quantity} bt{wine.quantity > 1 ? "s" : ""} · jusqu’en {wine.until}
+              <li key={`${wine.wineId}-${wine.vintage ?? "unknown"}`} className="border-b border-border">
+                <Link
+                  href={`/wines/${wine.wineId}`}
+                  className="group flex min-h-14 items-center gap-3 py-2"
+                >
+                  <span className="flex h-11 w-7 shrink-0 items-center justify-center">
+                    {wine.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={wine.imageUrl} alt="" loading="lazy" className="h-full w-full object-contain" />
+                    ) : (
+                      <BottleSilhouette className="h-9 w-auto text-surface-3" />
+                    )}
                   </span>
-                </span>
-              </Link>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold group-hover:text-wine-red">{wine.name}</span>
+                    <span className="mt-0.5 flex items-center gap-1.5 text-xs text-muted">
+                      <span className="wine-dot" data-color={wine.color ?? undefined} />
+                      <span className="tabular">
+                        {wine.vintage ?? "—"} · {wine.quantity} bt{wine.quantity > 1 ? "s" : ""} · jusqu’en {wine.until}
+                      </span>
+                    </span>
+                  </span>
+                  <ChevronRight className="h-4 w-4 shrink-0 text-faint transition-transform group-hover:translate-x-0.5 group-hover:text-wine-red" />
+                </Link>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
       </div>
     </div>

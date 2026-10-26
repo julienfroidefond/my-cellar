@@ -3,7 +3,22 @@
 import { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import {
+  ArrowDownUp,
+  Check,
+  ChevronDown,
+  Clock,
+  Hourglass,
+  LayoutGrid,
+  Minus,
+  Plus,
+  Search,
+  SlidersHorizontal,
+  X,
+  type LucideIcon,
+} from "lucide-react";
 import { PageHeader } from "@/components/PageHeader";
+import { BottleSilhouette, WineColor, WineTile } from "@/components/WineTile";
 import { estimateMaturity } from "@/lib/maturity";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -50,11 +65,31 @@ interface Filters {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const COLORS: Record<string, { label: string; color: string }> = {
-  rouge: { label: "Rouge", color: "#c02030" },
-  blanc: { label: "Blanc", color: "#c4983c" },
-  rosé:  { label: "Rosé",  color: "#d4647a" },
+const COLORS: Record<string, { label: string }> = {
+  rouge: { label: "Rouge" },
+  blanc: { label: "Blanc" },
+  rosé:  { label: "Rosé" },
 };
+
+const SORT_OPTIONS: [string, string][] = [
+  ["name", "Nom (A–Z)"],
+  ["stock-desc", "Stock décroissant"],
+  ["price-desc", "Prix décroissant"],
+  ["vintage-desc", "Millésime récent"],
+];
+
+const MATURITY_OPTIONS: [Filters["maturity"], string, LucideIcon][] = [
+  ["optimal", "Prêtes", Check],
+  ["bientôt", "Bientôt", Hourglass],
+  ["dépassé", "Passées", Clock],
+];
+
+const PRICE_PRESETS: [number, number, string][] = [
+  [0, 20, "< 20 €"],
+  [20, 50, "20–50 €"],
+  [50, 100, "50–100 €"],
+  [100, 0, "100 € et +"],
+];
 
 const EMPTY_FILTERS: Filters = {
   color: "", country: "", region: "", grape: "",
@@ -227,245 +262,285 @@ function WinesContent() {
 
   const totalBottles = wines.reduce((s, w) => s + totalQuantity(w), 0);
 
-  return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
+  const resultLabel = `${wines.length} vin${wines.length > 1 ? "s" : ""}`;
 
+  return (
+    <div>
       <PageHeader
         eyebrow="Inventaire"
         title="La collection"
-        lead={loading ? "…" : `${wines.length} référence${wines.length > 1 ? "s" : ""} · ${totalBottles} bouteille${totalBottles > 1 ? "s" : ""}`}
-        actions={
-          <>
-            {activeCount > 0 && (
-              <button
-                onClick={() => setFilters(EMPTY_FILTERS)}
-                className="text-xs px-3 py-2 rounded-full transition-opacity hover:opacity-80"
-                style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)", border: "1px solid var(--border)" }}
+        lead={loading ? "Chargement…" : `${wines.length} référence${wines.length > 1 ? "s" : ""} · ${totalBottles} bouteille${totalBottles > 1 ? "s" : ""}`}
+      />
+
+      {/* ── Barre d'outils collante : recherche, tri, filtres rapides ── */}
+      <div className="sticky top-[var(--nav-height)] z-[var(--z-sticky)] border-b border-border bg-background/90 backdrop-blur-xl">
+        <div className="container-page flex flex-col gap-3 py-3">
+          <div className="flex items-center gap-2">
+            <label className="relative min-w-0 flex-1">
+              <span className="sr-only">Rechercher un vin</span>
+              <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
+              <input
+                type="search"
+                placeholder="Rechercher un vin, un domaine…"
+                value={filters.search}
+                onChange={e => set("search", e.target.value)}
+                className="input pl-9"
+              />
+            </label>
+
+            <label className="relative hidden shrink-0 sm:block">
+              <span className="sr-only">Trier par</span>
+              <ArrowDownUp aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
+              <select
+                value={sort}
+                onChange={e => setSort(e.target.value as typeof sort)}
+                className="input w-auto cursor-pointer appearance-none pl-9 pr-9"
               >
+                {SORT_OPTIONS.map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+              <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-faint" />
+            </label>
+
+            <button
+              type="button"
+              onClick={() => setShowFilters(true)}
+              aria-haspopup="dialog"
+              aria-expanded={showFilters}
+              className={`btn h-11 shrink-0 ${activeCount > 0 ? "btn-dark" : "btn-secondary"}`}
+            >
+              <SlidersHorizontal />
+              <span className="hidden sm:inline">Filtres</span>
+              {activeCount > 0 && (
+                <span className="badge h-5 min-w-5 px-1.5 text-[0.6875rem]">{activeCount}</span>
+              )}
+            </button>
+          </div>
+
+          {/* Filtres rapides : défilement horizontal sur mobile */}
+          <div className="scrollbar-none -mx-4 flex items-center gap-2 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:mx-0 lg:flex-wrap lg:px-0">
+            <button type="button" className="chip" aria-pressed={!filters.color} onClick={() => set("color", "")}>
+              Tous
+            </button>
+            {Object.entries(COLORS).map(([c, { label }]) => (
+              <button key={c} type="button" className="chip" aria-pressed={filters.color === c} onClick={() => toggle("color", c)}>
+                <span className="wine-dot" data-color={c} />
+                {label}
+              </button>
+            ))}
+
+            <span aria-hidden="true" className="mx-1 h-5 w-px shrink-0 bg-border-strong" />
+
+            {MATURITY_OPTIONS.map(([v, label, Icon]) => (
+              <button key={v} type="button" className="chip" aria-pressed={filters.maturity === v} onClick={() => toggle("maturity", v)}>
+                <Icon />
+                {label}
+              </button>
+            ))}
+
+            {/* Tri accessible sur mobile, à côté des filtres rapides */}
+            <label className="relative shrink-0 sm:hidden">
+              <span className="sr-only">Trier par</span>
+              <select
+                value={sort}
+                onChange={e => setSort(e.target.value as typeof sort)}
+                className="chip appearance-none pr-7"
+              >
+                {SORT_OPTIONS.map(([value, label]) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+              <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-faint" />
+            </label>
+
+            {activeCount > 0 && (
+              <button type="button" onClick={() => setFilters(EMPTY_FILTERS)} className="btn btn-ghost btn-sm shrink-0 lg:ml-auto">
+                <X />
                 Tout effacer
               </button>
             )}
-            <select
-              value={sort}
-              onChange={e => setSort(e.target.value as typeof sort)}
-              className="px-4 py-2.5 rounded-full text-sm outline-none cursor-pointer"
-              style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--text-muted)", fontFamily: "var(--font-inter)", appearance: "none", paddingRight: "2rem" }}
-            >
-              <option value="name">A → Z</option>
-              <option value="stock-desc">Stock ↓</option>
-              <option value="price-desc">Prix ↓</option>
-              <option value="vintage-desc">Millésime ↓</option>
-            </select>
-            <input
-              type="text"
-              placeholder="Rechercher un vin…"
-              value={filters.search}
-              onChange={e => set("search", e.target.value)}
-              className="flex-1 px-5 py-2.5 rounded-full text-sm outline-none transition-all"
-              style={{ minWidth: "160px", background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
-              onFocus={e => (e.target.style.borderColor = "rgba(192,25,59,0.40)")}
-              onBlur={e  => (e.target.style.borderColor = "var(--border)")}
-            />
-          </>
-        }
-        bottom={
-          <>
-            {/* ── Filter row ── */}
-            <div className="flex flex-col gap-2">
-              <div className="flex flex-wrap gap-2 items-center">
-                {/* Color */}
-                <Chip active={!filters.color} onClick={() => set("color", "")} label="Tous" />
-                {Object.entries(COLORS).map(([c, { label, color }]) => (
-                  <Chip key={c} active={filters.color === c} onClick={() => toggle("color", c)} label={label} dot={color} />
-                ))}
+          </div>
+        </div>
+      </div>
 
-                {/* Divider */}
-                <div className="w-px h-5 mx-1" style={{ background: "var(--border)" }} />
+      {/* ── Grille des vins ── */}
+      <div className="container-page py-8 md:py-10">
+        {loading ? (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-[140px] animate-pulse rounded-[var(--radius-lg)] bg-surface-2" />
+            ))}
+          </div>
+        ) : wines.length === 0 ? (
+          <div className="card mx-auto flex max-w-md flex-col items-center px-6 py-14 text-center">
+            <BottleSilhouette className="h-20 w-auto text-surface-3" />
+            <h2 className="text-title mt-5">Aucun vin trouvé</h2>
+            <p className="mt-1.5 text-sm text-muted">
+              {activeCount > 0 || filters.search
+                ? "Aucun vin ne correspond à ces critères. Élargissez la recherche ou retirez des filtres."
+                : "La collection est vide pour le moment."}
+            </p>
+            {activeCount > 0 || filters.search ? (
+              <button type="button" onClick={() => setFilters(EMPTY_FILTERS)} className="btn btn-soft mt-6">
+                <X />
+                Effacer les filtres
+              </button>
+            ) : (
+              <Link href="/wines/add" className="btn btn-primary mt-6">
+                <Plus />
+                Ajouter un vin
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3" data-reveal-stagger>
+            {wines.map((wine) => <WineCard key={wine.id} wine={wine} />)}
+          </div>
+        )}
+      </div>
 
-                {/* Maturité */}
-                {([
-                  ["optimal",  "✓ Prêtes",  "#1a7a3c"],
-                  ["bientôt",  "~ Bientôt", "#b87a2c"],
-                  ["dépassé",  "✗ Passées", "rgba(26,10,14,0.4)"],
-                ] as [Filters["maturity"], string, string][]).map(([v, label, color]) => (
+      {/* ── Panneau de filtres avancés ── */}
+      <div
+        className={`overlay transition-opacity duration-200 ${showFilters ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        onClick={() => setShowFilters(false)}
+        aria-hidden="true"
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="filters-title"
+        inert={!showFilters}
+        className={`fixed inset-x-0 bottom-0 z-[var(--z-modal)] transition-[transform,opacity,visibility] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:inset-0 sm:flex sm:items-center sm:justify-center sm:p-6 ${
+          showFilters ? "visible translate-y-0 opacity-100" : "invisible translate-y-full opacity-100 sm:translate-y-4 sm:opacity-0"
+        } sm:pointer-events-none`}
+      >
+        <div className="sheet flex w-full flex-col sm:pointer-events-auto sm:max-h-[86dvh] sm:max-w-xl">
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-surface px-5 py-4">
+            <h2 id="filters-title" className="font-display text-xl font-semibold">Filtres</h2>
+            <button type="button" onClick={() => setShowFilters(false)} className="btn btn-ghost btn-icon" aria-label="Fermer les filtres">
+              <X />
+            </button>
+          </div>
+
+          <div className="space-y-6 px-5 py-5">
+            {options.countries.length > 0 && (
+              <FilterSection label="Pays">
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" className="chip" aria-pressed={!filters.country} onClick={() => set("country", "")}>Tous</button>
+                  {options.countries.map(c => (
+                    <button key={c} type="button" className="chip" aria-pressed={filters.country === c} onClick={() => toggle("country", c)}>{c}</button>
+                  ))}
+                </div>
+              </FilterSection>
+            )}
+
+            {options.regions.length > 0 && (
+              <FilterSection label="Région">
+                <RegionSelect
+                  options={options.regions}
+                  value={filters.region}
+                  onChange={v => set("region", v)}
+                />
+              </FilterSection>
+            )}
+
+            <FilterSection label="Cépage" htmlFor="filter-grape">
+              <input
+                id="filter-grape"
+                type="text"
+                value={filters.grape}
+                onChange={e => set("grape", e.target.value)}
+                placeholder="Merlot, Chardonnay…"
+                className="input"
+              />
+              {filters.grape && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {options.grapes.filter(g => g.toLowerCase().includes(filters.grape.toLowerCase())).slice(0, 6).map(g => (
+                    <button key={g} type="button" onClick={() => set("grape", g)} className="chip h-8">
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </FilterSection>
+
+            <FilterSection label="Prix marché (€)">
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={filters.priceMin}
+                  onChange={e => set("priceMin", e.target.value)}
+                  placeholder="Min"
+                  aria-label="Prix minimum"
+                  min={0}
+                  className="input tabular"
+                />
+                <Minus aria-hidden="true" className="h-4 w-4 shrink-0 text-faint" />
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  value={filters.priceMax}
+                  onChange={e => set("priceMax", e.target.value)}
+                  placeholder="Max"
+                  aria-label="Prix maximum"
+                  min={0}
+                  className="input tabular"
+                />
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {PRICE_PRESETS.map(([min, max, label]) => (
                   <button
-                    key={v}
-                    onClick={() => toggle("maturity", v)}
-                    className="flex items-center rounded-full transition-all duration-200"
-                    style={{
-                      padding: "6px 14px",
-                      fontSize: "0.875rem",
-                      fontFamily: "var(--font-inter)",
-                      background: filters.maturity === v ? `${color}18` : "var(--surface)",
-                      border: `1px solid ${filters.maturity === v ? color : "var(--border)"}`,
-                      color: filters.maturity === v ? color : "var(--text-muted)",
-                      fontWeight: filters.maturity === v ? 500 : 400,
-                    }}
+                    key={label}
+                    type="button"
+                    aria-pressed={filters.priceMin === (min ? String(min) : "") && filters.priceMax === (max ? String(max) : "") && Boolean(min || max)}
+                    onClick={() => setFilters(f => ({ ...f, priceMin: min ? String(min) : "", priceMax: max ? String(max) : "" }))}
+                    className="chip h-8"
                   >
                     {label}
                   </button>
                 ))}
-
-                {/* Filter toggle */}
-                <button
-                  onClick={() => setShowFilters(v => !v)}
-                  className="sm:ml-auto flex items-center gap-2 px-4 py-1.5 rounded-full text-sm transition-all"
-                  style={{
-                    fontFamily: "var(--font-inter)",
-                    background: (showFilters || activeCount > 0) ? "rgba(192,25,59,0.08)" : "var(--surface-2)",
-                    border: (showFilters || activeCount > 0) ? "1px solid rgba(192,25,59,0.25)" : "1px solid var(--border)",
-                    color: (showFilters || activeCount > 0) ? "var(--wine-red)" : "var(--text-muted)",
-                  }}
-                >
-                  <span style={{ fontSize: 13 }}>⚙</span>
-                  Filtres {activeCount > 0 && <span className="px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ background: "var(--wine-red)", color: "white" }}>{activeCount}</span>}
-                  <span style={{ fontSize: 10 }}>{showFilters ? "▲" : "▼"}</span>
-                </button>
               </div>
+            </FilterSection>
+
+            <div className="grid gap-6">
+              <FilterSection label="En possession">
+                <div className="segmented w-full">
+                  {([["", "Tous"], ["in", "En cave"], ["out", "Épuisé"]] as [Filters["stock"], string][]).map(([v, label]) => (
+                    <button key={v} type="button" aria-pressed={filters.stock === v} onClick={() => set("stock", v)} className="flex-1 justify-center">
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </FilterSection>
+
+              <FilterSection label="Casier">
+                <div className="segmented w-full">
+                  {([["", "Tous"], ["yes", "Rangé"], ["no", "Non rangé"]] as [Filters["racked"], string][]).map(([v, label]) => (
+                    <button key={v} type="button" aria-pressed={filters.racked === v} onClick={() => set("racked", v)} className="flex-1 justify-center">
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </FilterSection>
             </div>
-
-            {/* ── Expanded filter panel ── */}
-            {showFilters && (
-              <div
-                className="mt-4 rounded-2xl p-5 space-y-5"
-                style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
-              >
-                {/* Country */}
-                {options.countries.length > 0 && (
-                  <FilterSection label="Pays">
-                    <div className="flex flex-wrap gap-2">
-                      <Chip active={!filters.country} onClick={() => set("country", "")} label="Tous" small />
-                      {options.countries.map(c => (
-                        <Chip key={c} active={filters.country === c} onClick={() => toggle("country", c)} label={c} small />
-                      ))}
-                    </div>
-                  </FilterSection>
-                )}
-
-                {/* Region */}
-                {options.regions.length > 0 && (
-                  <FilterSection label="Région">
-                    <RegionSelect
-                      options={options.regions}
-                      value={filters.region}
-                      onChange={v => set("region", v)}
-                    />
-                  </FilterSection>
-                )}
-
-                {/* Grape + Price */}
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <FilterSection label="Cépage">
-                    <input
-                      type="text"
-                      value={filters.grape}
-                      onChange={e => set("grape", e.target.value)}
-                      placeholder="Merlot, Chardonnay…"
-                      className="w-full px-4 py-2 rounded-xl text-sm outline-none transition-all"
-                      style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
-                      onFocus={e => (e.target.style.borderColor = "rgba(192,25,59,0.40)")}
-                      onBlur={e  => (e.target.style.borderColor = "var(--border)")}
-                    />
-                    {filters.grape && options.grapes.filter(g => g.toLowerCase().includes(filters.grape.toLowerCase())).slice(0, 6).map(g => (
-                      <button
-                        key={g}
-                        onClick={() => set("grape", g)}
-                        className="mt-1 mr-1.5 text-xs px-2.5 py-1 rounded-full transition-all hover:opacity-80"
-                        style={{ background: "rgba(26,10,14,0.06)", border: "1px solid var(--border)", color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}
-                      >
-                        {g}
-                      </button>
-                    ))}
-                  </FilterSection>
-
-                  <FilterSection label="Prix marché (€)">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="number"
-                        value={filters.priceMin}
-                        onChange={e => set("priceMin", e.target.value)}
-                        placeholder="Min"
-                        min={0}
-                        className="w-full px-4 py-2 rounded-xl text-sm outline-none"
-                        style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
-                      />
-                      <span style={{ color: "var(--text-faint)" }}>—</span>
-                      <input
-                        type="number"
-                        value={filters.priceMax}
-                        onChange={e => set("priceMax", e.target.value)}
-                        placeholder="Max"
-                        min={0}
-                        className="w-full px-4 py-2 rounded-xl text-sm outline-none"
-                        style={{ background: "var(--surface-2)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "var(--font-inter)" }}
-                      />
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      {[[0,20,"< 20 €"],[20,50,"20–50 €"],[50,100,"50–100 €"],[100,0,"+ 100 €"]].map(([min, max, label]) => (
-                        <button
-                          key={label as string}
-                          onClick={() => setFilters(f => ({ ...f, priceMin: min ? String(min) : "", priceMax: max ? String(max) : "" }))}
-                          className="text-xs px-2.5 py-1 rounded-full transition-all hover:opacity-80"
-                          style={{ background: "rgba(26,10,14,0.06)", border: "1px solid var(--border)", color: "var(--text-faint)", fontFamily: "var(--font-inter)" }}
-                        >
-                          {label as string}
-                        </button>
-                      ))}
-                    </div>
-                  </FilterSection>
-                </div>
-
-                {/* Stock + Racked */}
-                <div className="grid sm:grid-cols-2 gap-5">
-                  <FilterSection label="En possession">
-                    <div className="flex gap-2">
-                      {([["", "Tous"], ["in", "En cave"], ["out", "Épuisé"]] as [Filters["stock"], string][]).map(([v, label]) => (
-                        <ToggleBtn key={v} active={filters.stock === v} onClick={() => set("stock", v)} label={label} />
-                      ))}
-                    </div>
-                  </FilterSection>
-
-                  <FilterSection label="Casier">
-                    <div className="flex gap-2">
-                      {([["", "Tous"], ["yes", "Rangé"], ["no", "Non rangé"]] as [Filters["racked"], string][]).map(([v, label]) => (
-                        <ToggleBtn key={v} active={filters.racked === v} onClick={() => set("racked", v)} label={label} />
-                      ))}
-                    </div>
-                  </FilterSection>
-                </div>
-              </div>
-            )}
-          </>
-        }
-      />
-
-      {/* ── Wine grid ── */}
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-2xl h-44 animate-pulse" style={{ background: "var(--surface-2)" }} />
-            ))}
           </div>
-        ) : wines.length === 0 ? (
-          <div className="text-center py-28">
-            <div className="text-4xl mb-4" style={{ opacity: 0.3 }}>🍾</div>
-            <p style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>Aucun vin ne correspond à ces filtres</p>
-            {activeCount > 0 && (
-              <button
-                onClick={() => setFilters(EMPTY_FILTERS)}
-                className="mt-4 text-sm px-5 py-2 rounded-full transition-opacity hover:opacity-80"
-                style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", border: "1px solid rgba(192,25,59,0.25)", background: "rgba(192,25,59,0.08)" }}
-              >
-                Effacer les filtres
-              </button>
-            )}
+
+          <div className="sticky bottom-0 flex items-center gap-2 border-t border-border bg-surface px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:pb-4">
+            <button
+              type="button"
+              onClick={() => setFilters(f => ({ ...EMPTY_FILTERS, search: f.search }))}
+              disabled={activeCount === 0}
+              className="btn btn-ghost"
+            >
+              Réinitialiser
+            </button>
+            <button type="button" onClick={() => setShowFilters(false)} className="btn btn-primary ml-auto">
+              Voir {resultLabel}
+            </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" data-reveal-stagger>
-            {wines.map((wine) => <WineCard key={wine.id} wine={wine} />)}
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
@@ -474,7 +549,6 @@ function WinesContent() {
 // ─── Wine card ────────────────────────────────────────────────────────────────
 
 function WineCard({ wine }: { wine: Wine }) {
-  const colorInfo = COLORS[wine.color ?? ""] ?? { label: wine.color ?? "", color: "#666" };
   const qty = totalQuantity(wine);
   const allEpuise = qty === 0;
   const hasMultipleVintages = wine.vintages.length > 1;
@@ -482,88 +556,60 @@ function WineCard({ wine }: { wine: Wine }) {
   const racked = isRacked(wine);
 
   return (
-    <Link
-      href={`/wines/${wine.id}`}
-      data-reveal
-      className="group block rounded-2xl overflow-hidden transition-transform duration-200 hover:-translate-y-0.5 relative"
-      style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        boxShadow: "0 2px 8px rgba(26,10,14,0.06)",
-      }}
-    >
-      <div style={{ height: 3, background: `linear-gradient(90deg, ${colorInfo.color}cc, ${colorInfo.color}44)` }} />
-
-      {wine.imageUrl && (
-        <div className="absolute right-0 bottom-0 pointer-events-none" style={{ width: 72, top: 3 }}>
-          <div className="absolute inset-0" style={{ background: "linear-gradient(to right, var(--surface) 0%, transparent 45%)" }} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={wine.imageUrl}
-            alt=""
-            style={{ position: "absolute", bottom: 0, right: 6, height: "92%", objectFit: "contain", opacity: 0.88, filter: "drop-shadow(0 4px 16px rgba(26,10,14,0.12))" }}
-          />
-        </div>
-      )}
-
-      <div className="p-5" style={{ paddingRight: wine.imageUrl ? 80 : undefined }}>
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <h3 className="font-semibold leading-snug line-clamp-2 flex-1" style={{ fontFamily: "var(--font-playfair)", fontSize: "1.05rem", color: "var(--foreground)" }}>
-            {wine.name}
-          </h3>
-          {allEpuise ? (
-            <span className="shrink-0 text-xs px-2.5 py-1 rounded-full" style={{ background: "rgba(26,10,14,0.06)", color: "var(--text-faint)", fontFamily: "var(--font-inter)", border: "1px solid var(--border)" }}>
-              Épuisé
+    <div data-reveal>
+      <WineTile
+        href={`/wines/${wine.id}`}
+        name={wine.name}
+        imageUrl={wine.imageUrl}
+        className={`h-full ${allEpuise ? "opacity-70" : ""}`}
+        meta={
+          <>
+            <WineColor color={wine.color} />
+            {wine.producer && (
+              <span className="min-w-0 truncate text-faint">· {wine.producer}</span>
+            )}
+          </>
+        }
+        footer={
+          <>
+            {allEpuise ? (
+              <span className="badge badge-muted">Épuisé</span>
+            ) : (
+              <span className="badge badge-wine" title={`${qty} bouteille${qty > 1 ? "s" : ""}`}>×{qty}</span>
+            )}
+            {hasMultipleVintages ? (
+              wine.vintages.map(v => (
+                <span key={v.id} className="tag">
+                  {v.vintage ?? "N/A"} ×{v.quantity}
+                </span>
+              ))
+            ) : wine.vintages[0]?.vintage ? (
+              <span className="tag">{wine.vintages[0].vintage}</span>
+            ) : null}
+            {wine.appellation && !hasMultipleVintages && (
+              <span className="tag max-w-[16ch] truncate">{wine.appellation}</span>
+            )}
+            {racked && (
+              <span className="inline-flex items-center text-faint" title="Rangé en cave">
+                <LayoutGrid aria-hidden="true" className="h-3.5 w-3.5" />
+                <span className="sr-only">Rangé en cave</span>
+              </span>
+            )}
+          </>
+        }
+        aside={
+          (mktPrice ?? 0) > 0 ? (
+            <span className="stat-value text-[1.1rem] text-gold" title={`${mktPrice?.toFixed(2)} € / bouteille`}>
+              {Math.round(mktPrice ?? 0)}&nbsp;€
             </span>
-          ) : qty > 1 ? (
-            <span className="shrink-0 text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}>
-              ×{qty}
-            </span>
-          ) : null}
-        </div>
-
-        {wine.producer && (
-          <p className="text-sm mb-3" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>{wine.producer}</p>
-        )}
-
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* Vintages display */}
-          {hasMultipleVintages ? (
-            <div className="flex flex-wrap gap-1">
-              {wine.vintages.map(v => (
-                <Tag key={v.id}>
-                  {v.vintage ?? "N/A"}{v.quantity > 0 ? ` ×${v.quantity}` : " ×0"}
-                </Tag>
-              ))}
-            </div>
-          ) : wine.vintages[0]?.vintage ? (
-            <Tag>{wine.vintages[0].vintage}</Tag>
-          ) : null}
-          {wine.appellation && !hasMultipleVintages && <Tag>{wine.appellation}</Tag>}
-          <div className="ml-auto flex items-center gap-1.5">
-            {racked
-              ? <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>📦</span>
-              : qty > 0 && <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>—</span>
-            }
-            <div className="w-2 h-2 rounded-full shrink-0" style={{ background: colorInfo.color, boxShadow: `0 0 5px ${colorInfo.color}80` }} />
-            <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>{colorInfo.label}</span>
-          </div>
-        </div>
-
-        {(mktPrice ?? 0) > 0 && (
-          <div className="mt-3 pt-3 flex items-baseline gap-1" style={{ borderTop: "1px solid var(--border)" }}>
-            <span className="text-base font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-playfair)" }}>
-              {mktPrice?.toFixed(2)} €
-            </span>
-            <span className="text-xs" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>/ bouteille</span>
-          </div>
-        )}
-      </div>
-    </Link>
+          ) : undefined
+        }
+      />
+    </div>
   );
 }
 
-// ─── Region selector (chips + scroll si beaucoup) ─────────────────────────────
+// ─── Region selector (chips + « voir plus » si beaucoup) ──────────────────────
 
 function RegionSelect({ options, value, onChange }: { options: string[]; value: string; onChange: (v: string) => void }) {
   const [expanded, setExpanded] = useState(false);
@@ -571,16 +617,14 @@ function RegionSelect({ options, value, onChange }: { options: string[]; value: 
   const shown = expanded ? options : options.slice(0, MAX);
   return (
     <div className="flex flex-wrap gap-2">
-      <Chip active={!value} onClick={() => onChange("")} label="Toutes" small />
+      <button type="button" className="chip" aria-pressed={!value} onClick={() => onChange("")}>Toutes</button>
       {shown.map(r => (
-        <Chip key={r} active={value === r} onClick={() => onChange(value === r ? "" : r)} label={r} small />
+        <button key={r} type="button" className="chip" aria-pressed={value === r} onClick={() => onChange(value === r ? "" : r)}>
+          {r}
+        </button>
       ))}
       {options.length > MAX && (
-        <button
-          onClick={() => setExpanded(v => !v)}
-          className="text-xs px-3 py-1 rounded-full transition-opacity hover:opacity-80"
-          style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)", border: "1px solid var(--border)" }}
-        >
+        <button type="button" onClick={() => setExpanded(v => !v)} className="btn btn-ghost btn-sm h-[2.125rem]">
           {expanded ? "Moins" : `+${options.length - MAX} autres`}
         </button>
       )}
@@ -590,69 +634,16 @@ function RegionSelect({ options, value, onChange }: { options: string[]; value: 
 
 // ─── Filter section wrapper ───────────────────────────────────────────────────
 
-function FilterSection({ label, children }: { label: string; children: React.ReactNode }) {
+function FilterSection({ label, htmlFor, children }: { label: string; htmlFor?: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-xs uppercase tracking-[0.15em] mb-2.5 font-medium" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>
-        {label}
-      </p>
+      {htmlFor ? (
+        <label htmlFor={htmlFor} className="label mb-2 block">{label}</label>
+      ) : (
+        <p className="label mb-2">{label}</p>
+      )}
       {children}
     </div>
-  );
-}
-
-// ─── Chip ─────────────────────────────────────────────────────────────────────
-
-function Chip({ active, onClick, label, dot, small }: { active: boolean; onClick: () => void; label: string; dot?: string; small?: boolean }) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-2 rounded-full transition-all duration-200"
-      style={{
-        padding: small ? "4px 12px" : "6px 16px",
-        fontSize: small ? "0.75rem" : "0.875rem",
-        background: active ? "rgba(192,25,59,0.08)" : "var(--surface)",
-        border: `1px solid ${active ? "rgba(192,25,59,0.22)" : "var(--border)"}`,
-        color: active ? "var(--wine-red)" : "var(--text-muted)",
-        fontFamily: "var(--font-inter)",
-        fontWeight: active ? 500 : 400,
-      }}
-    >
-      {dot && <span className="w-2 h-2 rounded-full" style={{ background: dot, boxShadow: active ? `0 0 6px ${dot}90` : "none" }} />}
-      {label}
-    </button>
-  );
-}
-
-// ─── Toggle button (3-state row) ──────────────────────────────────────────────
-
-function ToggleBtn({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
-  return (
-    <button
-      onClick={onClick}
-      className="px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all"
-      style={{
-        fontFamily: "var(--font-inter)",
-        background: active ? "rgba(192,25,59,0.08)" : "var(--surface-2)",
-        border: active ? "1px solid rgba(192,25,59,0.25)" : "1px solid var(--border)",
-        color: active ? "var(--wine-red)" : "var(--text-muted)",
-      }}
-    >
-      {label}
-    </button>
-  );
-}
-
-// ─── Tag ─────────────────────────────────────────────────────────────────────
-
-function Tag({ children }: { children: React.ReactNode }) {
-  return (
-    <span
-      className="text-xs px-2.5 py-0.5 rounded-full"
-      style={{ background: "var(--surface-2)", fontFamily: "var(--font-inter)", color: "var(--text-muted)", border: "1px solid var(--border)" }}
-    >
-      {children}
-    </span>
   );
 }
 

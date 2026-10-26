@@ -25,6 +25,7 @@ export default function ConfirmSubmitButton({
       className={className}
       style={style}
       disabled={pending}
+      aria-busy={pending || undefined}
       onClick={(event) => {
         if (confirmMessage && !window.confirm(confirmMessage)) {
           event.preventDefault();

@@ -9,13 +9,24 @@ import { MaturityPhaseCarousels } from "@/components/MaturityPhaseCarousels";
 import { estimateMaturity } from "@/lib/maturity";
 import { getMaturityPhase } from "@/lib/maturity-phase";
 import { APPELLATION_COORDS } from "@/lib/appellation-coords";
+import { ArrowRight, Plus } from "lucide-react";
+import { Eyebrow, SectionHeader, StatsRow } from "@/components/PageHeader";
+import HeroCarousel, { type HeroSlide } from "@/components/HeroCarousel";
 
-// The dashboard is rendered per request (`force-dynamic`), so picking a random
-// hero wine on every render is intentional. Kept out of the component body so it
+// The dashboard is rendered per request (`force-dynamic`), so picking random
+// hero wines on every render is intentional. Kept out of the component body so it
 // does not look like an impure call during render.
-function pickRandom<T>(items: T[]): T {
-  return items[Math.floor(Math.random() * items.length)];
+function shuffle<T>(items: T[]): T[] {
+  const copy = [...items];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
 }
+
+/** Nombre de bouteilles présentées dans le carrousel du hero. */
+const HERO_SLIDES = 5;
 
 const COLOR_LABELS: Record<string, string> = {
   rouge: "Rouge",
@@ -145,24 +156,27 @@ export default async function DashboardPage() {
     });
 
   const winesWithImage = wines.filter((w) => w.imageUrl && w.vintages.some((v) => v.quantity > 0));
-  const heroWine = winesWithImage.length > 0 ? pickRandom(winesWithImage) : null;
-  const heroVintage = heroWine?.vintages.find((v) => v.quantity > 0) ?? null;
-  const heroDescription = heroWine?.description?.trim() || heroWine?.notes?.trim() || null;
-  const heroProducer = heroWine?.producer?.trim() ?? "";
-  const showProducer = heroWine
-    ? heroProducer.length > 0 &&
-      !normalized(heroWine.name).includes(normalized(heroProducer))
-    : false;
-  const heroMeta = heroWine
-    ? [
-        heroVintage?.vintage ? String(heroVintage.vintage) : null,
-        heroWine.appellation?.trim() || heroWine.region?.trim(),
-        heroWine.color ? COLOR_LABELS[heroWine.color] ?? heroWine.color : null,
-        heroVintage
-          ? `${heroVintage.quantity}\u00A0bouteille${heroVintage.quantity > 1 ? "s" : ""}`
-          : null,
-      ].filter((item): item is string => Boolean(item))
-    : [];
+  const heroSlides: HeroSlide[] = shuffle(winesWithImage)
+    .slice(0, HERO_SLIDES)
+    .map((wine) => {
+      const vintage = wine.vintages.find((v) => v.quantity > 0) ?? null;
+      const producer = wine.producer?.trim() ?? "";
+      const showProducer =
+        producer.length > 0 && !normalized(wine.name).includes(normalized(producer));
+      return {
+        id: wine.id,
+        name: wine.name,
+        producer: showProducer ? producer : null,
+        description: wine.description?.trim() || wine.notes?.trim() || null,
+        imageUrl: wine.imageUrl!,
+        meta: [
+          vintage?.vintage ? String(vintage.vintage) : null,
+          wine.appellation?.trim() || wine.region?.trim(),
+          wine.color ? COLOR_LABELS[wine.color] ?? wine.color : null,
+          vintage ? `${vintage.quantity}\u00A0bouteille${vintage.quantity > 1 ? "s" : ""}` : null,
+        ].filter((item): item is string => Boolean(item)),
+      };
+    });
 
   const stats = [
     { value: totalBottles, label: "Bouteilles" },
@@ -172,255 +186,77 @@ export default async function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <section
-        className="diagonal-stripe relative overflow-hidden"
-        style={{ background: "var(--background)" }}
-        aria-labelledby="featured-wine-title"
-      >
-        {heroWine?.imageUrl && (
+    <div>
+      <h1 className="sr-only">Ma Cave</h1>
+
+      {/* ── Bouteilles du moment : affiches pleine largeur ──────────────── */}
+      {heroSlides.length > 0 ? (
+        <HeroCarousel slides={heroSlides} />
+      ) : (
+        <section className="relative isolate overflow-hidden border-b border-border">
           <div
-            data-enter="scale"
-            className="pointer-events-none absolute bottom-[-6%] top-[-6%] z-20 hidden w-[200px] md:right-[5%] md:block lg:right-[12%] lg:w-[220px]"
             aria-hidden="true"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={heroWine.imageUrl}
-              alt=""
-              style={{
-                height: "100%",
-                width: "100%",
-                objectFit: "contain",
-                objectPosition: "center",
-                filter: "drop-shadow(0 34px 42px rgba(26,10,14,0.30))",
-              }}
-            />
+            className="absolute inset-0 -z-10 bg-wine-red [clip-path:polygon(0_100%,100%_40%,100%_100%)] md:[clip-path:polygon(60%_0,100%_0,100%_100%,42%_100%)]"
+          />
+          <div className="container-page py-16 md:py-28">
+            <div data-enter>
+              <Eyebrow className="mb-4">Collection personnelle</Eyebrow>
+            </div>
+            <p data-enter className="text-display text-[clamp(2.75rem,1.6rem+4vw,5.5rem)]">
+              Ma Cave <span className="text-wine-red">à vin</span>
+            </p>
+            <div data-enter className="mt-8">
+              <Link href="/wines/add" className="btn btn-primary btn-lg">
+                <Plus />
+                Ajouter un premier vin
+              </Link>
+            </div>
           </div>
-        )}
+        </section>
+      )}
 
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-12 md:py-16 lg:py-20">
-          {heroWine ? (
-            <div className="max-w-[640px] md:max-w-[480px] lg:max-w-[640px]">
-              {heroWine.imageUrl && (
-                <div
-                  data-enter="scale"
-                  className="float-right mb-3 ml-5 w-[84px] sm:w-[104px] md:hidden"
-                  aria-hidden="true"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={heroWine.imageUrl}
-                    alt=""
-                    style={{
-                      width: "100%",
-                      height: "auto",
-                      filter: "drop-shadow(0 20px 26px rgba(26,10,14,0.26))",
-                    }}
-                  />
-                </div>
-              )}
-
-              <p
-                data-enter
-                className="text-[11px] font-semibold uppercase tracking-[0.35em]"
-                style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)" }}
-              >
-                La bouteille du moment
-              </p>
-
-              <h1
-                id="featured-wine-title"
-                data-enter
-                className="mt-4 text-balance text-[2.5rem] font-bold leading-[0.95] sm:text-5xl lg:text-7xl"
-                style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
-              >
-                {heroWine.name}
-              </h1>
-
-              {showProducer && (
-                <p
-                  data-enter
-                  className="mt-3 text-[11px] font-semibold uppercase tracking-[0.28em]"
-                  style={{ color: "var(--gold)", fontFamily: "var(--font-inter)" }}
-                >
-                  {heroProducer}
-                </p>
-              )}
-
-              {heroMeta.length > 0 && (
-                <p
-                  data-enter
-                  className="mt-3 text-xs"
-                  style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-                >
-                  {heroMeta.join(" · ")}
-                </p>
-              )}
-
-              {heroDescription && (
-                <p
-                  data-enter
-                  className="mt-6 line-clamp-4 max-w-[52ch] text-sm leading-relaxed"
-                  style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-                >
-                  {heroDescription}
-                </p>
-              )}
-
-              <div data-enter className="mt-7 flex flex-wrap items-center gap-3">
-                <Link
-                  href={`/wines/${heroWine.id}`}
-                  className="group inline-flex items-center gap-2 rounded-full px-6 py-3 text-sm font-medium transition-opacity hover:opacity-90"
-                  style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}
-                >
-                  Découvrir cette bouteille
-                  <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">
-                    →
-                  </span>
-                </Link>
-                <Link
-                  href="/wines"
-                  className="inline-flex items-center rounded-full px-6 py-3 text-sm font-medium transition-all hover:border-[var(--wine-red)] hover:text-[var(--wine-red)]"
-                  style={{
-                    background: "transparent",
-                    border: "1px solid var(--border)",
-                    color: "var(--text-muted)",
-                    fontFamily: "var(--font-inter)",
-                  }}
-                >
-                  Explorer la cave
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <div className="max-w-xl">
-              <p
-                data-enter
-                className="text-xs tracking-[0.45em] uppercase mb-5"
-                style={{ color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}
-              >
-                Collection personnelle
-              </p>
-              <h1
-                id="featured-wine-title"
-                data-enter
-                className="text-6xl md:text-8xl font-bold leading-none"
-                style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
-              >
-                Ma Cave<br />
-                <span style={{ color: "var(--wine-red)" }}>à Vin</span>
-              </h1>
-            </div>
-          )}
-        </div>
+      {/* ── La cave en chiffres ─────────────────────────────────────────── */}
+      <section className="container-page pt-6 md:pt-8" aria-label="La cave en chiffres" data-reveal>
+        <StatsRow stats={stats} />
       </section>
 
-      <section className="max-w-7xl mx-auto px-6 py-9 md:py-10" aria-label="La cave en chiffres" data-reveal>
-        <div
-          className="grid grid-cols-2 gap-y-6 border-t pt-7 md:grid-cols-4 md:gap-y-0"
-          style={{ borderColor: "var(--border)" }}
-        >
-          {stats.map((stat, index) => (
-            <div
-              key={stat.label}
-              className={index > 0 ? "md:border-l md:pl-6" : undefined}
-              style={{ borderColor: "var(--border)" }}
-            >
-              <div
-                className="text-3xl font-bold leading-none"
-                style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}
-              >
-                {stat.value}
-              </div>
-              <div
-                className="mt-2 text-[10px] uppercase leading-tight tracking-[0.14em]"
-                style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-              >
-                {stat.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <div className="max-w-7xl mx-auto px-6 py-14 space-y-14" data-reveal-stagger>
+      <div className="container-page space-y-16 py-14 md:space-y-20 md:py-16">
         {premiumTotal > 0 && (
           <PremiumCarousel initialWines={premiumWines} total={premiumTotal} />
         )}
 
-        <section data-reveal>
-          <SectionTitle eyebrow="Statistiques">Répartition de la cave</SectionTitle>
-          <div className="mt-8">
-            <CellarCharts byColor={byColor} topRegions={topRegions} />
-          </div>
+        <section data-reveal aria-labelledby="stats-title">
+          <SectionHeader id="stats-title" eyebrow="Statistiques" title="Répartition de la cave" />
+          <CellarCharts byColor={byColor} topRegions={topRegions} />
         </section>
 
         {(frenchMarkers.length > 0 || foreignWines.length > 0) && (
-          <section data-reveal>
-            <SectionTitle eyebrow="Origine">Carte des appellations</SectionTitle>
-            <div className="mt-8">
-              <FranceWineMap markers={frenchMarkers} foreignWines={foreignWines} />
-            </div>
+          <section data-reveal aria-labelledby="map-title">
+            <SectionHeader id="map-title" eyebrow="Origine" title="Carte des appellations" />
+            <FranceWineMap markers={frenchMarkers} foreignWines={foreignWines} />
           </section>
         )}
 
         {winesWithMaturity.some((wine) => wine.phase) && (
-          <section>
-            <div className="flex flex-wrap items-end justify-between gap-4 mb-8" data-reveal>
-              <div>
-                <SectionTitle eyebrow="Maturité">Les moments de la cave</SectionTitle>
-                <p className="text-sm mt-2" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
-                  Les bouteilles classées selon leur fenêtre de dégustation.
-                </p>
-              </div>
-              <Link href="/maturity" className="px-4 py-2 rounded-full text-sm transition-opacity hover:opacity-80" style={{ border: "1px solid var(--border)", color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}>
-                Voir la maturité en détail →
-              </Link>
+          <section aria-labelledby="moments-title">
+            <div data-reveal>
+              <SectionHeader
+                id="moments-title"
+                eyebrow="Maturité"
+                title="Les moments de la cave"
+                lead="Les bouteilles classées selon leur fenêtre de dégustation."
+                actions={
+                  <Link href="/maturity" className="btn btn-secondary btn-sm">
+                    Maturité en détail
+                    <ArrowRight />
+                  </Link>
+                }
+              />
             </div>
             <MaturityPhaseCarousels wines={winesWithMaturity.flatMap((wine) => wine.phase && wine.effectiveDrinkFrom && wine.effectiveDrinkUntil ? [{ wineId: wine.wineId, name: wine.name, vintage: wine.vintage, imageUrl: wine.imageUrl, color: wine.color, from: wine.effectiveDrinkFrom, until: wine.effectiveDrinkUntil, quantity: wine.quantity, phase: wine.phase }] : [])} />
           </section>
         )}
-
-        <section className="flex gap-3 flex-wrap pb-8" data-reveal>
-          <Link
-            href="/wines"
-            className="px-6 py-3 rounded-full text-sm font-medium transition-opacity hover:opacity-90"
-            style={{ background: "var(--wine-red)", color: "white", fontFamily: "var(--font-inter)" }}
-          >
-            Voir tous les vins
-          </Link>
-          <Link
-            href="/cave"
-            className="px-6 py-3 rounded-full text-sm font-medium transition-all hover:border-[var(--wine-red)] hover:text-[var(--wine-red)]"
-            style={{ background: "transparent", border: "1px solid var(--border)", fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-          >
-            Voir la cave
-          </Link>
-          <Link
-            href="/wines/add"
-            className="px-6 py-3 rounded-full text-sm font-medium transition-all hover:opacity-90"
-            style={{ background: "rgba(184, 122, 44, 0.10)", border: "1px solid rgba(184, 122, 44, 0.28)", color: "var(--gold)", fontFamily: "var(--font-inter)" }}
-          >
-            + Ajouter un vin
-          </Link>
-        </section>
       </div>
-    </div>
-  );
-}
-
-function SectionTitle({ children, eyebrow }: { children: React.ReactNode; eyebrow?: string }) {
-  return (
-    <div>
-      {eyebrow && (
-        <p className="text-xs tracking-[0.3em] uppercase mb-2" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", fontWeight: 600 }}>
-          {eyebrow}
-        </p>
-      )}
-      <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}>
-        {children}
-      </h2>
     </div>
   );
 }

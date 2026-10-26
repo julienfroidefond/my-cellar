@@ -5,12 +5,8 @@ import MotionEffects from "@/components/MotionEffects";
  * C'est l'endroit idéal pour relancer les animations d'entrée sans écouter
  * `usePathname` : le composant est hydraté avec la page, donc GSAP ne touche
  * jamais au HTML rendu par le serveur avant qu'il ne soit repris par React.
+ * `MotionEffects` enveloppe la page pour n'animer que son propre contenu.
  */
 export default function Template({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      {children}
-      <MotionEffects />
-    </>
-  );
+  return <MotionEffects>{children}</MotionEffects>;
 }

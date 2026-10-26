@@ -1,7 +1,8 @@
 export const dynamic = "force-dynamic";
 
 import Link from "next/link";
-import { PageHeader } from "@/components/PageHeader";
+import { ArrowRight } from "lucide-react";
+import { PageHeader, SectionHeader } from "@/components/PageHeader";
 import { prisma } from "@/lib/db";
 import { estimateMaturity } from "@/lib/maturity";
 import { getMaturityPhase } from "@/lib/maturity-phase";
@@ -26,36 +27,40 @@ export default async function MaturityPage() {
   }));
 
   return (
-    <main className="min-h-screen" style={{ background: "var(--background)" }}>
+    <div>
       <PageHeader
         eyebrow="Maturité"
         title="Le temps de la cave"
         lead="Suivez les fenêtres de dégustation et repérez les bouteilles à ouvrir au bon moment."
         actions={
-          <Link href="/wines" className="px-4 py-2 rounded-full text-sm" style={{ border: "1px solid var(--border)", color: "var(--wine-red)", fontFamily: "var(--font-inter)", fontWeight: 600 }}>
-            Voir tous les vins →
+          <Link href="/wines" className="btn btn-secondary">
+            Tous les vins
+            <ArrowRight />
           </Link>
         }
       />
 
-      <div className="max-w-7xl mx-auto px-6 py-12 space-y-14">
+      <div className="container-page space-y-16 py-10 md:py-14">
         {maturityWines.length === 0 ? (
-          <div className="rounded-2xl p-8" style={{ background: "var(--surface)", border: "1px solid var(--border)" }} data-reveal>
-            <h2 className="text-2xl font-semibold" style={{ fontFamily: "var(--font-playfair)" }}>Pas encore de fenêtre de dégustation</h2>
-            <p className="mt-2 text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>Ajoutez les périodes de dégustation de vos millésimes pour les suivre ici.</p>
+          <div className="card p-8" data-reveal>
+            <h2 className="text-title">Pas encore de fenêtre de dégustation</h2>
+            <p className="mt-2 text-sm text-muted">Ajoutez les périodes de dégustation de vos millésimes pour les suivre ici.</p>
           </div>
         ) : (
           <>
             <MaturityPhaseCarousels wines={maturityWines} />
-            <section data-reveal>
-              <p className="text-xs tracking-[0.3em] uppercase mb-2" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", fontWeight: 600 }}>Projection</p>
-              <h2 className="text-2xl font-semibold mb-2" style={{ fontFamily: "var(--font-playfair)" }}>Potentiel de dégustation</h2>
-              <p className="text-sm mb-8" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>Bouteilles en stock dont la période d’apogée couvre chaque année.</p>
+            <section data-reveal aria-labelledby="projection-title">
+              <SectionHeader
+                id="projection-title"
+                eyebrow="Projection"
+                title="Potentiel de dégustation"
+                lead="Bouteilles en stock dont la période d’apogée couvre chaque année."
+              />
               <MaturityAvailabilityChart currentYear={currentYear} periods={maturityWines.map((wine) => ({ wineId: wine.wineId, name: wine.name, vintage: wine.vintage, imageUrl: wine.imageUrl, color: wine.color, from: wine.from, until: wine.until, quantity: wine.quantity }))} />
             </section>
           </>
         )}
       </div>
-    </main>
+    </div>
   );
 }

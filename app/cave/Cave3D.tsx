@@ -86,7 +86,7 @@ function IsometricBottle({ wine, x, y, dim, selected, onSelect, onEmptyClick }: 
             fill="rgba(0,0,0,0.001)" role="button" tabIndex={0} aria-label="Placer une bouteille ici"
             onClick={(event) => { event.stopPropagation(); onEmptyClick(); }}
             onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onEmptyClick(); }}
-            style={{ cursor: "pointer" }}
+            className="cursor-pointer"
           />
         )}
       </g>
@@ -105,7 +105,7 @@ function IsometricBottle({ wine, x, y, dim, selected, onSelect, onEmptyClick }: 
         fill="rgba(0,0,0,0.001)" role="button" tabIndex={0} aria-label={`Voir ${label}`}
         onClick={(event) => { event.stopPropagation(); activate(); }}
         onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") activate(); }}
-        style={{ cursor: "pointer" }}
+        className="cursor-pointer"
       >
         <title>{label}</title>
       </ellipse>
@@ -166,12 +166,15 @@ export function Cave3D({ racks, selectedId, showFront, showBack, onSelect, onEmp
   const height = lastScene ? lastScene.offsetY + lastScene.bounds.bottom + 32 : 0;
 
   return (
-    <div className="overflow-x-auto rounded-2xl p-3 sm:p-5" aria-label="Vue isométrique de la cave" style={{ background: "linear-gradient(145deg, #fffaf2, #f3e7d7)", border: "1px solid var(--border)" }}>
-      <svg viewBox={`0 0 ${width} ${height}`} className="block mx-auto" style={{ minWidth: 520, width: "100%", maxWidth: 900, overflow: "visible" }}>
+    <div
+      className="card overflow-x-auto bg-[linear-gradient(160deg,var(--surface),var(--surface-2))] p-3 sm:p-5"
+      aria-label="Vue isométrique de la cave"
+    >
+      <svg viewBox={`0 0 ${width} ${height}`} className="mx-auto block w-full min-w-[520px] max-w-[900px] overflow-visible">
         {scenes.map(({ rack, levels, offsetX, offsetY }) => (
           <g key={rack.id} transform={`translate(${offsetX} 0)`}>
-            <rect x="28" y={offsetY + 105} width="58" height="38" rx="11" fill="#a05828" />
-            <text x="57" y={offsetY + 130} textAnchor="middle" fill="#fff" fontSize="17" fontWeight="700" fontFamily="var(--font-inter)">{rack.name}</text>
+            <rect x="28" y={offsetY + 105} width="58" height="38" rx="10" fill="#2b0912" />
+            <text x="57" y={offsetY + 130} textAnchor="middle" fill="#f6efe4" fontSize="17" fontWeight="700" fontFamily="var(--font-geist), sans-serif">{rack.name}</text>
             {[...levels].reverse().map((level, reverseIndex) => {
               const index = levels.length - 1 - reverseIndex;
               return <Shelf key={index} level={level} index={index} totalLevels={levels.length} rack={rack} offsetY={offsetY} selectedId={selectedId} showFront={showFront} showBack={showBack} onSelect={onSelect} onEmptyClick={onEmptyClick} />;

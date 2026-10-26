@@ -1,22 +1,8 @@
-"use client";
-
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from "recharts";
-
 const COLOR_CFG: Record<string, { color: string; label: string }> = {
-  rouge: { color: "#c0193b", label: "Rouge" },
-  blanc: { color: "#b87a2c", label: "Blanc" },
-  rosé: { color: "#d4647a", label: "Rosé" },
+  rouge: { color: "var(--color-rouge)", label: "Rouge" },
+  blanc: { color: "var(--color-blanc)", label: "Blanc" },
+  rosé: { color: "var(--color-rose)", label: "Rosé" },
+  effervescent: { color: "var(--color-effervescent)", label: "Effervescent" },
 };
 
 interface Props {
@@ -24,181 +10,81 @@ interface Props {
   topRegions: [string, number][];
 }
 
-export default function CellarCharts({ byColor, topRegions }: Props) {
-  const colorData = Object.entries(byColor).map(([key, value]) => ({
-    name: COLOR_CFG[key]?.label ?? key,
-    value,
-    color: COLOR_CFG[key]?.color ?? "#888",
-  }));
+function percent(value: number, total: number) {
+  return total > 0 ? Math.round((value / total) * 100) : 0;
+}
 
-  const regionData = topRegions.map(([name, value]) => ({ name, value }));
+/**
+ * Répartition de la cave : barre empilée par couleur et classement des
+ * régions. Des barres HTML plutôt qu'un graphique : valeurs lisibles sans
+ * survol, y compris sur mobile.
+ */
+export default function CellarCharts({ byColor, topRegions }: Props) {
+  const colorData = Object.entries(byColor)
+    .map(([key, value]) => ({
+      key,
+      name: COLOR_CFG[key]?.label ?? key,
+      value,
+      color: COLOR_CFG[key]?.color ?? "var(--text-faint)",
+    }))
+    .sort((a, b) => b.value - a.value);
+  const colorTotal = colorData.reduce((sum, d) => sum + d.value, 0);
   const maxRegion = topRegions[0]?.[1] ?? 1;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {/* Donut — couleurs */}
-      <div
-        className="rounded-2xl p-6"
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          boxShadow: "0 2px 12px rgba(26,10,14,0.06)",
-        }}
-      >
-        <p
-          className="text-xs tracking-[0.3em] uppercase mb-1"
-          style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", fontWeight: 600 }}
-        >
-          Collection
-        </p>
-        <h3
-          className="text-xl font-semibold mb-6"
-          style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
-        >
-          Par couleur
-        </h3>
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <div className="card p-5 sm:p-6">
+        <h3 className="font-display text-lg font-semibold">Par couleur</h3>
+        <p className="mt-0.5 text-sm text-muted tabular">{colorTotal} bouteilles</p>
 
-        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-          <div className="shrink-0">
-          <ResponsiveContainer width={160} height={160}>
-            <PieChart>
-              <Pie
-                data={colorData}
-                cx="50%"
-                cy="50%"
-                innerRadius={46}
-                outerRadius={72}
-                paddingAngle={3}
-                dataKey="value"
-                strokeWidth={0}
-              >
-                {colorData.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                content={({ active, payload }) => {
-                  if (!active || !payload?.length) return null;
-                  const d = payload[0].payload;
-                  return (
-                    <div
-                      style={{
-                        background: "var(--surface)",
-                        border: "1px solid var(--border)",
-                        borderRadius: 10,
-                        padding: "6px 12px",
-                        fontSize: 13,
-                        fontFamily: "var(--font-inter)",
-                        color: "var(--foreground)",
-                        boxShadow: "0 4px 16px rgba(26,10,14,0.10)",
-                      }}
-                    >
-                      <span style={{ color: d.color, fontWeight: 600 }}>{d.name}</span>
-                      {" — "}
-                      {d.value} bouteille{d.value > 1 ? "s" : ""}
-                    </div>
-                  );
-                }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-          </div>
-
-          <div className="space-y-3 flex-1 w-full sm:w-auto">
-            {colorData.map((d) => (
-              <div key={d.name} className="flex items-center gap-3">
-                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: d.color }} />
-                <span
-                  className="text-sm flex-1"
-                  style={{ fontFamily: "var(--font-inter)", color: "var(--foreground)" }}
-                >
-                  {d.name}
-                </span>
-                <span
-                  className="text-sm font-bold"
-                  style={{ fontFamily: "var(--font-playfair)", color: d.color }}
-                >
-                  {d.value}
-                </span>
-              </div>
-            ))}
-          </div>
+        <div
+          className="mt-6 flex h-4 gap-[3px] overflow-hidden rounded-full"
+          data-grow="x"
+          role="img"
+          aria-label={colorData.map((d) => `${d.name} ${percent(d.value, colorTotal)} %`).join(", ")}
+        >
+          {colorData.map((d) => (
+            <div
+              key={d.key}
+              className="h-full first:rounded-l-full last:rounded-r-full"
+              style={{ flexGrow: d.value, background: d.color }}
+            />
+          ))}
         </div>
+
+        <ul className="mt-6 divide-y divide-border">
+          {colorData.map((d) => (
+            <li key={d.key} className="flex items-center gap-3 py-2.5 text-sm">
+              <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: d.color }} />
+              <span className="flex-1 font-medium">{d.name}</span>
+              <span className="tabular text-muted">{percent(d.value, colorTotal)} %</span>
+              <span className="w-10 text-right font-semibold tabular">{d.value}</span>
+            </li>
+          ))}
+        </ul>
       </div>
 
-      {/* Bar chart — régions */}
-      <div
-        className="rounded-2xl p-6"
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          boxShadow: "0 2px 12px rgba(26,10,14,0.06)",
-        }}
-      >
-        <p
-          className="text-xs tracking-[0.3em] uppercase mb-1"
-          style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", fontWeight: 600 }}
-        >
-          Géographie
-        </p>
-        <h3
-          className="text-xl font-semibold mb-6"
-          style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
-        >
-          Par région
-        </h3>
+      <div className="card p-5 sm:p-6">
+        <h3 className="font-display text-lg font-semibold">Par région</h3>
+        <p className="mt-0.5 text-sm text-muted">Les {topRegions.length} premières</p>
 
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart
-            data={regionData}
-            layout="vertical"
-            margin={{ top: 0, right: 32, left: 0, bottom: 0 }}
-            barCategoryGap="30%"
-          >
-            <CartesianGrid horizontal={false} stroke="rgba(26,10,14,0.06)" />
-            <XAxis
-              type="number"
-              domain={[0, maxRegion]}
-              tick={{ fontSize: 11, fontFamily: "var(--font-inter)", fill: "rgba(26,10,14,0.35)" }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis
-              type="category"
-              dataKey="name"
-              width={80}
-              tick={{ fontSize: 12, fontFamily: "var(--font-inter)", fill: "rgba(26,10,14,0.65)" }}
-              axisLine={false}
-              tickLine={false}
-            />
-            <Tooltip
-              cursor={{ fill: "rgba(192,25,59,0.04)" }}
-              content={({ active, payload }) => {
-                if (!active || !payload?.length) return null;
-                const d = payload[0];
-                return (
-                  <div
-                    style={{
-                      background: "var(--surface)",
-                      border: "1px solid var(--border)",
-                      borderRadius: 10,
-                      padding: "6px 12px",
-                      fontSize: 13,
-                      fontFamily: "var(--font-inter)",
-                      color: "var(--foreground)",
-                      boxShadow: "0 4px 16px rgba(26,10,14,0.10)",
-                    }}
-                  >
-                    <span style={{ color: "var(--wine-red)", fontWeight: 600 }}>{d.payload.name}</span>
-                    {" — "}
-                    {d.value} bouteille{(d.value as number) > 1 ? "s" : ""}
-                  </div>
-                );
-              }}
-            />
-            <Bar dataKey="value" fill="#c0193b" radius={[0, 4, 4, 0]} opacity={0.85} />
-          </BarChart>
-        </ResponsiveContainer>
+        <ul className="mt-6 space-y-3.5">
+          {topRegions.map(([name, value]) => (
+            <li key={name}>
+              <div className="mb-1.5 flex items-baseline justify-between gap-3 text-sm">
+                <span className="truncate font-medium">{name}</span>
+                <span className="font-semibold tabular">{value}</span>
+              </div>
+              <div className="h-2 overflow-hidden rounded-full bg-surface-2">
+                <div
+                  className="h-full rounded-full bg-wine-red"
+                  data-grow="x"
+                  style={{ width: `${Math.max(3, (value / maxRegion) * 100)}%` }}
+                />
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

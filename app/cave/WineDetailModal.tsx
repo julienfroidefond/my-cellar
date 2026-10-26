@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { BOTTLE } from "./constants";
+import { Eye, PackageMinus, Undo2, Wine, X } from "lucide-react";
+import { WineColor } from "@/components/WineTile";
+import { BOTTLE, BOTTLE_FALLBACK } from "./constants";
 import { StarRatingInput } from "@/components/StarRating";
 import { REMOVAL_REASON_LABELS, SELECTABLE_REMOVAL_REASONS } from "@/lib/history";
 import type { WineRef } from "./types";
@@ -27,7 +29,7 @@ export function WineDetailModal({
   onUnrack: () => void;
   onRemove: (payload: RemovalPayload) => void;
 }) {
-  const c = BOTTLE[wine.color ?? ""] ?? { base: "#333", hi: "#555", label: wine.color ?? "" };
+  const c = BOTTLE[wine.color ?? ""] ?? BOTTLE_FALLBACK;
   const [askingRating, setAskingRating] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
   const [askingRemoval, setAskingRemoval] = useState(false);
@@ -49,169 +51,124 @@ export function WineDetailModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center"
-      style={{ background: "rgba(26,10,14,0.45)", backdropFilter: "blur(12px)" }}
-      onClick={onClose}
+      className="fixed inset-0 z-[var(--z-modal)] flex items-end justify-center sm:items-center sm:p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="wine-detail-title"
     >
-      <div
-        className="w-full sm:max-w-sm rounded-t-3xl sm:rounded-3xl overflow-hidden"
-        style={{ background: "#ffffff", boxShadow: "0 24px 64px rgba(26,10,14,0.18)" }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header coloré */}
-        <div
-          className="relative px-6 pt-6 pb-8 text-center"
-          style={{
-            background: `linear-gradient(170deg, ${c.base}12 0%, ${c.base}06 60%, transparent 100%)`,
-            borderBottom: `1px solid rgba(26,10,14,0.07)`,
-          }}
-        >
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-5 w-8 h-8 flex items-center justify-center rounded-full hover:opacity-90 transition-opacity"
-            style={{ background: "rgba(26,10,14,0.07)", color: "var(--text-muted)", fontSize: 14 }}
-          >
-            ✕
-          </button>
-
-          {wine.imageUrl ? (
-            <div className="mx-auto mb-4" style={{ width: 60, height: 120 }}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
+      <div className="overlay" onClick={onClose} aria-hidden="true" />
+      <div className="sheet relative z-[var(--z-modal)] w-full sm:max-w-md">
+        {/* En-tête : bouteille sur bandeau, nom, étiquettes */}
+        <div className="relative flex gap-4 border-b border-border p-5">
+          <div className="flex h-32 w-20 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-surface-2">
+            {wine.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={wine.imageUrl}
                 alt=""
-                style={{ width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 4px 16px rgba(26,10,14,0.25))" }}
+                className="h-28 w-auto object-contain drop-shadow-[0_6px_10px_rgba(43,9,18,0.25)]"
               />
-            </div>
-          ) : (
-            <div
-              className="mx-auto mb-4 rounded-full"
-              style={{
-                width: 68, height: 68,
-                background: `radial-gradient(circle at 35% 30%, ${c.hi}ff, ${c.base}ff 60%, ${c.base}cc)`,
-                boxShadow: `0 0 0 6px ${c.base}14, 0 8px 28px ${c.base}40`,
-              }}
-            >
-              <div style={{
-                position: "relative", top: "14%", left: "20%", width: "26%", height: "15%",
-                borderRadius: "50%", background: "rgba(255,255,255,0.42)", transform: "rotate(-30deg)",
-              }} />
-            </div>
-          )}
-
-          <h2
-            className="text-xl font-bold leading-snug mb-3 px-4"
-            style={{ fontFamily: "var(--font-playfair)" }}
-          >
-            {wine.name}
-          </h2>
-
-          <div className="flex items-center justify-center gap-2 flex-wrap">
-            {wine.vintage && (
+            ) : (
               <span
-                className="text-xs px-3 py-1 rounded-full font-medium"
-                style={{ background: "rgba(184,122,44,0.12)", color: "var(--gold)", border: "1px solid rgba(184,122,44,0.25)", fontFamily: "var(--font-inter)" }}
-              >
-                {wine.vintage}
-              </span>
-            )}
-            {wine.color && (
-              <span
-                className="text-xs px-3 py-1 rounded-full font-medium"
-                style={{ background: `${c.base}12`, color: c.base, border: `1px solid ${c.base}30`, fontFamily: "var(--font-inter)" }}
-              >
-                {c.label}
-              </span>
-            )}
-            {wine.appellation && (
-              <span
-                className="text-xs px-3 py-1 rounded-full"
-                style={{ background: "rgba(26,10,14,0.05)", color: "var(--text-muted)", fontFamily: "var(--font-inter)" }}
-              >
-                {wine.appellation}
-              </span>
+                className="h-12 w-12 rounded-full"
+                style={{
+                  background: `radial-gradient(circle at 35% 30%, ${c.hi}ff, ${c.base}ff 60%, ${c.base}cc)`,
+                  boxShadow: `0 6px 18px ${c.base}40`,
+                }}
+              />
             )}
           </div>
+
+          <div className="min-w-0 flex-1 pr-8">
+            <h2 id="wine-detail-title" className="font-display text-xl font-semibold leading-snug">
+              {wine.name}
+            </h2>
+            {wine.producer && <p className="mt-0.5 truncate text-sm text-gold">{wine.producer}</p>}
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {wine.vintage && <span className="tag">{wine.vintage}</span>}
+              {wine.color && (
+                <span className="tag">
+                  <WineColor color={wine.color} />
+                </span>
+              )}
+              {wine.appellation && <span className="tag">{wine.appellation}</span>}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn btn-ghost btn-icon absolute right-3 top-3"
+            aria-label="Fermer"
+          >
+            <X />
+          </button>
         </div>
 
         {/* Infos */}
-        <div
-          className="px-6 py-4 flex items-center gap-6"
-          style={{ borderBottom: "1px solid rgba(26,10,14,0.07)" }}
-        >
-          {wine.region && (
-            <div className="flex-1 min-w-0">
-              <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>Région</p>
-              <p className="text-sm font-medium truncate" style={{ fontFamily: "var(--font-inter)" }}>{wine.region}</p>
-            </div>
-          )}
-          <div className="shrink-0 text-center">
-            <p className="text-xs mb-0.5" style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}>En cave</p>
-            <p className="text-lg font-bold" style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}>
-              {wine.totalInCellar}
-              <span className="text-xs font-normal ml-1" style={{ color: "var(--text-faint)" }}>btl</span>
-            </p>
+        <dl className="grid grid-cols-2 gap-px border-b border-border bg-border">
+          <div className="bg-surface px-5 py-3">
+            <dt className="label">Région</dt>
+            <dd className="mt-0.5 truncate text-sm font-medium">{wine.region ?? "—"}</dd>
           </div>
-        </div>
+          <div className="bg-surface px-5 py-3">
+            <dt className="label">En cave</dt>
+            <dd className="mt-0.5 text-sm font-semibold tabular">
+              {wine.totalInCellar} bouteille{wine.totalInCellar > 1 ? "s" : ""}
+            </dd>
+          </div>
+        </dl>
 
         {/* Actions */}
-        <div className="px-5 py-5 flex flex-col gap-2.5">
+        <div className="flex flex-col gap-2 p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
           {askingRating ? (
-            <div className="flex flex-col gap-3">
-              <p className="text-xs uppercase tracking-widest font-semibold text-center" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>
-                Note (optionnel)
-              </p>
+            <div className="flex flex-col gap-4">
+              <p className="label text-center">Note de dégustation (facultative)</p>
               <StarRatingInput value={rating} onChange={setRating} size={30} />
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => onDrink(rating)}
-                  disabled={!!pending}
-                  className="flex-1 flex items-center justify-center py-3.5 rounded-2xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-                  style={{ fontFamily: "var(--font-inter)", background: "var(--wine-red)", color: "#fff", boxShadow: "0 4px 16px rgba(160,28,46,0.45)" }}
-                >
-                  {pending === "drink" ? "En cours…" : "Confirmer"}
-                </button>
-                <button
+                  type="button"
                   onClick={cancelRating}
                   disabled={!!pending}
-                  className="flex-1 flex items-center justify-center py-3.5 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-                  style={{ fontFamily: "var(--font-inter)", background: "rgba(26,10,14,0.05)", border: "1px solid rgba(26,10,14,0.10)", color: "var(--foreground)" }}
+                  className="btn btn-secondary btn-lg"
                 >
                   Annuler
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDrink(rating)}
+                  disabled={!!pending}
+                  className="btn btn-primary btn-lg"
+                >
+                  {pending === "drink" ? "En cours…" : "Confirmer"}
                 </button>
               </div>
             </div>
           ) : askingRemoval ? (
             <div className="flex flex-col gap-3">
-              <p className="text-xs uppercase tracking-widest font-semibold text-center" style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)" }}>
-                Retirer du stock
-              </p>
-              <div className="flex items-center gap-3">
-                <label className="text-xs flex-1" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>
+              <p className="font-display text-lg font-semibold">Retirer du stock</p>
+              <div className="flex items-center justify-between gap-3">
+                <label htmlFor="remove-qty" className="label">
                   Quantité
                 </label>
                 <input
+                  id="remove-qty"
                   type="number"
                   min={1}
                   max={Math.max(1, wine.totalInCellar)}
                   value={removeQty}
                   onChange={(e) => setRemoveQty(Math.min(Math.max(1, wine.totalInCellar), Math.max(1, Number(e.target.value) || 1)))}
-                  className="px-3 py-2 rounded-xl text-sm text-center"
-                  style={{ width: 90, fontFamily: "var(--font-inter)", background: "rgba(26,10,14,0.04)", border: "1px solid rgba(26,10,14,0.10)", color: "var(--foreground)" }}
+                  className="input w-24 text-center tabular"
                 />
               </div>
-              <div className="flex gap-2">
+              <div className="segmented w-full" role="group" aria-label="Motif">
                 {SELECTABLE_REMOVAL_REASONS.map((value) => (
                   <button
                     key={value}
+                    type="button"
                     onClick={() => setRemoveReason(value)}
-                    className="flex-1 py-2 rounded-xl text-xs font-medium hover:opacity-90 transition-opacity"
-                    style={{
-                      fontFamily: "var(--font-inter)",
-                      background: removeReason === value ? "var(--wine-red)" : "rgba(26,10,14,0.05)",
-                      color: removeReason === value ? "#fff" : "var(--text-muted)",
-                      border: "1px solid rgba(26,10,14,0.10)",
-                    }}
+                    aria-pressed={removeReason === value}
+                    className="flex-1 justify-center"
                   >
                     {REMOVAL_REASON_LABELS[value]}
                   </button>
@@ -221,67 +178,65 @@ export function WineDetailModal({
                 value={removeNote}
                 onChange={(e) => setRemoveNote(e.target.value)}
                 rows={2}
-                placeholder="Note (optionnel)"
-                className="w-full px-3 py-2 rounded-xl text-sm resize-none"
-                style={{ fontFamily: "var(--font-inter)", background: "rgba(26,10,14,0.04)", border: "1px solid rgba(26,10,14,0.10)", color: "var(--foreground)" }}
+                placeholder="Note (facultative)"
+                aria-label="Note"
+                className="input input-area min-h-0 resize-none"
               />
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 <button
-                  onClick={() => onRemove({ quantity: removeQty, reason: removeReason, note: removeNote.trim() || null })}
-                  disabled={!!pending}
-                  className="flex-1 flex items-center justify-center py-3.5 rounded-2xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-                  style={{ fontFamily: "var(--font-inter)", background: "var(--wine-red)", color: "#fff", boxShadow: "0 4px 16px rgba(160,28,46,0.45)" }}
-                >
-                  {pending === "remove" ? "En cours…" : "Confirmer"}
-                </button>
-                <button
+                  type="button"
                   onClick={cancelRemoval}
                   disabled={!!pending}
-                  className="flex-1 flex items-center justify-center py-3.5 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-                  style={{ fontFamily: "var(--font-inter)", background: "rgba(26,10,14,0.05)", border: "1px solid rgba(26,10,14,0.10)", color: "var(--foreground)" }}
+                  className="btn btn-secondary btn-lg"
                 >
                   Annuler
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onRemove({ quantity: removeQty, reason: removeReason, note: removeNote.trim() || null })}
+                  disabled={!!pending}
+                  className="btn btn-primary btn-lg"
+                >
+                  {pending === "remove" ? "En cours…" : "Confirmer"}
                 </button>
               </div>
             </div>
           ) : (
             <>
               <button
+                type="button"
                 onClick={() => setAskingRating(true)}
                 disabled={!!pending}
-                className="flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
-                style={{ fontFamily: "var(--font-inter)", background: "var(--wine-red)", color: "#fff", boxShadow: "0 4px 16px rgba(160,28,46,0.45)" }}
+                className="btn btn-primary btn-lg w-full"
               >
-                {pending === "drink" ? "En cours…" : <><span>🍷</span> Boire une bouteille</>}
+                {pending === "drink" ? "En cours…" : <><Wine /> Boire une bouteille</>}
               </button>
 
-              <div className="flex gap-2">
-                <Link
-                  href={`/wines/${wine.wineId}`}
-                  className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity"
-                  style={{ fontFamily: "var(--font-inter)", background: "rgba(26,10,14,0.05)", border: "1px solid rgba(26,10,14,0.10)", color: "var(--foreground)" }}
-                  onClick={onClose}
-                >
+              <div className={`grid gap-2 ${wine.rackId ? "grid-cols-2" : "grid-cols-1"}`}>
+                <Link href={`/wines/${wine.wineId}`} className="btn btn-secondary" onClick={onClose}>
+                  <Eye />
                   Voir la fiche
                 </Link>
                 {wine.rackId && (
                   <button
+                    type="button"
                     onClick={onUnrack}
                     disabled={!!pending}
-                    className="flex-1 flex items-center justify-center py-3 rounded-2xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-                    style={{ fontFamily: "var(--font-inter)", background: "rgba(184,122,44,0.10)", color: "var(--gold)", border: "1px solid rgba(184,122,44,0.25)" }}
+                    className="btn btn-secondary"
                   >
-                    {pending === "unrack" ? "…" : "↩ Sortir du casier"}
+                    <Undo2 />
+                    {pending === "unrack" ? "En cours…" : "Sortir du casier"}
                   </button>
                 )}
               </div>
 
               <button
+                type="button"
                 onClick={() => setAskingRemoval(true)}
                 disabled={!!pending}
-                className="flex items-center justify-center py-2.5 rounded-2xl text-xs font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
-                style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", border: "1px solid rgba(192,25,59,0.20)" }}
+                className="btn btn-ghost btn-sm mx-auto mt-1 text-wine-deep"
               >
+                <PackageMinus />
                 {pending === "remove" ? "En cours…" : "Retirer du stock"}
               </button>
             </>

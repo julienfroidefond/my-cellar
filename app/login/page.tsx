@@ -1,5 +1,5 @@
 import { loginAction } from "@/app/actions/auth";
-import Image from "next/image";
+import { LogoMark } from "@/components/Logo";
 
 export default async function LoginPage({
   searchParams,
@@ -9,67 +9,53 @@ export default async function LoginPage({
   const error = (await searchParams).error === "1";
 
   return (
-    <div
-      className="flex items-center justify-center"
-      style={{ minHeight: 'calc(100vh - 64px)' }}
-    >
+    // La page de connexion n'a pas de barre d'onglets : on annule la marge que le
+    // layout lui réserve en bas.
+    <div className="relative isolate -mb-[calc(var(--tabbar-height)+env(safe-area-inset-bottom))] flex min-h-dvh items-center justify-center overflow-hidden px-4 py-12 lg:mb-0">
+      {/* Coupe diagonale de la marque, en pleine page */}
       <div
-        data-enter
-        className="w-full max-w-sm mx-4 p-8 rounded-2xl"
-        style={{
-          background: 'var(--surface)',
-          border: '1px solid var(--border)',
-          boxShadow: '0 4px 24px rgba(26,10,14,0.08)',
-        }}
-      >
-        <div className="flex flex-col items-center gap-3 mb-8">
-          <Image
-            src="/icons/logo-mark.png"
-            alt=""
-            width={48}
-            height={48}
-            className="w-12 h-12 rounded-xl"
-            priority
-          />
-          <h1
-            className="text-xl font-bold"
-            style={{ fontFamily: 'var(--font-playfair)', color: 'var(--foreground)' }}
-          >
-            Ma Cave
-          </h1>
-          <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-            Accès privé
-          </p>
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-wine-red [clip-path:polygon(0_82%,100%_34%,100%_100%,0_100%)]"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 -z-10 bg-wine-deep [clip-path:polygon(0_100%,100%_62%,100%_100%)]"
+      />
+
+      <div data-enter className="card w-full max-w-sm p-8 shadow-[var(--shadow-lg)]">
+        <div className="mb-8 flex flex-col items-center gap-4 text-center">
+          <LogoMark size={64} className="rounded-[22%] shadow-[var(--shadow-md)]" />
+          <div>
+            <h1 className="text-title">Ma Cave</h1>
+            <p className="mt-1 text-sm text-muted">Accès privé</p>
+          </div>
         </div>
 
-        <form action={loginAction} className="flex flex-col gap-4">
+        <form action={loginAction} className="flex flex-col gap-3">
+          <label htmlFor="password" className="label">
+            Mot de passe
+          </label>
           <input
+            id="password"
             type="password"
             name="password"
-            placeholder="Mot de passe"
             required
             autoFocus
-            className="w-full px-4 py-3 rounded-lg text-sm outline-none"
-            style={{
-              background: 'var(--surface-2)',
-              border: '1px solid var(--border)',
-              color: 'var(--foreground)',
-            }}
+            autoComplete="current-password"
+            aria-invalid={error || undefined}
+            aria-describedby={error ? "password-error" : undefined}
+            className="input"
           />
           {error && (
-            <p className="text-sm text-center" style={{ color: 'var(--wine-red)' }}>
-              Mot de passe incorrect
+            <p id="password-error" role="alert" className="text-sm font-medium text-wine-red">
+              Mot de passe incorrect.
             </p>
           )}
-          <button
-            type="submit"
-            className="w-full py-3 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-60"
-            style={{ background: 'var(--wine-red)', fontFamily: 'var(--font-inter)' }}
-          >
+          <button type="submit" className="btn btn-primary btn-lg mt-2 w-full">
             Se connecter
           </button>
         </form>
       </div>
     </div>
-  )
+  );
 }

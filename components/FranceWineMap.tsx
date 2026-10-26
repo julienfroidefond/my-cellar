@@ -3,6 +3,7 @@
 import { useState, type ComponentProps } from "react";
 import Link from "next/link";
 import { ComposableMap, Geographies, Geography, Marker } from "react-simple-maps";
+import { ArrowLeft, X } from "lucide-react";
 
 // react-simple-maps v5 ships its own types, but its `Geography` *interface* is not
 // reachable from the package root (the explicit `Geography` component export shadows
@@ -112,31 +113,23 @@ export default function FranceWineMap({ markers, foreignWines }: Props) {
     setSelectedAppellation(null);
   }
 
+  const visibleMarkers = markers.filter((m) =>
+    (selectedAppellation ? m.name === selectedAppellation : true) &&
+    (!selectedRegion || m.region === selectedRegion || ADMIN_REGION_MAP[m.region ?? ""] === selectedRegion)
+  );
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Map */}
-      <div
-        className="md:col-span-2 relative rounded-2xl overflow-hidden"
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          boxShadow: "0 2px 12px rgba(26,10,14,0.06)",
-        }}
-      >
-        {/* Reset button */}
+    <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+      {/* Carte */}
+      <div className="card relative overflow-hidden lg:col-span-2">
         {selectedRegion && (
           <button
+            type="button"
             onClick={handleReset}
-            className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-opacity hover:opacity-80"
-            style={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              fontFamily: "var(--font-inter)",
-              color: "var(--wine-red)",
-              boxShadow: "0 2px 8px rgba(26,10,14,0.10)",
-            }}
+            className="btn btn-secondary btn-sm absolute left-3 top-3 z-10 shadow-[var(--shadow-md)]"
           >
-            ← Toute la France
+            <ArrowLeft />
+            Toute la France
           </button>
         )}
 
@@ -157,9 +150,9 @@ export default function FranceWineMap({ markers, foreignWines }: Props) {
                     geography={geo}
                     onClick={() => handleRegionClick(region)}
                     className="map-region"
-                    fill={isSelected ? "rgba(192,25,59,0.14)" : "rgba(192,25,59,0.04)"}
-                    stroke="rgba(192,25,59,0.18)"
-                    strokeWidth={0.5}
+                    fill={isSelected ? "rgba(192,25,59,0.14)" : "#efe6d8"}
+                    stroke="#fffcf7"
+                    strokeWidth={1}
                   />
                 );
               })
@@ -170,16 +163,15 @@ export default function FranceWineMap({ markers, foreignWines }: Props) {
             const r = Math.max(5, Math.sqrt(m.bottles) * 5);
             const isSelected = selectedAppellation === m.name;
             const dimmed = selectedAppellation !== null && !isSelected;
-            const opacity = dimmed ? 0.2 : (0.45 + (m.bottles / maxBottles) * 0.5);
+            const opacity = dimmed ? 0.2 : (0.55 + (m.bottles / maxBottles) * 0.4);
             return (
               <Marker key={`${m.name}-${m.lat}`} coordinates={[m.lng, m.lat]}>
                 <circle
                   r={isSelected ? r + 2 : r}
                   fill="#c0193b"
                   fillOpacity={opacity}
-                  stroke={isSelected ? "#c0193b" : "white"}
-                  strokeWidth={isSelected ? 2 : 0.8}
-                  strokeOpacity={isSelected ? 0.5 : 1}
+                  stroke={isSelected ? "#2b0912" : "#fffcf7"}
+                  strokeWidth={isSelected ? 2 : 1.2}
                   style={{ cursor: "pointer" }}
                   onClick={(e) => {
                     e.stopPropagation();
@@ -197,166 +189,92 @@ export default function FranceWineMap({ markers, foreignWines }: Props) {
         </ComposableMap>
       </div>
 
-      {/* Legend */}
-      <div
-        className="rounded-2xl p-6 flex flex-col"
-        style={{
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          boxShadow: "0 2px 12px rgba(26,10,14,0.06)",
-        }}
-      >
-        <p
-          className="text-xs tracking-[0.3em] uppercase mb-1"
-          style={{ fontFamily: "var(--font-inter)", color: "var(--wine-red)", fontWeight: 600 }}
-        >
-          Géographie
-        </p>
-        <h3
-          className="text-xl font-semibold mb-5"
-          style={{ fontFamily: "var(--font-playfair)", color: "var(--foreground)" }}
-        >
-          {selectedAppellation ?? selectedRegion ?? "Appellations"}
-        </h3>
-
-        <div className="space-y-4 flex-1 overflow-y-auto" style={{ maxHeight: 340 }}>
-          {markers
-            .filter((m) =>
-              (selectedAppellation ? m.name === selectedAppellation : true) &&
-              (!selectedRegion || m.region === selectedRegion || ADMIN_REGION_MAP[m.region ?? ""] === selectedRegion)
-            )
-            .map((m) => {
-              const dotSize = Math.max(8, Math.sqrt(m.bottles) * 5);
-              const opacity = 0.45 + (m.bottles / maxBottles) * 0.5;
-              return (
-                <div key={m.name}>
-                  {/* Appellation header */}
-                  <div className="flex items-center gap-3 mb-1.5">
-                    <div
-                      style={{
-                        width: dotSize,
-                        height: dotSize,
-                        minWidth: dotSize,
-                        borderRadius: "50%",
-                        background: "#c0193b",
-                        opacity,
-                      }}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <p
-                        className="text-sm font-semibold truncate"
-                        style={{ fontFamily: "var(--font-inter)", color: "var(--foreground)" }}
-                      >
-                        {m.name}
-                      </p>
-                      {m.region && (
-                        <p
-                          className="text-xs truncate"
-                          style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}
-                        >
-                          {m.region}
-                        </p>
-                      )}
-                    </div>
-                    <span
-                      className="text-sm font-bold tabular-nums shrink-0"
-                      style={{ fontFamily: "var(--font-playfair)", color: "var(--wine-red)" }}
-                    >
-                      {m.bottles}
-                    </span>
-                  </div>
-
-                  {/* Individual wine links */}
-                  <div className="space-y-1 pl-4" style={{ borderLeft: "2px solid rgba(192,25,59,0.15)" }}>
-                    {m.wines.sort((a, b) => b.bottles - a.bottles).map((w) => (
-                      <Link
-                        key={w.id}
-                        href={`/wines/${w.id}`}
-                        className="flex items-center gap-2 group"
-                      >
-                        <span
-                          className="text-xs flex-1 truncate transition-colors group-hover:text-[var(--wine-red)]"
-                          style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-                        >
-                          {w.name}
-                        </span>
-                        <span
-                          className="text-xs tabular-nums shrink-0 transition-colors group-hover:text-[var(--wine-red)]"
-                          style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}
-                        >
-                          {w.bottles} bt{w.bottles > 1 ? "s" : ""}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+      {/* Légende */}
+      <div className="card flex flex-col p-5 sm:p-6">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h3 className="truncate font-display text-lg font-semibold">
+              {selectedAppellation ?? selectedRegion ?? "Appellations"}
+            </h3>
+            <p className="text-sm text-muted">
+              {visibleMarkers.length} appellation{visibleMarkers.length > 1 ? "s" : ""}
+            </p>
+          </div>
+          {selectedAppellation && (
+            <button
+              type="button"
+              onClick={() => setSelectedAppellation(null)}
+              className="btn btn-ghost btn-icon btn-sm shrink-0"
+              aria-label="Désélectionner l’appellation"
+            >
+              <X />
+            </button>
+          )}
         </div>
 
-        {foreignWines.length > 0 && !selectedRegion && (
-          <div className="mt-4 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
-            <p
-              className="text-xs uppercase tracking-[0.2em] mb-3"
-              style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-            >
-              Hors France
-            </p>
-            <div className="space-y-2">
+        <ul className="-mx-2 max-h-[360px] flex-1 space-y-1 overflow-y-auto px-2">
+          {visibleMarkers.map((m) => (
+            <li key={m.name} className="rounded-xl py-2">
+              <button
+                type="button"
+                onClick={() => setSelectedAppellation(selectedAppellation === m.name ? null : m.name)}
+                className="flex w-full items-center gap-3 text-left"
+                aria-pressed={selectedAppellation === m.name}
+              >
+                <span className="h-2.5 w-2.5 shrink-0 rounded-full bg-wine-red" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold">{m.name}</span>
+                  {m.region && <span className="block truncate text-xs text-faint">{m.region}</span>}
+                </span>
+                <span className="badge badge-wine">{m.bottles}</span>
+              </button>
+
+              <ul className="ml-[4.5px] mt-1.5 space-y-0.5 border-l-2 border-[var(--wine-tint-strong)] pl-4">
+                {[...m.wines].sort((a, b) => b.bottles - a.bottles).map((w) => (
+                  <li key={w.id}>
+                    <Link
+                      href={`/wines/${w.id}`}
+                      className="group flex items-center gap-2 rounded-md py-0.5 text-[0.8125rem] text-muted hover:text-wine-red"
+                    >
+                      <span className="flex-1 truncate">{w.name}</span>
+                      <span className="shrink-0 tabular text-faint group-hover:text-wine-red">
+                        {w.bottles}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+
+        {foreignWines.length > 0 && !selectedRegion && !selectedAppellation && (
+          <div className="mt-4 border-t border-border pt-4">
+            <p className="label mb-2">Hors France</p>
+            <ul className="space-y-1.5">
               {foreignWines.map((w) => (
-                <div key={`${w.appellation}-${w.country}`} className="flex items-center gap-2">
-                  <div
-                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                    style={{ background: "rgba(26,10,14,0.28)" }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p
-                      className="text-sm truncate"
-                      style={{ fontFamily: "var(--font-inter)", color: "var(--foreground)" }}
-                    >
-                      {w.appellation}
-                    </p>
-                    <p
-                      className="text-xs"
-                      style={{ fontFamily: "var(--font-inter)", color: "var(--text-faint)" }}
-                    >
-                      {w.country}
-                    </p>
-                  </div>
-                  <span
-                    className="text-sm tabular-nums shrink-0"
-                    style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}
-                  >
-                    {w.bottles}
+                <li key={`${w.appellation}-${w.country}`} className="flex items-center gap-3 text-sm">
+                  <span className="h-2 w-2 shrink-0 rounded-full bg-faint" />
+                  <span className="min-w-0 flex-1 truncate">
+                    {w.appellation}
+                    {w.appellation !== w.country && <span className="text-faint"> · {w.country}</span>}
                   </span>
-                </div>
+                  <span className="tabular text-muted">{w.bottles}</span>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         )}
       </div>
 
-      {/* Floating tooltip */}
+      {/* Infobulle */}
       {tooltip && (
         <div
-          style={{
-            position: "fixed",
-            left: tooltip.x + 14,
-            top: tooltip.y - 10,
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: 10,
-            padding: "6px 12px",
-            fontSize: 13,
-            fontFamily: "var(--font-inter)",
-            color: "var(--foreground)",
-            boxShadow: "0 4px 16px rgba(26,10,14,0.12)",
-            pointerEvents: "none",
-            zIndex: 50,
-          }}
+          className="pointer-events-none fixed z-[var(--z-overlay)] rounded-lg bg-ink px-3 py-1.5 text-[0.8125rem] text-background shadow-[var(--shadow-md)]"
+          style={{ left: tooltip.x + 14, top: tooltip.y - 10 }}
         >
-          <span style={{ color: "#c0193b", fontWeight: 600 }}>{tooltip.name}</span>
-          {" — "}
+          <span className="font-semibold">{tooltip.name}</span>
+          {" · "}
           {tooltip.bottles} bouteille{tooltip.bottles > 1 ? "s" : ""}
         </div>
       )}

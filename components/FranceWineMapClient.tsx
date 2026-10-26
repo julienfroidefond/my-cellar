@@ -6,8 +6,9 @@ import type { AppellationMarker, ForeignWine } from "@/components/FranceWineMap"
 const FranceWineMap = dynamic(() => import("@/components/FranceWineMap"), {
   ssr: false,
   loading: () => (
-    <div className="rounded-2xl min-h-96 flex items-center justify-center" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
-      <p className="text-sm" style={{ fontFamily: "var(--font-inter)", color: "var(--text-muted)" }}>Chargement de la carte…</p>
+    <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+      <div className="h-96 animate-pulse rounded-[var(--radius-lg)] bg-surface-2 lg:col-span-2" />
+      <div className="h-96 animate-pulse rounded-[var(--radius-lg)] bg-surface-2" />
     </div>
   ),
 });
