@@ -1,0 +1,81 @@
+version: 2
+
+# Mises à jour automatiques des dépendances (npm + actions GitHub).
+# Les correctifs de sécurité arrivent aussi via le graphe de dépendances GitHub :
+# Dependabot ouvre alors une PR dédiée, séparée des montées de version de routine.
+
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Paris
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      prefix-development: chore
+      include: scope
+    groups:
+      # Correctifs de sécurité : une seule PR, prioritaire.
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+      # Montées mineures et correctives groupées pour limiter le bruit.
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+        patterns:
+          - "*"
+    ignore:
+      # Prisma 8 est encore en RC : on reste sur la 7.x jusqu'à la sortie stable.
+      - dependency-name: prisma
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@prisma/*"
+        update-types:
+          - version-update:semver-major
+      # next et son config sont épinglés volontairement (version exacte) :
+      # les montées majeures se font à la main, avec le guide de migration.
+      - dependency-name: next
+        update-types:
+          - version-update:semver-major
+      - dependency-name: eslint-config-next
+        update-types:
+          - version-update:semver-major
+      # React 19 est aligné sur la version de Next.
+      - dependency-name: react
+        update-types:
+          - version-update:semver-major
+      - dependency-name: react-dom
+        update-types:
+          - version-update:semver-major
+      # Toolchain TypeScript 7 (alias npm:typescript) : montées majeures manuelles.
+      - dependency-name: typescript
+        update-types:
+          - version-update:semver-major
+      - dependency-name: "@typescript/native"
+        update-types:
+          - version-update:semver-major
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Europe/Paris
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        applies-to: version-updates
+        update-types:
+          - minor
+          - patch
+        patterns:
+          - "*"
