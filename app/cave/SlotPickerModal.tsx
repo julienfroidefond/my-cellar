@@ -2,18 +2,19 @@
 
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { decodeSlot, slotLabel } from "@/lib/rack-configs";
+import { decodeSlot, slotLabel, type RackConfig } from "@/lib/rack-configs";
 import { Search, X } from "lucide-react";
 import { BottleSilhouette, colorLabel } from "@/components/WineTile";
 import type { WineRef } from "./types";
 
 export function SlotPickerModal({
-  wines, rackName, slotIndex, numCols, onPlace, onCancel,
+  wines, rackName, slotIndex, numCols, config, onPlace, onCancel,
 }: {
   wines: WineRef[];
   rackName: string;
   slotIndex: number;
   numCols: number;
+  config: RackConfig;
   onPlace: (wine: WineRef) => void;
   onCancel: () => void;
 }) {
@@ -21,7 +22,7 @@ export function SlotPickerModal({
 
   const rackRow = Math.floor(slotIndex / numCols);
   const rackCol = slotIndex % numCols;
-  const decoded = decodeSlot(rackName, rackRow, rackCol, 1);
+  const decoded = decodeSlot(config, rackRow, rackCol, 1);
   const posLabel = decoded ? slotLabel(decoded.start) : `Emplacement ${slotIndex + 1}`;
 
   const q = search.trim().toLowerCase();

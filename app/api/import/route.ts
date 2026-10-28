@@ -22,6 +22,32 @@ function normalizeImportedRecord(record: Record<string, unknown>) {
   };
 }
 
+type ImportedRackLevel = { id?: unknown; position?: unknown; front?: unknown; back?: unknown };
+
+/**
+ * Prépare un casier à recréer. Les exports antérieurs au design de cave n'ont
+ * pas d'étagères : on retombe alors sur la configuration historique 2 × (4 + 4).
+ */
+function rackCreateData(rack: Record<string, unknown>) {
+  const { levels, ...rackFields } = rack;
+  const cols = typeof rackFields.cols === "number" ? rackFields.cols : 4;
+  const importedLevels = Array.isArray(levels) ? (levels as ImportedRackLevel[]) : [];
+
+  const createLevels = importedLevels.length > 0
+    ? importedLevels.map((level, index) => ({
+        ...(typeof level.id === "string" ? { id: level.id } : {}),
+        position: typeof level.position === "number" ? level.position : index,
+        front: typeof level.front === "number" ? level.front : cols,
+        back: typeof level.back === "number" ? level.back : 0,
+      }))
+    : [
+        { position: 0, front: cols, back: cols },
+        { position: 1, front: cols, back: cols },
+      ];
+
+  return { ...rackFields, levels: { create: createLevels } };
+}
+
 export async function POST(req: NextRequest) {
   let data: ExportData;
   try {
@@ -45,7 +71,7 @@ export async function POST(req: NextRequest) {
 
       // Re-insert in dependency order
       for (const rack of data.racks ?? []) {
-        await tx.rack.create({ data: rack as Parameters<typeof tx.rack.create>[0]["data"] });
+        await tx.rack.create({ data: rackCreateData(rack) as Parameters<typeof tx.rack.create>[0]["data"] });
       }
       for (const wine of data.wines ?? []) {
         await tx.wine.create({ data: normalizeImportedRecord(wine) as Parameters<typeof tx.wine.create>[0]["data"] });

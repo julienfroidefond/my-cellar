@@ -38,7 +38,10 @@ export async function GET() {
       prisma.wine.findMany(),
       prisma.wineVintage.findMany(),
       prisma.wineVintageSlot.findMany(),
-      prisma.rack.findMany(),
+      prisma.rack.findMany({
+        include: { levels: { orderBy: { position: "asc" } } },
+        orderBy: { name: "asc" },
+      }),
       prisma.wineHistory.findMany(),
     ]),
     readImagesAsBase64(),

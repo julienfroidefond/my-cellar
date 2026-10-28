@@ -60,11 +60,26 @@ model WineVintageSlot {
 }
 
 model Rack {
-  id    String            @id @default(cuid())
-  name  String
-  rows  Int               @default(6)
-  cols  Int               @default(12)
-  slots WineVintageSlot[]
+  id     String            @id @default(cuid())
+  name   String
+  rows   Int               @default(6) // dérivé : nombre d'étagères (hauteur)
+  cols   Int               @default(12) // dérivé : largeur en bouteilles
+  levels RackLevel[]
+  slots  WineVintageSlot[]
+}
+
+/// Une étagère du casier. `front` = bouteilles en rangée avant,
+/// `back` = bouteilles en rangée arrière (profondeur).
+model RackLevel {
+  id       String @id @default(cuid())
+  rackId   String
+  position Int // 0 = étagère du haut
+  front    Int
+  back     Int    @default(0)
+
+  rack Rack @relation(fields: [rackId], references: [id], onDelete: Cascade)
+
+  @@unique([rackId, position])
 }
 
 model ApiToken {

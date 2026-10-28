@@ -50,11 +50,11 @@ Vitest runs two layers of tests (`npm run test`, `npm run test:watch`,
 ### Models
 
 - **Wine** — core entity with rack positioning fields (`rackId`, `rackRow`, `rackCol`), drink window (`drinkFrom`, `drinkUntil`), purchase/market prices, and optional image URL.
-- **Rack** — physical rack with name, rows, and cols. Wines FK to rack.
+- **Rack** — physical rack with a name and one **RackLevel** row per shelf (`position`, `front`, `back`). `rows`/`cols` are derived summaries (height, width). Wines FK to rack through slots.
 
 ### Rack slot system
 
-Physical positions are stored as `(rackId, rackRow, rackCol)` + `quantity`. The rack layout (front/back shelves per level) is defined statically in `lib/rack-configs.ts` as `RACK_CONFIGS`. `decodeSlot()` converts `(rackName, rackRow, rackCol, quantity)` into human-readable shelf/side/position labels.
+Physical positions are stored as `(rackId, rackRow, rackCol)` + `quantity`. The rack layout is stored in the database (`RackLevel`) and editable from the cave page (“Casiers”) or via `POST/PATCH/DELETE /api/racks`. Each shelf can have its own front/back width, so irregular racks (e.g. a half-depth top shelf) are preserved; the designer sends `{ name, layout: [{ front, back }, …] }`. Increasing/decreasing the height adds/removes shelves at the top, and existing bottles are remapped to their new coordinates (or returned to “à ranger” after confirmation when a shelf disappears). `decodeSlot(config, rackRow, rackCol, quantity)` converts a position into human-readable shelf/side/position labels; the cave plan and the 3D view both render the same config.
 
 ### Route structure
 
@@ -68,6 +68,7 @@ app/
   cave/
     page.tsx            # Cave overview
     CaveInteractive.tsx # Interactive rack grid
+    CellarDesigner.tsx  # Rack layout designer (per-shelf dimensions)
     ShelfLevel.tsx      # Single shelf row rendering
     SlotPickerModal.tsx # Modal to pick a slot when racking a wine
     WineDetailModal.tsx # Wine detail overlay on cave map
