@@ -20,6 +20,9 @@
 # production
 /build
 
+# images de bouteilles : servies depuis /public/wines, hors versionnement
+/public/wines
+
 # misc
 .DS_Store
 *.pem
