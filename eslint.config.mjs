@@ -14,6 +14,8 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Generated test-coverage reports are not source code.
     "coverage/**",
+    // Skills vendored for agents (scripts, assets) are not app source code.
+    ".agents/**",
   ]),
 ]);
 

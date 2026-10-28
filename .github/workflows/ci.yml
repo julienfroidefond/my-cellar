@@ -1,0 +1,46 @@
+name: CI
+
+# Lint + suite Vitest sur chaque push et pull request. Le build Docker reste
+# dans deploy.yml : ici on veut un retour rapide sur la qualité du code.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          # Same major as the production image (node:20-bookworm-slim).
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        # `--legacy-peer-deps` matches the Dockerfile.
+        run: npm ci --legacy-peer-deps
+
+      - name: Generate Prisma client
+        # app/generated/prisma is gitignored, so it must be rebuilt here.
+        run: npx prisma generate
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
