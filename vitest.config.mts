@@ -20,7 +20,14 @@ export default defineConfig({
   },
   test: {
     environment: "node",
-    include: ["lib/**/*.test.ts", "test/**/*.test.ts"],
+    include: [
+      "lib/**/*.test.ts",
+      "test/**/*.test.ts",
+      // Tests colocalisés : sans ces motifs, un test écrit à côté du code
+      // serait silencieusement ignoré.
+      "app/**/*.test.ts",
+      "components/**/*.test.ts",
+    ],
     globalSetup: ["./test/global-setup.ts"],
     setupFiles: ["./test/setup.ts"],
     // Les tests d'intégration partagent une même base SQLite : on les exécute en série.
@@ -34,8 +41,19 @@ export default defineConfig({
     },
     coverage: {
       provider: "v8",
-      include: ["lib/**/*.ts"],
+      // On mesure la logique serveur : modules métier, routes API et actions.
+      // Les composants React restent hors périmètre tant qu'il n'y a pas de
+      // harnais DOM (jsdom + Testing Library).
+      include: ["lib/**/*.ts", "app/api/**/route.ts", "app/actions/**/*.ts", "app/wines/**/actions.ts"],
       exclude: ["lib/**/*.test.ts"],
+      // Planchers mesurés sur la suite actuelle, avec une marge volontairement
+      // faible : une régression de couverture doit casser la CI.
+      thresholds: {
+        statements: 93,
+        branches: 80,
+        functions: 92,
+        lines: 94,
+      },
     },
   },
 });

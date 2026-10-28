@@ -43,4 +43,6 @@ jobs:
         run: npm run lint
 
       - name: Test
-        run: npm test
+        # Les seuils de couverture (vitest.config.mts) sont vérifiés ici :
+        # une régression de couverture fait échouer la CI.
+        run: npm run test:coverage
