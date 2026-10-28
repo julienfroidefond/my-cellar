@@ -5,10 +5,16 @@ const MAX_PAGES = 3;
 const PAGE_SIZE = 6;
 const MAX_TOTAL = MAX_PAGES * PAGE_SIZE; // 18
 
+/** Lit un entier de query string en retombant sur une valeur sûre. */
+function toInt(value: string | null, fallback: number) {
+  const parsed = Number.parseInt(value ?? "", 10);
+  return Number.isNaN(parsed) ? fallback : parsed;
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const skip = Math.max(0, parseInt(searchParams.get("skip") ?? "0"));
-  const take = Math.min(PAGE_SIZE, Math.max(1, parseInt(searchParams.get("take") ?? String(PAGE_SIZE))));
+  const skip = Math.max(0, toInt(searchParams.get("skip"), 0));
+  const take = Math.min(PAGE_SIZE, Math.max(1, toInt(searchParams.get("take"), PAGE_SIZE)));
 
   // Find vintages with a market price, ordered desc, include wine info
   const vintages = await prisma.wineVintage.findMany({
