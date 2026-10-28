@@ -7,7 +7,7 @@ import AddBottleButton from "./AddBottleButton";
 import DrinkButton from "./DrinkButton";
 import RemoveStockButton from "./RemoveStockButton";
 import EditVintagePriceButton from "./EditVintagePriceButton";
-import { decodeSlot } from "@/lib/rack-configs";
+import { configFromLevels, decodeSlot, defaultRackConfig } from "@/lib/rack-configs";
 import { estimateMaturity } from "@/lib/maturity";
 import { Stars } from "@/components/StarRating";
 import { PageHeader, SectionHeader } from "@/components/PageHeader";
@@ -16,7 +16,14 @@ import { MaturityTimeline } from "@/components/MaturityTimeline";
 import { removalReasonLabel } from "@/lib/history";
 import type { WineVintage } from "@/app/generated/prisma/client";
 
-type SlotInfo = { id: string; rackId: string; rackRow: number; rackCol: number; quantity: number; rack: { name: string } };
+type SlotInfo = {
+  id: string;
+  rackId: string;
+  rackRow: number;
+  rackCol: number;
+  quantity: number;
+  rack: { name: string; levels: { position: number; front: number; back: number }[] };
+};
 type VintageWithSlots = WineVintage & { slots: SlotInfo[] };
 
 type MaturityStatus = "optimal" | "trop-tôt" | "dépassé";
@@ -61,7 +68,10 @@ function VintageRow({ v, wine, wineName }: {
 
   const soldOut = v.quantity === 0;
   const slots = v.slots.flatMap((slot) => {
-    const decoded = decodeSlot(slot.rack.name, slot.rackRow, slot.rackCol, slot.quantity);
+    const config = slot.rack.levels.length > 0
+      ? configFromLevels(slot.rack.levels)
+      : defaultRackConfig();
+    const decoded = decodeSlot(config, slot.rackRow, slot.rackCol, slot.quantity);
     return decoded ? [{ slot, decoded }] : [];
   });
 
@@ -156,7 +166,14 @@ export default async function WineDetailPage({ params }: { params: Promise<{ id:
     where: { id },
     include: {
       vintages: {
-        include: { slots: { include: { rack: true }, orderBy: [{ rackRow: "asc" }, { rackCol: "asc" }] } },
+        include: {
+          slots: {
+            include: {
+              rack: { include: { levels: { orderBy: { position: "asc" } } } },
+            },
+            orderBy: [{ rackRow: "asc" }, { rackCol: "asc" }],
+          },
+        },
         orderBy: { vintage: "desc" },
       },
     },

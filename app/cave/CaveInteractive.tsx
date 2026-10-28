@@ -3,17 +3,18 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Box, Check, LayoutGrid, MapPin, Tag, X } from "lucide-react";
+import { Box, Check, LayoutGrid, MapPin, Pencil, Settings2, Tag, X } from "lucide-react";
 import { BottleSilhouette } from "@/components/WineTile";
 import { ShelfLevel } from "./ShelfLevel";
 import { WineDetailModal, type RemovalPayload } from "./WineDetailModal";
 import { SlotPickerModal } from "./SlotPickerModal";
 import { BOTTLE } from "./constants";
 import { Cave3D } from "./Cave3D";
+import { CellarDesigner } from "./CellarDesigner";
 
 // Re-export types so page.tsx can keep its current import path
 export type { WineRef, LevelConfig, RackConfig, RackData } from "./types";
-import type { WineRef, RackData } from "./types";
+import type { RackConfig, WineRef, RackData } from "./types";
 
 // ─── Slot map helpers ─────────────────────────────────────────────────────────
 
@@ -41,7 +42,7 @@ function buildLevels(slotMap: (WineRef | null)[], config: RackData["config"]) {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-type TargetSlot = { rackId: string; rackName: string; slotIndex: number; numCols: number };
+type TargetSlot = { rackId: string; rackName: string; slotIndex: number; numCols: number; config: RackConfig };
 
 export default function CaveInteractive({ racks, unracked }: { racks: RackData[]; unracked: WineRef[] }) {
   const router = useRouter();
@@ -54,6 +55,8 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
   const [showBack, setShowBack] = useState(true);
   const [view, setView] = useState<"plan" | "3d">("3d");
   const [targetSlot, setTargetSlot] = useState<TargetSlot | null>(null);
+  const [designOpen, setDesignOpen] = useState(false);
+  const [designTarget, setDesignTarget] = useState<string | null>(null);
 
   function refresh() { startTransition(() => router.refresh()); }
 
@@ -179,6 +182,15 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
               )}
             </div>
 
+            <button
+              type="button"
+              onClick={() => { setDesignTarget(null); setDesignOpen(true); }}
+              className="btn btn-secondary btn-sm"
+            >
+              <Settings2 />
+              Casiers
+            </button>
+
             <ul className="ml-auto hidden items-center gap-3 text-xs text-muted sm:flex" aria-label="Légende">
               {(["rouge", "blanc", "rosé"] as const).map((key) => (
                 <li key={key} className="flex items-center gap-1.5">
@@ -203,7 +215,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
               onSelect={(wine) => { setSelected(wine); setPending(null); }}
               onEmptyClick={(placing || unracked.length > 0) ? (rack, slotIndex) => {
                 if (placing) placeWine(placing, rack.id, slotIndex, rack.numCols);
-                else setTargetSlot({ rackId: rack.id, rackName: rack.name, slotIndex, numCols: rack.numCols });
+                else setTargetSlot({ rackId: rack.id, rackName: rack.name, slotIndex, numCols: rack.numCols, config: rack.config });
               } : null}
             />
           ) : (
@@ -224,7 +236,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
                         if (placing) {
                           placeWine(placing, rack.id, slotIndex, rack.numCols);
                         } else {
-                          setTargetSlot({ rackId: rack.id, rackName: rack.name, slotIndex, numCols: rack.numCols });
+                          setTargetSlot({ rackId: rack.id, rackName: rack.name, slotIndex, numCols: rack.numCols, config: rack.config });
                         }
                       }
                     : null;
@@ -249,6 +261,15 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
                         {filledSlots}
                         <span className="text-faint"> / {totalSlots}</span>
                       </span>
+                      <button
+                        type="button"
+                        onClick={() => { setDesignTarget(rack.id); setDesignOpen(true); }}
+                        className="btn btn-ghost btn-icon -my-1 -mr-1 shrink-0"
+                        aria-label={`Modifier le casier ${rack.name}`}
+                        title={`Modifier le casier ${rack.name}`}
+                      >
+                        <Pencil />
+                      </button>
                     </header>
 
                     <div className="space-y-2 p-3 sm:p-4">
@@ -355,8 +376,18 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
           rackName={targetSlot.rackName}
           slotIndex={targetSlot.slotIndex}
           numCols={targetSlot.numCols}
+          config={targetSlot.config}
           onPlace={(wine) => placeWine(wine, targetSlot.rackId, targetSlot.slotIndex, targetSlot.numCols)}
           onCancel={() => setTargetSlot(null)}
+        />
+      )}
+
+      {designOpen && (
+        <CellarDesigner
+          racks={racks}
+          initialRackId={designTarget ?? undefined}
+          onClose={() => { setDesignOpen(false); setDesignTarget(null); }}
+          onChanged={refresh}
         />
       )}
     </div>

@@ -2,56 +2,13 @@ export const dynamic = 'force-dynamic';
 
 import { prisma } from "@/lib/db";
 import { PageHeader } from "@/components/PageHeader";
-import CaveInteractive, { type RackData, type RackConfig } from "./CaveInteractive";
-
-// ─── Rack configs ─────────────────────────────────────────────────────────────
-// levels: top → bottom  |  front = colonnes P1  |  back = colonnes P2
-
-const RACK_CONFIGS: Record<string, RackConfig> = {
-  "1A": {
-    levels: [
-      { front: 4, back: 0 },
-      { front: 4, back: 4 },
-    ],
-  },
-  "2A": {
-    levels: [
-      { front: 4, back: 4 },
-      { front: 4, back: 4 },
-      { front: 4, back: 4 },
-    ],
-  },
-  "3A": {
-    levels: [
-      { front: 4, back: 4 },
-      { front: 4, back: 4 },
-      { front: 4, back: 4 },
-    ],
-  },
-  "4A": {
-    levels: [
-      { front: 4, back: 4 },
-      { front: 4, back: 4 },
-      { front: 4, back: 4 },
-    ],
-  },
-  "5A": {
-    levels: [
-      { front: 6, back: 0 },
-      { front: 6, back: 0 },
-      { front: 6, back: 0 },
-      { front: 6, back: 0 },
-    ],
-  },
-};
-
-function numColsForConfig(config: RackConfig): number {
-  return Math.max(...config.levels.map((l) => Math.max(l.front, l.back)));
-}
-
-function defaultConfig(): RackConfig {
-  return { levels: [{ front: 4, back: 4 }, { front: 4, back: 4 }] };
-}
+import {
+  capacityForConfig,
+  configFromLevels,
+  defaultRackConfig,
+  numColsForConfig,
+} from "@/lib/rack-configs";
+import CaveInteractive, { type RackData } from "./CaveInteractive";
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
@@ -59,6 +16,7 @@ export default async function CavePage() {
   const [allRacks, allVintages] = await Promise.all([
     prisma.rack.findMany({
       include: {
+        levels: { orderBy: { position: "asc" } },
         slots: {
           include: { vintage: { include: { wine: true } } },
           orderBy: [{ rackRow: "asc" }, { rackCol: "asc" }],
@@ -89,14 +47,18 @@ export default async function CavePage() {
     .reduce((s, slot) => s + slot.quantity, 0);
 
   const totalCapacity = allRacks.reduce((sum, rack) => {
-    const config = RACK_CONFIGS[rack.name] ?? defaultConfig();
-    return sum + config.levels.reduce((s, l) => s + l.front + l.back, 0);
+    const config = rack.levels.length > 0
+      ? configFromLevels(rack.levels)
+      : defaultRackConfig();
+    return sum + capacityForConfig(config);
   }, 0);
   const occupancyPct = totalCapacity > 0 ? Math.round((totalBottles / totalCapacity) * 100) : 0;
   const unrackedCount = unrackedVintages.reduce((s, v) => s + (v.quantity - rackedTotal(v)), 0);
 
   const racks: RackData[] = allRacks.map((rack) => {
-    const config = RACK_CONFIGS[rack.name] ?? defaultConfig();
+    const config = rack.levels.length > 0
+      ? configFromLevels(rack.levels)
+      : defaultRackConfig();
     return {
       id: rack.id,
       name: rack.name,

@@ -175,7 +175,18 @@ async function main() {
   await prisma.rack.upsert({
     where: { id: "default-rack" },
     update: {},
-    create: { id: "default-rack", name: "Cave principale", rows: 8, cols: 12 },
+    create: {
+      id: "default-rack",
+      name: "Cave principale",
+      rows: 2,
+      cols: 4,
+      levels: {
+        create: [
+          { position: 0, front: 4, back: 4 },
+          { position: 1, front: 4, back: 4 },
+        ],
+      },
+    },
   });
 
   let created = 0;
