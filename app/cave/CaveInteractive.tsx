@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import type { CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Box, Check, LayoutGrid, MapPin, Pencil, Settings2, Tag, X } from "lucide-react";
+import { Box, Check, LayoutGrid, MapPin, Move3d, Pencil, Settings2, Tag, X } from "lucide-react";
 import { BottleSilhouette } from "@/components/WineTile";
 import { ShelfLevel } from "./ShelfLevel";
 import { WineDetailModal, type RemovalPayload } from "./WineDetailModal";
 import { SlotPickerModal } from "./SlotPickerModal";
-import { BOTTLE } from "./constants";
+import { BOTTLE, DEPTH_DEFAULT, DEPTH_MAX, DEPTH_MIN } from "./constants";
 import { Cave3D } from "./Cave3D";
 import { CellarDesigner } from "./CellarDesigner";
 
@@ -53,6 +54,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
   const [showLabels, setShowLabels] = useState(false);
   const [showFront, setShowFront] = useState(true);
   const [showBack, setShowBack] = useState(true);
+  const [depth, setDepth] = useState(DEPTH_DEFAULT);
   const [view, setView] = useState<"plan" | "3d">("3d");
   const [targetSlot, setTargetSlot] = useState<TargetSlot | null>(null);
   const [designOpen, setDesignOpen] = useState(false);
@@ -182,6 +184,31 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
               )}
             </div>
 
+            {view === "3d" && (
+              <label
+                className="depth-range"
+                title="Écart entre la profondeur avant et la profondeur arrière"
+              >
+                <Move3d aria-hidden="true" />
+                <span className="hidden sm:inline">Écart</span>
+                <input
+                  type="range"
+                  min={DEPTH_MIN}
+                  max={DEPTH_MAX}
+                  step={0.01}
+                  value={depth}
+                  onChange={(event) => setDepth(Number(event.target.value))}
+                  aria-label="Écart entre la profondeur avant et la profondeur arrière"
+                  aria-valuetext={`${Math.round((depth / DEPTH_DEFAULT) * 100)} %`}
+                  className="range"
+                  style={{ "--range-progress": `${((depth - DEPTH_MIN) / (DEPTH_MAX - DEPTH_MIN)) * 100}%` } as CSSProperties}
+                />
+                <span className="tabular w-9 text-right text-[0.75rem]">
+                  {Math.round((depth / DEPTH_DEFAULT) * 100)} %
+                </span>
+              </label>
+            )}
+
             <button
               type="button"
               onClick={() => { setDesignTarget(null); setDesignOpen(true); }}
@@ -212,6 +239,7 @@ export default function CaveInteractive({ racks, unracked }: { racks: RackData[]
               selectedId={selected?.id ?? null}
               showFront={showFront}
               showBack={showBack}
+              depth={depth}
               onSelect={(wine) => { setSelected(wine); setPending(null); }}
               onEmptyClick={(placing || unracked.length > 0) ? (rack, slotIndex) => {
                 if (placing) placeWine(placing, rack.id, slotIndex, rack.numCols);
