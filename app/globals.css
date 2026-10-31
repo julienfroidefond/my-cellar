@@ -571,6 +571,83 @@ p {
   }
 }
 
+/* Réglage de l'écart entre les profondeurs (vue 3D) */
+@utility depth-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 2.125rem;
+  padding-inline: 0.75rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  & svg {
+    width: 0.875rem;
+    height: 0.875rem;
+    flex-shrink: 0;
+    color: var(--text-faint);
+  }
+}
+
+/* Curseur natif restylé : piste fine + pouce vin */
+@utility range {
+  appearance: none;
+  width: 6.5rem;
+  height: 1.25rem;
+  background: transparent;
+  cursor: pointer;
+  &::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      var(--wine-red) 0 var(--range-progress, 50%),
+      var(--border-strong) var(--range-progress, 50%) 100%
+    );
+  }
+  &::-webkit-slider-thumb {
+    appearance: none;
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-top: -5px;
+    border-radius: 999px;
+    border: 2px solid var(--surface);
+    background: var(--wine-red);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 150ms ease;
+  }
+  &::-moz-range-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border-strong);
+  }
+  &::-moz-range-progress {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--wine-red);
+  }
+  &::-moz-range-thumb {
+    width: 0.875rem;
+    height: 0.875rem;
+    border: 2px solid var(--surface);
+    border-radius: 999px;
+    background: var(--wine-red);
+    box-shadow: var(--shadow-sm);
+  }
+  &:focus-visible {
+    outline: none;
+  }
+  &:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 3px var(--wine-tint-strong);
+  }
+  &:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 3px var(--wine-tint-strong);
+  }
+}
+
 /* ── Fenêtres modales et feuilles ────────────────────────────────────────── */
 
 @utility overlay {
