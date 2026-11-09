@@ -10,6 +10,11 @@ on:
   push:
     branches:
       - main
+  # Rebuild every week even without code changes: the base image is mutable and
+  # picks up Debian/Node security patches, and newly disclosed CVEs are caught
+  # by the Trivy gate below.
+  schedule:
+    - cron: "0 5 * * 1"
   workflow_dispatch:
 
 env:
@@ -48,6 +53,7 @@ jobs:
           # (first push / force-push).
           build=true
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] \
+            || [ "${{ github.event_name }}" = "schedule" ] \
             || ! git rev-parse --verify --quiet HEAD~1 >/dev/null; then
             build=true
           else
@@ -90,12 +96,30 @@ jobs:
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE }}:buildcache
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE }}:buildcache,mode=max
 
+      - name: Pull image for the CVE scan
+        if: steps.detect.outputs.deploy == 'true'
+        run: docker pull "${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE }}:${{ env.VERSION }}-${{ env.SHA }}"
+
+      - name: Scan image for vulnerabilities
+        if: steps.detect.outputs.deploy == 'true'
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ env.IMAGE }}:${{ env.VERSION }}-${{ env.SHA }}
+          format: table
+          scanners: vuln
+          # Only block on CRITICAL CVEs that actually have a fix: Debian ships
+          # many HIGH "won't fix" advisories that are not actionable here.
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
   # Runs on the Mac mini (self-hosted runner, OrbStack). Pulls the image that
   # was just pushed and restarts the my-cellar stack from the local
   # docker-stack checkout. The image is public, so no registry login is needed.
   #
   # Guarded on the repository so a fork can never reach the self-hosted runner,
-  # and only reachable from a push to main / a manual dispatch.
+  # and only reachable from a push to main, the weekly schedule or a manual
+  # dispatch.
   deploy:
     name: Deploy to Mac mini
     needs: build-and-push
