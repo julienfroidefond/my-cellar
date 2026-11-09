@@ -5,6 +5,6 @@ set -e
 mkdir -p /app/public/wines
 
 echo "Running database migrations..."
-npx prisma migrate deploy
+./node_modules/.bin/prisma migrate deploy
 
 exec "$@"
