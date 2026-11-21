@@ -5,14 +5,10 @@ WORKDIR /app
 # Build tools required for better-sqlite3 native module
 RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
 
-COPY package*.json ./
-# `nodedir` lets better-sqlite3 compile against the image's Node headers.
-# `onnxruntime-node` (pulled by @imgly/background-removal-node) otherwise tries
-# to download the CUDA binaries from a GitHub release asset that now 404s; the
-# container has no GPU, and the CPU binaries are bundled in the package.
-RUN npm_config_nodedir=/usr/local \
-    npm_config_onnxruntime_node_install_cuda=skip \
-    npm ci --legacy-peer-deps
+COPY package*.json .npmrc ./
+# The CUDA download of onnxruntime-node is disabled in .npmrc; `nodedir` lets
+# better-sqlite3 compile against the image's Node headers.
+RUN npm_config_nodedir=/usr/local npm ci --legacy-peer-deps
 
 COPY prisma ./prisma/
 COPY prisma.config.ts ./
