@@ -1,6 +1,6 @@
 # Node 24 is the current Active LTS (Node 20 reached end-of-life in April 2026:
 # no more security updates from the official image).
-FROM node:24-bookworm-slim AS builder
+FROM node:26-bookworm-slim AS builder
 WORKDIR /app
 
 # Build tools required for better-sqlite3 native module
@@ -22,7 +22,7 @@ RUN npm run build
 RUN npm prune --omit=dev
 
 # ── Runner ────────────────────────────────────────────────────────────────────
-FROM node:24-bookworm-slim AS runner
+FROM node:26-bookworm-slim AS runner
 WORKDIR /app
 
 # Prisma's schema engine probes the system OpenSSL to select its binary, and
